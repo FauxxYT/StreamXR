@@ -6,6 +6,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.78.9
+
+### Changed
+- The popup's "No VR headset found" message includes the Steam Frame's step: Streaming Status →
+  your PC → Advanced → **Stream VR without game** (English and Spanish; the Frame's menu names are
+  left in English).
+
+### Documentation
+- The README's **Get started** says how to get the Steam Frame ready: with SteamVR running,
+  **Streaming Status** → your PC → **Advanced** → **Stream VR without game**, then open Chrome.
+  Also in the troubleshooting table, the "What you need" table, the question issue form and
+  `docs/hardware.md`.
+
 ## 0.78.8
 
 ### Fixed

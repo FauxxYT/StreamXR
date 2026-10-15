@@ -44,7 +44,7 @@
     'popup.frameFailed': 'Couldn’t capture the frame: {error}',
     'popup.noResponse': 'The extension’s page script didn’t respond. Reload this tab after reloading the extension.',
     'popup.blocked': '{site} is blocking WebXR on this page. Reload the tab once; if it stays, send me the Details.',
-    'popup.noHeadset': 'No VR headset found. Chrome only looks for one when it starts: connect your headset and start SteamVR, then close every Chrome window and open Chrome again.',
+    'popup.noHeadset': 'No VR headset found. Chrome only looks for one when it starts: start SteamVR and connect your headset (Steam Frame: Streaming Status → your PC → Advanced → Stream VR without game), then close every Chrome window and open Chrome again.',
     'popup.stopped': 'VR stopped.',
     'popup.thisSite': 'This site',
     'popup.passthrough': 'See your room (passthrough)',

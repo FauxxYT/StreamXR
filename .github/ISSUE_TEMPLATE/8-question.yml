@@ -8,7 +8,9 @@ body:
       value: |
         Before asking, check the README's **Get started** and **Controls**, and
         `docs/known-issues.md`. The most common problems:
-        - "No VR headset found": start SteamVR **before** the browser, then reload the page.
+        - "No VR headset found": start SteamVR **before** the browser (on the Steam Frame:
+          Streaming Status → your PC → Advanced → **Stream VR without game**), then close
+          every Chrome window and open Chrome again.
         - Skip ad says "Skip on desktop": the optional Skip Helper extension isn't installed
           (README, "Skip Helper").
         - A video looks wrong: try another format in the Format menu.

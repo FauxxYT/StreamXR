@@ -37,7 +37,7 @@
     'popup.frameFailed': 'No se pudo capturar el fotograma: {error}',
     'popup.noResponse': 'El script de la página de la extensión no respondió. Recarga esta pestaña después de recargar la extensión.',
     'popup.blocked': '{site} bloquea WebXR en esta página. Recarga la pestaña una vez; si sigue igual, envíame los Detalles.',
-    'popup.noHeadset': 'No se encontró ningún visor de VR. Chrome solo lo busca al abrirse: conecta el visor e inicia SteamVR, luego cierra todas las ventanas de Chrome y vuelve a abrirlo.',
+    'popup.noHeadset': 'No se encontró ningún visor de VR. Chrome solo lo busca al abrirse: inicia SteamVR y conecta el visor (Steam Frame: Streaming Status → tu PC → Advanced → Stream VR without game), luego cierra todas las ventanas de Chrome y vuelve a abrirlo.',
     'popup.stopped': 'La VR se detuvo.',
     'popup.thisSite': 'Este sitio',
     'popup.passthrough': 'Ver tu habitación (passthrough)',

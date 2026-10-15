@@ -7,6 +7,9 @@ Steam Frame with SteamVR, desktop Chrome). For supporting other hardware, see th
 ## Steam Frame
 
 - **Start SteamVR before Chrome:** Chromium only looks for a headset when it launches.
+- **Streaming with no game:** the Frame is ready for WebXR once it streams SteamVR itself: in
+  the headset, **Streaming Status** → the PC running SteamVR → **Advanced** → **Stream VR
+  without game**.
 - The controllers reach Chrome as **`oculus-touch`** (7 buttons, 4 axes), not as a Steam
   Frame profile:
   - Right controller: A reports as **button 4** (play / pause); B, X and Y all report as

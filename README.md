@@ -180,7 +180,7 @@ The full design story is in [docs/Materials-Redesign.md](docs/Materials-Redesign
 | 🖥️ **Computer** | **Windows 10 / 11** | Tested on Windows 11. macOS and Linux aren't supported (Chrome's WebXR needs Windows + SteamVR). |
 | 🌐 **Browser** | **Google Chrome** | Tested. Other Chromium browsers (Edge, Brave) should work but haven't been tried. Firefox can't yet: desktop Firefox has no WebXR (a 🦊 Firefox version will come once it does). |
 | 🥽 **Headset** | **Valve Steam Frame** | Tested and tuned for it, controller models and all. Other SteamVR headsets may well play video, but they're untested and their buttons may be mapped differently ([help add yours](#-adding-a-headset)). |
-| 🎮 **VR software** | **SteamVR** | Running **before** you open Chrome, and set as your OpenXR runtime. |
+| 🎮 **VR software** | **SteamVR** | Running **before** you open Chrome, and set as your OpenXR runtime. On the Steam Frame, stream it with **Stream VR without game** ([how](#-get-started-in-a-minute)). |
 | 📺 **Site** | **YouTube** | Signed in or out. With YouTube Premium, even better (no ads). |
 | 🧩 **Optional** | **Skip Helper** | A tiny second extension that lets you skip ads from inside VR ([why it's separate](#-skipping-ads)). |
 
@@ -193,9 +193,13 @@ The full design story is in [docs/Materials-Redesign.md](docs/Materials-Redesign
    **Load unpacked** and pick the unzipped folder (the one with `manifest.json` inside).
    Want to skip ads in VR? Load its `skip-helper` folder the same way
    ([what it is](#-skipping-ads)).
-3. **Start SteamVR first**, then open Chrome. ⚠️ Chrome only looks for a headset when it
-   starts: if SteamVR wasn't running yet, close every Chrome window and open it again.
-4. **Click the 🥽 VR button** on YouTube: in the top bar next to **+ Create** (on any page),
+3. **Start SteamVR** on your PC.
+4. **Get the Steam Frame streaming:** in the headset, go to **Streaming Status**, find the PC
+   that's running SteamVR, open the **Advanced** drop-down and pick **Stream VR without
+   game**. Now the Frame is ready for StreamXR.
+5. **Then open Chrome.** ⚠️ Chrome only looks for a headset when it starts: if SteamVR
+   wasn't running yet, close every Chrome window and open it again.
+6. **Click the 🥽 VR button** on YouTube: in the top bar next to **+ Create** (on any page),
    or in a video's player. Then press **Enter VR**. That's it!
 
 No video playing yet? No problem: you'll see YouTube's logo on the big screen; pick
@@ -210,7 +214,7 @@ automatic.)
 
 | If... | Try this |
 |---|---|
-| 🚫 **"No VR headset found"** / Enter VR is greyed out | Chrome only looks for a headset when it starts. Connect the headset, start **SteamVR**, then close **every** Chrome window and open Chrome again. |
+| 🚫 **"No VR headset found"** / Enter VR is greyed out | Chrome only looks for a headset when it starts. Start **SteamVR**, get the Steam Frame streaming (**Streaming Status** → your PC → **Advanced** → **Stream VR without game**), then close **every** Chrome window and open Chrome again. |
 | 🔍 **No VR button on YouTube** | Make sure StreamXR is turned on in `chrome://extensions`, then reload the YouTube tab. |
 | 🔄 **Just updated StreamXR and nothing changed** | Reload your YouTube tab too: an open tab keeps the old version until it's reloaded. |
 | 🌀 **A video looks stretched, doubled or split into squares** | Pick another format in the popup before entering VR, or with the **Format** button on the controls panel. |
