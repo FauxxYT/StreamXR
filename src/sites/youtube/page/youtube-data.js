@@ -43,12 +43,12 @@
 
   // Re-read at most every `ms`; reset() forces a fresh read (after we click something).
   // The panel asks for these values every frame, so reading the page that often would be
-  // wasteful. If `fn` throws, the cached value becomes `fn.fallback` (set it on the function).
-  function cached(fn, ms) {
+  // wasteful. If `fn` throws, the cached value becomes `fallback` (until the next read).
+  function cached(fn, ms, fallback) {
     let at = -Infinity, val;
     const get = () => {
       const now = performance.now();
-      if (now - at > ms) { try { val = fn(); } catch (_) { val = fn.fallback; } at = now; }
+      if (now - at > ms) { try { val = fn(); } catch (_) { val = fallback; } at = now; }
       return val;
     };
     get.reset = () => { at = -Infinity; };

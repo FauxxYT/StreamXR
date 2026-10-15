@@ -6,6 +6,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.78.8
+
+### Fixed
+- When reading something from YouTube's page fails (e.g. after a YouTube update), the controls
+  panel's chapters, "Most replayed" graph, audio tracks, ad, description, playlist and live state
+  fall back to "none" as intended, instead of a missing value that could break the seek bar or
+  Settings. (`youtubeData.cached(fn, ms, fallback)` now takes the fallback as an argument; the
+  provider was setting it where `cached()` never looked.)
+
 ## 0.78.7
 
 ### Fixed

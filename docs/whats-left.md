@@ -2,7 +2,7 @@
 
 One list of what's still open, gathered from the feature backlogs (`docs/features/`) and
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
-Last updated for 0.78.7.
+Last updated for 0.78.8.
 
 ## Top priority: before the first release
 
@@ -95,8 +95,3 @@ allow protected video in desktop XR.
 
 - Signed-in Home feeds other than the main one.
 - The Captions button greyed out on a video with no captions.
-
-## Code
-
-- The provider's cached reads ignore their fallbacks (`provider.js`: `.fallback` set on the
-  getter `cached()` returns): offered as a separate task in 0.77.0.

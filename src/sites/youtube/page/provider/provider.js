@@ -38,7 +38,7 @@
   'use strict';
 
   const { youtube, youtubePage: page } = ns;
-  const cached = (fn, ms) => ns.youtubeData.cached(fn, ms);
+  const cached = (fn, ms, fallback) => ns.youtubeData.cached(fn, ms, fallback);
   const tr = (key, vars) => ns.i18n.t(key, vars);   // words in the interface language (strings-en.js)
   // Is a video playing: are we on a watch page? (Elsewhere VR shows the logo, and YouTube's
   // leftover player is left alone.)
@@ -117,8 +117,7 @@
   function session() {
     // Ads: Skip ad in VR needs the optional Skip Helper extension; checked at the start and
     // at every ad (it may get installed meanwhile).
-    const adNow = cached(() => youtube.ad(), 200);
-    adNow.fallback = null;
+    const adNow = cached(() => youtube.ad(), 200, null);
     let skipHelper = false, adSeen = false;
     const checkSkipHelper = () => youtube.skipHelperInstalled().then(v => { skipHelper = v; }, () => {});
     checkSkipHelper();
@@ -131,15 +130,12 @@
     }
 
     // Settings: the player's Loop and Autoplay switches, and the audio tracks (re-read once a second).
-    const audioTracks = cached(() => youtube.audioTracks(), 1000);
-    audioTracks.fallback = [];
+    const audioTracks = cached(() => youtube.audioTracks(), 1000, []);
     // Chapter marks for the seek bar (re-read every 2 s; they change with the video).
-    const chapters = cached(() => ns.youtubeContent.chapters(), 2000);
-    chapters.fallback = [];
+    const chapters = cached(() => ns.youtubeContent.chapters(), 2000, []);
     // "Most replayed" for the seek bar's graph (re-read every second: it arrives a moment
     // after a video opens).
-    const heatmap = cached(() => ns.youtubeContent.mostReplayed(), 1000);
-    heatmap.fallback = [];
+    const heatmap = cached(() => ns.youtubeContent.mostReplayed(), 1000, []);
     // For the Description panel (re-read every 2 s): { id (video), header ("6,254,731
     // views · Oct 8, 2026"), text and links (the description without its chapter list),
     // hasTranscript, commentsOn, commentCount ("7.4K") }.
@@ -151,8 +147,7 @@
       const ci = ns.youtubeContent.commentsInfo();
       return { id: m.id, header, text: d.text, links: d.links, hasTranscript: ns.youtubeContent.hasTranscript(),
         commentsOn: ci.on, commentCount: ci.count };
-    }, 2000);
-    description.fallback = null;
+    }, 2000, null);
 
     // The playlist being played, if any: { index, count, title, id, currentId, items,
     // prev, next, offset, windowLength } (re-read twice a second). For a long playlist the
@@ -215,8 +210,7 @@
       return { index, count, title: plMemo.title, id: listId || '', currentId: pos.ids[pos.index], items,
         offset, windowLength: pos.ids.length,
         prev: card(idAt(index - 1)), next: card(idAt(index + 1)) };
-    }, 500);
-    playlist.fallback = null;
+    }, 500, null);
     // Play the video at a position in the whole playlist: inside the player's window with the
     // player itself (stays in the list), else by opening it at that position.
     function playlistAt(i) {
@@ -229,8 +223,7 @@
     // A live stream, if one is playing: youtube.live() (null otherwise; re-read 4 times a
     // second). The seek bar then covers the rewindable part (time 0 = its start, duration =
     // its length) and the time shows the LIVE label (`liveLabel`).
-    const liveNow = cached(() => { const l = youtube.live(); return l.isLive ? l : null; }, 250);
-    liveNow.fallback = null;
+    const liveNow = cached(() => { const l = youtube.live(); return l.isLive ? l : null; }, 250, null);
     const LIVE_SLACK = 12;          // seconds behind the live moment that still count as live
     // How far behind live: the larger of (a) the gap to the rewindable end and (b) the
     // broadcast delay (now - ingestion) beyond its smallest value seen for this video (the

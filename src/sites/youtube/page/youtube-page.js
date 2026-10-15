@@ -112,8 +112,7 @@
     lists.forEach(({ it, at }, k) => out.splice(Math.min(out.length, at + k), 0, it));   // + k: earlier insertions
     return out;
   }
-  readRecommendations.fallback = [];
-  const recommendations = cached(readRecommendations, 2000);
+  const recommendations = cached(readRecommendations, 2000, []);
 
   // Playlists / mixes YouTube suggests in Up next: [{ type:'playlist', playlistId, id (first
   // video), title, channel, videoCount, thumb, ... }].
@@ -249,8 +248,7 @@
       likes: /\d/.test(likes) ? likes : '',
     };
   }
-  readDetails.fallback = {};
-  const details = cached(readDetails, 1000);
+  const details = cached(readDetails, 1000, {});
 
   // Subscription changes made through YouTube's API (youtube-subscriptions.js) don't update
   // the page's own Subscribe button, so the confirmed result is remembered per channel id

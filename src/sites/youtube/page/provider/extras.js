@@ -19,9 +19,8 @@
 
   function create() {
     // Captions: the tracks and the one showing (re-read twice a second).
-    const readCaptions = () => youtube.captions();
-    readCaptions.fallback = { on: false, tracks: [], current: null };   // (cached() answers this if reading throws)
-    const captions = ns.youtubeData.cached(readCaptions, 500);
+    // If reading throws: captions off, no tracks.
+    const captions = ns.youtubeData.cached(() => youtube.captions(), 500, { on: false, tracks: [], current: null });
     // A track is the current one when its language and kind (auto-generated or not) match.
     const same = (t, c) => !!c && t.languageCode === c.languageCode && !!t.auto === !!c.auto;
 
