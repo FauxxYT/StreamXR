@@ -1,0 +1,17 @@
+# Dependabot version updates. StreamXR has no package manager (no npm, no build step), so the
+# only dependencies GitHub can track are the Actions the workflows use (actions/checkout,
+# actions/setup-node, actions/github-script). Once a month Dependabot checks them and opens
+# one pull request against `develop` (the working branch; `main` only takes merges from it).
+# The vendored library in third_party/ isn't tracked: update it by hand (its header says how).
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "develop"
+    schedule:
+      interval: "monthly"
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "Update GitHub Actions"
