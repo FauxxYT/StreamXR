@@ -1,0 +1,135 @@
+# Fills the "Automatic summary" section of every pull request's description (between the
+# pr-summary markers the template puts there; added at the end if they were removed) with
+# what GitHub already knows: the linked issue, the branch and author, the commit history,
+# the changed files, and checks of the repo's rules (version bump, CHANGELOG, manifest,
+# generated files, the shell naming a site). Runs on every push to the pull request.
+#
+# Safety: it runs on `pull_request_target` so it can write to pull requests from forks, and
+# for that reason it never checks out or runs the pull request's code. It only reads
+# metadata and file contents through the GitHub API and writes the description.
+# (Edits made with the workflow's own token don't trigger it again.)
+name: Pull request summary
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, edited, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: pr-summary-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  summary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const { owner, repo } = context.repo;
+            const START = '<!-- pr-summary:start -->', END = '<!-- pr-summary:end -->';
+            const ok = '✅', warn = '⚠️', info = 'ℹ️';
+            const lines = [];
+
+            // ---- what GitHub knows
+            const commits = await github.paginate(github.rest.pulls.listCommits, { owner, repo, pull_number: pr.number, per_page: 100 });
+            const files = await github.paginate(github.rest.pulls.listFiles, { owner, repo, pull_number: pr.number, per_page: 100 });
+            let issues = [];
+            try {
+              const q = await github.graphql(`query($owner: String!, $repo: String!, $n: Int!) {
+                repository(owner: $owner, name: $repo) { pullRequest(number: $n) {
+                  closingIssuesReferences(first: 10) { nodes { number title } } } } }`, { owner, repo, n: pr.number });
+              issues = q.repository.pullRequest.closingIssuesReferences.nodes;
+            } catch (e) { core.warning(`linked issues unavailable: ${e.message}`); }
+            // A file's text at a commit (the PR's head commit is readable from the base repo), or null.
+            async function fileAt(path, ref) {
+              try {
+                const r = await github.rest.repos.getContent({ owner, repo, path, ref });
+                return Buffer.from(r.data.content, 'base64').toString('utf8');
+              } catch (_) { return null; }
+            }
+
+            // ---- overview
+            const adds = files.reduce((n, f) => n + f.additions, 0), dels = files.reduce((n, f) => n + f.deletions, 0);
+            lines.push(`**${pr.user.login}** wants to merge \`${pr.head.label}\` into \`${pr.base.ref}\`: ` +
+              `${commits.length} commit${commits.length === 1 ? '' : 's'}, ${files.length} file${files.length === 1 ? '' : 's'} (+${adds} −${dels}).`);
+            lines.push('');
+            lines.push(issues.length
+              ? `- ${ok} Linked issue${issues.length > 1 ? 's' : ''}: ${issues.map(i => `#${i.number} ${i.title}`).join('; ')}`
+              : `- ${warn} No linked issue: add \`Closes #<issue>\` under "What and why" (an agreed issue is required).`);
+
+            // ---- the repo's rules, checked from the changed files
+            const names = files.map(f => f.filename);
+            const changed = p => names.some(n => n === p || n.startsWith(p));
+            const codeChanged = changed('src/') || changed('manifest.json') || changed('skip-helper/');
+            if (codeChanged) {
+              const before = JSON.parse(await fileAt('manifest.json', pr.base.sha) || '{}').version;
+              const after = JSON.parse(await fileAt('manifest.json', pr.head.sha) || '{}').version;
+              lines.push(before !== after
+                ? `- ${ok} Version: ${before} → ${after}`
+                : `- ${warn} Version not bumped (still ${before}): bump \`version\` in \`manifest.json\`.`);
+              lines.push(changed('CHANGELOG.md') ? `- ${ok} \`CHANGELOG.md\` updated` : `- ${warn} \`CHANGELOG.md\` not updated.`);
+            }
+            // New, removed or renamed source files: the manifest and maybe ARCHITECTURE.md.
+            const moved = files.filter(f => f.filename.startsWith('src/') && ['added', 'removed', 'renamed'].includes(f.status));
+            if (moved.length) {
+              const manifest = await fileAt('manifest.json', pr.head.sha) || '';
+              const missing = moved.filter(f => f.status !== 'removed' && /\.(js|css)$/.test(f.filename) && !manifest.includes(`"${f.filename}"`));
+              lines.push(missing.length
+                ? `- ${warn} Not listed in \`manifest.json\`: ${missing.map(f => `\`${f.filename}\``).join(', ')}`
+                : `- ${ok} Every source file is listed in \`manifest.json\``);
+              lines.push(changed('ARCHITECTURE.md')
+                ? `- ${ok} \`ARCHITECTURE.md\` updated`
+                : `- ${info} Files were added, removed or renamed: update \`ARCHITECTURE.md\` if the structure changed.`);
+            }
+            // Each shared/ folder and its generated copies go together (tools/sync-shared.js).
+            for (const part of ['src/core', 'src/streamxr']) {
+              if (changed(`${part}/shared/`) && !changed(`${part}/ui/shared/`))
+                lines.push(`- ${warn} \`${part}/shared/\` changed but its copies didn't: run \`node tools/sync-shared.js\`.`);
+              if (changed(`${part}/ui/shared/`) && !changed(`${part}/shared/`))
+                lines.push(`- ${warn} \`${part}/ui/shared/\` is generated: edit \`${part}/shared/\` and run \`node tools/sync-shared.js\`.`);
+            }
+            if (changed('src/core/page/controllers/models.js') && !changed('tools/controller-models/'))
+              lines.push(`- ${warn} \`models.js\` is generated by \`tools/controller-models/\`: don't edit it by hand.`);
+            // The shell must not name a site: added lines in src/core/ or src/streamxr/ that mention YouTube.
+            const named = files.filter(f => /^src\/(core|streamxr)\//.test(f.filename) && !/^src\/(core|streamxr)\/ui\/shared\//.test(f.filename) &&
+              (f.patch || '').split('\n').some(l => l.startsWith('+') && /youtube|ytimg|ytp-|ytd-/i.test(l)));
+            if (named.length)
+              lines.push(`- ${warn} The shell should name no site, but added lines mention YouTube in: ${named.map(f => `\`${f.filename}\``).join(', ')} (fine in comments giving an example; otherwise move it to the provider).`);
+            if (changed('manifest.json')) {
+              const perms = t => { const m = JSON.parse(t || '{}'); return JSON.stringify([m.permissions || [], m.host_permissions || [], m.optional_permissions || []]); };
+              if (perms(await fileAt('manifest.json', pr.base.sha)) !== perms(await fileAt('manifest.json', pr.head.sha)))
+                lines.push(`- ${warn} Permissions changed in \`manifest.json\`: they must have been agreed in the issue.`);
+            }
+
+            // ---- commit history
+            lines.push('', `#### Commits (${commits.length})`, '');
+            if (commits.length >= 250) lines.push(`${info} GitHub lists at most 250 commits here; see the Commits tab for all.`, '');
+            lines.push('| Commit | Message | Author |', '|---|---|---|');
+            for (const c of commits) {
+              const msg = (c.commit.message.split('\n')[0] || '').replace(/\|/g, '\\|');
+              const who = c.author ? `@${c.author.login}` : c.commit.author.name;
+              lines.push(`| [\`${c.sha.slice(0, 7)}\`](${c.html_url}) | ${msg} | ${who} |`);
+            }
+
+            // ---- changed files
+            const icon = { added: '🆕', removed: '🗑️', renamed: '↪️', modified: '✏️' };
+            lines.push('', `<details><summary>Files changed (${files.length})</summary>`, '');
+            for (const f of files) {
+              const from = f.status === 'renamed' && f.previous_filename ? ` (from \`${f.previous_filename}\`)` : '';
+              lines.push(`- ${icon[f.status] || '•'} \`${f.filename}\`${from} +${f.additions} −${f.deletions}`);
+            }
+            lines.push('', '</details>');
+
+            // ---- write it into the description
+            const section = [START, '## Automatic summary', '',
+              '<!-- Filled in by .github/workflows/pr-summary.yml on every push; edits here are replaced. -->', '',
+              ...lines, END].join('\n');
+            const body = pr.body || '';
+            const at = body.indexOf(START), end = body.indexOf(END);
+            const next = at >= 0 && end > at ? body.slice(0, at) + section + body.slice(end + END.length) : `${body}\n\n${section}`;
+            if (next !== body) await github.rest.pulls.update({ owner, repo, pull_number: pr.number, body: next });

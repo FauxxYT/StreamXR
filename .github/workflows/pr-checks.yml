@@ -1,0 +1,39 @@
+# Checks every pull request (and push to main) for the mistakes the code rules ask about:
+# JavaScript that doesn't parse, the generated ui/shared/ copies (core, streamxr) out of date,
+# and manifest.json problems (a listed file missing, a file listed in two content_scripts
+# entries). Shows as a pass / fail check on the pull request.
+#
+# Safety: runs on `pull_request` with a read-only token, so the pull request's code can be
+# checked out and run here without being able to change anything.
+name: Checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Every JavaScript file parses (node --check)
+        run: |
+          status=0
+          while IFS= read -r -d '' f; do
+            node --check "$f" || { echo "::error file=$f::does not parse"; status=1; }
+          done < <(find src skip-helper tools -name '*.js' -print0)
+          exit $status
+
+      - name: manifest.json is valid JSON
+        run: node -e "JSON.parse(require('fs').readFileSync('manifest.json', 'utf8')); JSON.parse(require('fs').readFileSync('skip-helper/manifest.json', 'utf8'))"
+
+      - name: Shared copies and manifest (tools/sync-shared.js --check)
+        run: node tools/sync-shared.js --check

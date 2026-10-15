@@ -1,0 +1,72 @@
+name: Bug report
+description: Something that used to work, or should work, doesn't.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use another form if it fits better: **YouTube changed something** (it worked before
+        and broke without an update), **Video looks wrong in VR** (wrong format), or
+        **Headset / controller compatibility** (specific to your hardware).
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the video "<its title>" by <its channel>
+        2. Enter VR
+        3. Open the Channel panel and click the Live tab
+        4. ...
+    validations:
+      required: true
+  - type: input
+    id: title
+    attributes:
+      label: Video title (if it happens on a particular video)
+      description: Type the title as YouTube shows it, no link needed. YouTube differs from video to video, so this helps find it.
+  - type: input
+    id: channel
+    attributes:
+      label: Channel name (if it's about a video or a channel)
+  - type: input
+    id: playlist
+    attributes:
+      label: Playlist name (if it happens in a playlist)
+  - type: dropdown
+    id: signedin
+    attributes:
+      label: Signed in to YouTube?
+      options:
+        - "Yes"
+        - "No"
+        - "Tried both, happens either way"
+    validations:
+      required: true
+  - type: input
+    id: setup
+    attributes:
+      label: Headset, browser and extension version
+      placeholder: "e.g. Steam Frame, Chrome 141, StreamXR 0.78.4"
+    validations:
+      required: true
+  - type: textarea
+    id: console
+    attributes:
+      label: Console messages
+      description: |
+        Optional: press F12 on the YouTube tab, open Console, and paste any lines that start
+        with [streamxr] or show in red.
+      render: text
+  - type: textarea
+    id: details
+    attributes:
+      label: Copy details output
+      description: The VR button (the headset, in the player or the top bar) -> Details -> Copy details.
+      render: json

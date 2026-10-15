@@ -1,0 +1,5 @@
+# Every issue goes through one of the forms in this folder (no blank issues), so each
+# report arrives with the details needed to act on it. The forms are numbered so GitHub
+# lists them in this order. Security problems are reported privately (SECURITY.md:
+# GitHub shows a "Report a vulnerability" link once private reporting is enabled).
+blank_issues_enabled: false

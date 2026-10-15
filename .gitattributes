@@ -1,0 +1,10 @@
+# Line endings: every text file is stored and checked out with LF, on every OS, so the
+# generated ui/shared/ copies stay byte-identical to their sources (the "Checks" workflow
+# compares them exactly) and diffs don't fill up with line-ending changes.
+* text=auto eol=lf
+
+# Binary files: never touched.
+*.png binary
+*.pem binary
+*.crx binary
+*.zip binary

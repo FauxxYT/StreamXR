@@ -1,0 +1,79 @@
+name: Video looks wrong in VR
+description: A video plays in VR but looks wrong (stretched, doubled, split into squares, wrong way round, black).
+title: "[Video] "
+labels: ["video-format"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        StreamXR picks how to show each video (a flat cinema screen, a 360° sphere, YouTube's
+        360° "cubemap", or a 180° half sphere) from what YouTube says about it. Sometimes it
+        picks wrong, or a video uses a layout it doesn't know.
+
+        **First try:** open the **Format** menu in VR (or the format picker in the "Watch in
+        VR" popup) and pick another format. Say below whether one of them looked right.
+  - type: input
+    id: title
+    attributes:
+      label: Video title
+      description: "The format depends on the video, so it's needed to find it. Type the title as YouTube shows it (no link needed)."
+      placeholder: "e.g. My Trip to the Mountains in VR180"
+    validations:
+      required: true
+  - type: input
+    id: channel
+    attributes:
+      label: Channel name
+      placeholder: "e.g. The channel's name as YouTube shows it"
+    validations:
+      required: true
+  - type: dropdown
+    id: looks
+    attributes:
+      label: What does it look like?
+      options:
+        - Stretched or squashed
+        - Two copies side by side, or one above the other (a 3D video)
+        - Split into six squares, or a cross / jigsaw pattern
+        - Upside down, mirrored, or turned
+        - Black, or a still frame
+        - Seams or lines in the picture
+        - Something else (describe below)
+    validations:
+      required: true
+  - type: dropdown
+    id: format
+    attributes:
+      label: Which format was picked, and did another one look right?
+      options:
+        - "Picked: Cinema screen. Another format looked right"
+        - "Picked: 360°. Another format looked right"
+        - "Picked: 360° cubemap. Another format looked right"
+        - "Picked: 180°. Another format looked right"
+        - "None of the formats looks right"
+        - "Didn't try the others"
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: Anything else you noticed
+      description: e.g. it only happens after an ad, only at some quality, only in part of the sphere.
+  - type: input
+    id: setup
+    attributes:
+      label: Headset, browser and StreamXR version
+      placeholder: "e.g. Steam Frame, Chrome 141, StreamXR 0.78.4"
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Copy details output
+      description: |
+        On the video page: the VR button (the headset) -> Details -> Copy details. It includes what
+        YouTube reports about the video's projection and size. Optional: Details also has
+        **Save video frame**; attach the image if you can.
+      render: json
+    validations:
+      required: true

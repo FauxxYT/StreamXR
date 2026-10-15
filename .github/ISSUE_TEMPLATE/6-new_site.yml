@@ -1,0 +1,53 @@
+name: Support for another site
+description: Ask for StreamXR to work on another video site, or propose adding one yourself.
+title: "[Site] "
+labels: ["new-site"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        StreamXR is built so other sites can be added (see "Adding a site" in
+        `ARCHITECTURE.md`), but there's a hard limit: **most paid streaming services
+        (Netflix, Disney+, Max, Prime Video ...) protect their video with DRM, and browsers
+        won't let an extension draw DRM-protected video in VR.** Those can't be supported.
+        Sites that play unprotected video in an ordinary web player usually can.
+  - type: input
+    id: site
+    attributes:
+      label: Site
+      placeholder: "e.g. vimeo.com"
+    validations:
+      required: true
+  - type: input
+    id: example
+    attributes:
+      label: An example video link
+      description: Ideally a 360° or VR180 video if the site has them, and a regular one.
+    validations:
+      required: true
+  - type: dropdown
+    id: drm
+    attributes:
+      label: Does the site use DRM?
+      description: |
+        A quick check: if the site's videos come out black in screenshots or screen
+        recordings, or the site needs a subscription for films and series, it most likely does.
+      options:
+        - "No, I don't think so"
+        - "I don't know"
+        - "Yes, at least for some videos"
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: What would you watch there in VR?
+      description: 360° / VR180 content, a big cinema screen for regular videos, live streams ...
+    validations:
+      required: true
+  - type: checkboxes
+    id: pr
+    attributes:
+      label: Contribution
+      options:
+        - label: I'd like to build this myself, following CONTRIBUTING.md and ARCHITECTURE.md ("Adding a site"), and I'll wait for a reply here before starting.

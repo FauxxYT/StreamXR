@@ -1,0 +1,98 @@
+name: YouTube changed something
+description: Something that used to work stopped, probably because YouTube changed its page or data.
+title: "[YouTube] "
+labels: ["site-change", "youtube"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        YouTube changes its pages often, and StreamXR reads them, so things can break
+        overnight without any change on our side (Up Next is empty, a panel says "Nothing
+        here yet", a count or a button is missing). A report naming the video where it happens
+        is very valuable, even without anything else.
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where does it show?
+      multiple: true
+      options:
+        - Controls panel (title, views, channel, Subscribe, Like, seek bar)
+        - Description panel (description, chapters, transcript)
+        - Comments panel
+        - Channel panel
+        - Explore panel (Home, News)
+        - You panel (Subscriptions, Your channel, History, Playlists, Watch later, Liked videos)
+        - Search (the search bar, suggestions, results)
+        - Up Next panel (recommendations, playlist)
+        - Settings panel (loop, autoplay, audio tracks)
+        - Captions or Save (the controls panel's buttons)
+        - Ads / Skip ad
+        - Live streams
+        - The video itself (wrong format, doesn't play in VR)
+        - The VR buttons (player or top bar) or the "Watch in VR" popup
+        - Somewhere else
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What's wrong now, and what did it do before?
+      placeholder: "e.g. The Channel panel's Live tab says 'Nothing here yet' on every channel; last week it listed the streams."
+    validations:
+      required: true
+  - type: input
+    id: title
+    attributes:
+      label: Video title
+      description: A video where it happens (if it happens everywhere, any video where you saw it). Type the title as YouTube shows it, no link needed.
+    validations:
+      required: true
+  - type: input
+    id: channel
+    attributes:
+      label: Channel name
+    validations:
+      required: true
+  - type: input
+    id: playlist
+    attributes:
+      label: Playlist name (if it happens in a playlist)
+  - type: input
+    id: since
+    attributes:
+      label: Since when (roughly)?
+      placeholder: "e.g. since yesterday; after updating StreamXR to 0.78.4; not sure"
+  - type: dropdown
+    id: signedin
+    attributes:
+      label: Signed in to YouTube?
+      options:
+        - "Yes"
+        - "No"
+        - "Tried both, happens either way"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: StreamXR version
+      description: Shown on chrome://extensions.
+      placeholder: "e.g. 0.78.4"
+    validations:
+      required: true
+  - type: dropdown
+    id: language
+    attributes:
+      label: Is YouTube shown in English?
+      description: Some of YouTube's page text is matched in English, so other languages can break things.
+      options:
+        - "Yes"
+        - "No (please say which language below)"
+  - type: textarea
+    id: console
+    attributes:
+      label: Console messages
+      description: |
+        Optional: press F12 on the YouTube tab, open Console, and paste any lines that start
+        with [streamxr] or show in red.
+      render: text

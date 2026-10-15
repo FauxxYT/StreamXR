@@ -1,0 +1,56 @@
+name: New feature request
+description: Ask for something StreamXR doesn't do yet (a new button, panel, setting or YouTube feature in VR).
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea! 💡 Before you write it up, check whether it's already planned:
+        the **Roadmap** in the README, and the backlogs in `docs/features/`
+        (`video-page.md`, `channel-page.md`, `home-page.md`, `subscriptions-page.md`).
+        If it's there, a 👍 on an existing issue helps more than a new one.
+
+        Asking for another website (Twitch, ...)? Use **Support for another site** instead.
+        Something broken? Use **Bug report**.
+  - type: textarea
+    id: what
+    attributes:
+      label: What would you like StreamXR to do?
+      description: Describe it from your side, in the headset. What do you see, what do you press, what happens?
+      placeholder: "e.g. A button on the controls panel that adds the video to my queue."
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why would it help you?
+      description: What are you trying to do today, and what gets in the way?
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Which part of StreamXR is it about?
+      options:
+        - The video (cinema screen, 360° / VR180, formats)
+        - The controls panel
+        - The panels around the video (Description, Comments, Channel, Up Next, Explore, You, Search)
+        - Settings
+        - Controllers, lasers or the VR keyboard
+        - The "Watch in VR" popup or the VR buttons on YouTube
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: youtube
+    attributes:
+      label: Does YouTube itself do this? (optional)
+      description: If YouTube's website has this feature, say where (a screenshot or link helps), so it can be brought into VR the same way.
+  - type: checkboxes
+    id: checked
+    attributes:
+      label: Before submitting
+      options:
+        - label: I checked the README's Roadmap and the open issues, and this isn't there yet.
+          required: true

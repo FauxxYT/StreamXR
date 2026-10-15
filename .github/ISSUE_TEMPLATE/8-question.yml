@@ -1,0 +1,32 @@
+name: Question or setup help
+description: Can't get it running, or not sure how something works.
+title: "[Question] "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before asking, check the README's **Get started** and **Controls**, and
+        `docs/known-issues.md`. The most common problems:
+        - "No VR headset found": start SteamVR **before** the browser, then reload the page.
+        - Skip ad says "Skip on desktop": the optional Skip Helper extension isn't installed
+          (README, "Skip Helper").
+        - A video looks wrong: try another format in the Format menu.
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+      description: What you're trying to do, and what happens instead.
+    validations:
+      required: true
+  - type: input
+    id: setup
+    attributes:
+      label: Headset, browser and StreamXR version
+      placeholder: "e.g. Steam Frame, Chrome 141, StreamXR 0.78.4"
+  - type: textarea
+    id: details
+    attributes:
+      label: Copy details output (if it's about VR not starting)
+      description: Goggles button in the player -> Details -> Copy details.
+      render: json

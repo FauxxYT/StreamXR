@@ -1,0 +1,83 @@
+name: Headset / controller compatibility
+description: The extension doesn't work right with your headset or controllers.
+title: "[Headset] "
+labels: ["headset"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks! You don't need to know how to code for this one: the **Copy details**
+        output below is usually enough to add support for your hardware.
+
+        **How to get Copy details:** on a YouTube video, click the VR button (the headset) in the
+        player, **Enter VR**, and in the headset press **every button** on both controllers
+        once and move both sticks. Exit VR, click the VR button again, open
+        **Details**, click **Copy details**, and paste it below.
+  - type: input
+    id: headset
+    attributes:
+      label: Headset
+      placeholder: "e.g. Valve Index, Quest 3 via Steam Link, HTC Vive Pro 2"
+    validations:
+      required: true
+  - type: input
+    id: controllers
+    attributes:
+      label: Controllers
+      placeholder: "e.g. Index Knuckles, Quest Touch Plus, Vive wands"
+    validations:
+      required: true
+  - type: input
+    id: runtime
+    attributes:
+      label: VR runtime and how the headset connects
+      placeholder: "e.g. SteamVR 2.8 (OpenXR), Quest Link / Air Link, Virtual Desktop"
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and version
+      placeholder: "e.g. Chrome 141, Edge 141"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: StreamXR version
+      description: Shown on chrome://extensions (and in Copy details as "version").
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What doesn't work?
+      description: |
+        Be specific: which button does what (or nothing), does the video show, do the
+        controller models sit wrong, does Enter VR fail with a message?
+    validations:
+      required: true
+  - type: textarea
+    id: buttons
+    attributes:
+      label: Your controller's buttons
+      description: |
+        Optional but very helpful: list each physical button and what happened when you
+        pressed it in VR (e.g. "right A: nothing", "left menu: opened the SteamVR dashboard").
+  - type: textarea
+    id: details
+    attributes:
+      label: Copy details output
+      description: Paste the whole thing. It holds the extension version, the video's format and size, and what the headset and controllers reported; nothing about your account.
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: models
+    attributes:
+      label: 3D models of your controllers (optional)
+      description: |
+        Have 3D models of these controllers? Attach them or link them, and say where they came
+        from and their license. They can be added to StreamXR (once pull requests open) if the
+        license lets them be shared and changed in a free project with credit (e.g. CC BY,
+        CC BY-SA, CC BY-NC-SA, CC0).

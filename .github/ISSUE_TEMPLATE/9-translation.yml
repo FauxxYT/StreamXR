@@ -1,0 +1,84 @@
+name: Translation
+description: Add a new language to StreamXR, or fix the words in one that's already there.
+title: "[Translation] "
+labels: ["translation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for translating StreamXR! 🌍 Everything StreamXR writes itself (buttons,
+        menus, settings, the popup) lives in three English word lists. YouTube's own text
+        (titles, comments, "1.2M views") isn't in them: it already comes in your YouTube
+        language.
+
+        **How to do it:**
+        1. Open each English list below in the repository, and copy everything between
+           `ns.i18n.add('en', {` and the closing `});`.
+        2. Paste it into the matching box here and translate **only the text on the right**
+           of each line. **Never change the keys** (the left side, like `'panel.exit'`).
+        3. Keep every `{name}` placeholder (move it wherever your sentence needs it). A line
+           like `{ one: '{n} reply', other: '{n} replies' }` has plural forms: use the ones
+           your language has (`zero`, `one`, `two`, `few`, `many`, `other`; `other` is required).
+        4. Keep button words short: the controls panel's buttons are small.
+
+        **Partial translations are welcome:** any line you leave out simply shows in English.
+        Fixing an existing language? Paste only the lines you changed.
+  - type: input
+    id: language
+    attributes:
+      label: Language
+      description: Its name in English and in itself.
+      placeholder: "e.g. French (Français)"
+    validations:
+      required: true
+  - type: input
+    id: code
+    attributes:
+      label: Language code
+      description: The two-letter code, plus the region if it matters (it names the files, e.g. strings-fr.js).
+      placeholder: "e.g. fr, de, ja, pt-BR"
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Is this a new language or a fix?
+      options:
+        - A new language
+        - Fixes to a language StreamXR already has (Spanish ...)
+    validations:
+      required: true
+  - type: textarea
+    id: core
+    attributes:
+      label: "1. The core's words: src/core/shared/strings-en.js"
+      description: Controls panel, keyboard, controller help, and the Laser, Keyboard, Appearance, Safe Zone, Auto-hide and Language settings.
+      render: javascript
+      placeholder: |
+        'panel.exit': 'Quitter la VR',
+        'panel.auto': 'Auto',
+        ...
+  - type: textarea
+    id: streamxr
+    attributes:
+      label: "2. StreamXR's words: src/streamxr/shared/strings-en.js"
+      description: Video formats, the "Watch in VR" popup, starting VR, and the 2D Cinema settings.
+      render: javascript
+  - type: textarea
+    id: youtube
+    attributes:
+      label: "3. YouTube's panels: src/sites/youtube/page/provider/strings-en.js"
+      description: Description, Comments, Channel, Up Next, Explore, You, Search and Settings (the keys starting with yt.).
+      render: javascript
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything to know? (optional)
+      description: Words you weren't sure about, places where the text looked too long in VR, or a regional variant you used.
+  - type: checkboxes
+    id: license
+    attributes:
+      label: Sharing your translation
+      options:
+        - label: I wrote this translation (or have the right to share it), and it can be added to StreamXR under its MIT license.
+          required: true

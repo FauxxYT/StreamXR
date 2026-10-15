@@ -1,0 +1,16 @@
+# Local settings that never belong in the repository.
+# Claude Code's per-machine settings (permissions, local paths), and the maintainer's own
+# CLAUDE.md (personal workflow; the project's agent guide is AGENTS.md), and the maintainer's
+# notes on the GitHub setup and release steps.
+CLAUDE.md
+GitHub-Release-Flow.md
+.claude/settings.local.json
+# The Skip Helper's private signing key (its public half is the "key" in
+# skip-helper/manifest.json), and packed extensions.
+*.pem
+*.crx
+# Editor and OS clutter.
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store

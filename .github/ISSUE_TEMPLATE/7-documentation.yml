@@ -1,0 +1,19 @@
+name: Documentation problem
+description: Something in the README, ARCHITECTURE.md, the docs or the code comments is wrong, unclear or missing.
+title: "[Docs] "
+labels: ["documentation"]
+body:
+  - type: input
+    id: where
+    attributes:
+      label: Which file or page?
+      placeholder: "e.g. README.md, Get started; docs/youtube.md; a comment in src/streamxr/page/xr-session.js"
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What's wrong, unclear or missing?
+      description: Quote the part if it's there, and say what it should say if you know.
+    validations:
+      required: true
