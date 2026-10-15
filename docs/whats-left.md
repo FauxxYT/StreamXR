@@ -41,7 +41,7 @@ until another headset or two has been tried and the unverified items are cleared
    in YouTube's player (and its popup) with Material Symbols' **Head Mounted Device**
    (`head_mounted_device`).
 
-## The user's other checks and questions (added after 0.77.1)
+## The maintainer's other checks and questions (added after 0.77.1)
 
 - [x] ~~**Release assessment**~~ done after 0.77.1: early access on GitHub once the items
   above are done (see "Top priority").
