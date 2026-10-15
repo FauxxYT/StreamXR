@@ -1,0 +1,171 @@
+/* The "Watch in VR" popup (isolated world), in Material 3 Expressive: it opens above the
+   VR button in the player. Its colours are the site's M3 palette as CSS variables
+   (--m3-<role>, e.g. --m3-surfaceContainer, --m3-brand), set by panel.js from the page
+   world's answer (the same colours as the VR panels). The fallbacks below are neutral dark
+   greys, used only until (or if) that answer arrives; --m3-brand starts as the site's
+   accent. */
+
+/* The panel: floats over the player's bottom-right corner, above the controls bar. */
+.streamxr-pop {
+  position: absolute;
+  right: 12px;
+  bottom: 60px;
+  z-index: 1000;
+  width: 312px;
+  padding: 16px;
+  border-radius: 28px;
+  background: var(--m3-surfaceContainer, #1f1f1f);
+  color: var(--m3-onSurface, #e6e1e1);
+  font: 14px/1.45 Roboto, Arial, sans-serif;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
+  box-sizing: border-box;
+  /* Never taller than the player (which clips) or the window; scroll everything inside. */
+  max-height: min(calc(100% - 72px), calc(100vh - 96px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--m3-outline, #8f8f8f) transparent;
+}
+.streamxr-pop * { box-sizing: border-box; }
+/* Title: the headset icon in the brand colour, then "Watch in VR". */
+.streamxr-pop .streamxr-title { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; font: 600 18px Roboto, Arial, sans-serif; }
+.streamxr-pop .streamxr-title svg { width: 30px; height: 30px; flex: none; color: var(--m3-brand, #ff0033); }
+
+/* Format picker: an M3 filled select (a full-round field with a small label and an arrow). */
+.streamxr-pop .streamxr-field { position: relative; margin-bottom: 6px; }
+.streamxr-pop .streamxr-field label { position: absolute; left: 18px; top: 7px; font-size: 11px; color: var(--m3-onSurfaceVariant, #c4c4c4); pointer-events: none; }
+.streamxr-pop .streamxr-field select {
+  appearance: none;
+  width: 100%;
+  height: 52px;
+  margin: 0;
+  padding: 18px 40px 2px 18px;
+  border: 0;
+  border-radius: 26px;
+  background: var(--m3-surfaceContainerHighest, #363636);
+  color: var(--m3-onSurface, #e6e1e1);
+  font: 15px Roboto, Arial, sans-serif;
+  cursor: pointer;
+  outline: none;
+}
+.streamxr-pop .streamxr-field select:hover { background-image: linear-gradient(rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.08)); }
+.streamxr-pop .streamxr-field select:focus-visible { box-shadow: 0 0 0 2px var(--m3-brand, #ff0033); }
+.streamxr-pop .streamxr-field::after {
+  content: '';
+  position: absolute;
+  right: 18px;
+  top: 22px;
+  border: 6px solid transparent;
+  border-top-color: var(--m3-onSurfaceVariant, #c4c4c4);
+  pointer-events: none;
+}
+.streamxr-pop .streamxr-field option { background: var(--m3-surfaceContainerHigh, #2a2a2a); color: var(--m3-onSurface, #e6e1e1); }
+/* The "<site> marks this as a 360°/VR video..." line. */
+.streamxr-pop .streamxr-src { color: var(--m3-onSurfaceVariant, #c4c4c4); font-size: 12px; margin: 0 6px 12px; }
+
+/* The switches ("See your room (passthrough)", "Glass panels") as M3 switches: a real
+   checkbox, hidden, drives the track and handle drawn after it, with a small note under
+   it. Faded (.off) while it can't be used (passthrough, while the browser doesn't offer it). */
+.streamxr-pop .streamxr-switch { display: flex; align-items: center; gap: 12px; padding: 4px 6px; cursor: pointer; }
+.streamxr-pop .streamxr-switch span { flex: 1; }
+.streamxr-pop .streamxr-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+.streamxr-pop .streamxr-switch i {
+  position: relative;
+  flex: none;
+  width: 52px;
+  height: 32px;
+  border-radius: 16px;
+  background: var(--m3-surfaceContainerHighest, #363636);
+  box-shadow: inset 0 0 0 2px var(--m3-outline, #8f8f8f);
+}
+.streamxr-pop .streamxr-switch i::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--m3-outline, #8f8f8f);
+}
+.streamxr-pop .streamxr-switch input:checked + i { background: var(--m3-brand, #ff0033); box-shadow: none; }
+.streamxr-pop .streamxr-switch input:checked + i::after { left: 24px; top: 4px; width: 24px; height: 24px; background: var(--m3-onBrand, #fff); }
+.streamxr-pop .streamxr-switch input:focus-visible + i { outline: 2px solid var(--m3-brand, #ff0033); outline-offset: 2px; }
+.streamxr-pop .streamxr-switch.off { opacity: 0.38; cursor: default; }
+.streamxr-pop .streamxr-switch-note { color: var(--m3-onSurfaceVariant, #c4c4c4); font-size: 11px; margin: 0 6px 14px; }
+
+/* Enter VR / Exit VR: the popup's main button, filled in the brand colour with the
+   headset icon; greyed while disabled or starting. */
+.streamxr-pop .streamxr-go {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 48px;
+  margin-top: 4px;
+  border: 0;
+  border-radius: 24px;
+  background: var(--m3-brand, #ff0033);
+  color: var(--m3-onBrand, #fff);
+  font: 500 16px Roboto, Arial, sans-serif;
+  cursor: pointer;
+  transition: border-radius 0.15s;
+}
+.streamxr-pop .streamxr-go svg { width: 28px; height: 28px; }
+.streamxr-pop .streamxr-go:hover { background-image: linear-gradient(rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.08)); }
+.streamxr-pop .streamxr-go:active { border-radius: 16px; }
+.streamxr-pop .streamxr-go:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.streamxr-pop .streamxr-go:disabled { background: rgba(255, 255, 255, 0.12); color: rgba(255, 255, 255, 0.38); cursor: default; }
+.streamxr-pop .streamxr-go:disabled svg { display: none; }
+
+/* Error / "VR stopped" message: an errorContainer box. */
+.streamxr-pop .streamxr-msg {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--m3-errorContainer, #8c1d18);
+  color: var(--m3-onErrorContainer, #f9dedc);
+  font-size: 12px;
+}
+.streamxr-pop .streamxr-msg[hidden] { display: none; }
+
+/* Folded sections (Controls, Details): a text-button summary with an arrow. */
+.streamxr-pop details { margin-top: 8px; color: var(--m3-onSurfaceVariant, #c4c4c4); font-size: 12px; }
+.streamxr-pop details summary { cursor: pointer; padding: 6px 8px; border-radius: 16px; list-style: none; font-weight: 500; font-size: 13px; }
+.streamxr-pop details summary::-webkit-details-marker { display: none; }
+.streamxr-pop details summary::before { content: '▸'; display: inline-block; width: 14px; }
+.streamxr-pop details[open] summary::before { content: '▾'; }
+.streamxr-pop details summary:hover { background: rgba(255, 255, 255, 0.08); }
+/* Controls: the controller help list in a card. */
+.streamxr-pop .streamxr-help { margin-top: 4px; padding: 10px 12px; border-radius: 16px; background: var(--m3-surfaceContainerHigh, #2a2a2a); }
+.streamxr-pop .streamxr-help div { color: var(--m3-onSurface, #e6e1e1); font-weight: 500; }
+.streamxr-pop .streamxr-help ul { margin: 2px 0 0; padding-left: 16px; }
+.streamxr-pop .streamxr-help li { margin: 1px 0; }
+/* Details: the Copy details / Save video frame buttons as outlined pills, then the JSON. */
+.streamxr-pop .streamxr-tools { display: flex; gap: 8px; margin-top: 6px; }
+.streamxr-pop .streamxr-tools button {
+  flex: 1;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--m3-outline, #8f8f8f);
+  border-radius: 16px;
+  background: none;
+  color: var(--m3-onSurface, #e6e1e1);
+  font: 500 12px Roboto, Arial, sans-serif;
+  cursor: pointer;
+}
+.streamxr-pop .streamxr-tools button:hover { background: rgba(255, 255, 255, 0.08); }
+.streamxr-pop details pre {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--m3-surfaceContainerLowest, #0e0e0e);
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-size: 10.5px;
+}
+
+/* Opened from a button outside the player (the top bar's VR button): fixed in the window,
+   just under that button, its right edge in line with the button's (panel.js sets top / right). */
+.streamxr-pop.streamxr-pop-fixed { position: fixed; bottom: auto; max-height: calc(100vh - 80px); z-index: 3000; }

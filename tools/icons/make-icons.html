@@ -1,0 +1,39 @@
+<!doctype html>
+<meta charset="utf-8">
+<body style="background:#444;margin:0;padding:10px;color:#fff;font:13px sans-serif">
+<div id="out"></div>
+<script>
+// The extensions' icons (icons/icon-<size>.png for StreamXR, skip-helper/icons/ for the Skip
+// Helper): a Material Symbols icon (Rounded, filled: Head Mounted Device / Skip Next; Apache
+// 2.0, third_party/material-symbols/LICENSE) in white on a YouTube Red rounded square, at
+// 16, 32, 48 and 128 px. Open this page in a browser (any local web server, or the file
+// itself), check the previews, and click each link to download its PNG into place.
+const HEADSET = 'M300-240q-66 0-113-47t-47-113v-163q0-51 32-89.5t82-47.5q57-11 113-15.5t113-4.5q57 0 113.5 4.5T706-700q50 10 82 48t32 89v163q0 66-47 113t-113 47h-40q-13 0-26-1.5t-25-6.5l-64-22q-12-5-25-5t-25 5l-64 22q-12 5-25 6.5t-26 1.5h-40ZM70-400q-13 0-21.5-8.5T40-430v-100q0-13 8.5-21.5T70-560q13 0 21.5 8.5T100-530v100q0 13-8.5 21.5T70-400Zm820 0q-13 0-21.5-8.5T860-430v-100q0-13 8.5-21.5T890-560q13 0 21.5 8.5T920-530v100q0 13-8.5 21.5T890-400Z';
+const SKIP = 'M660-280v-400q0-17 11.5-28.5T700-720q17 0 28.5 11.5T740-680v400q0 17-11.5 28.5T700-240q-17 0-28.5-11.5T660-280Zm-440-35v-330q0-18 12-29t28-11q5 0 11 1t11 5l248 166q9 6 13.5 14.5T548-480q0 10-4.5 18.5T530-447L282-281q-5 4-11 5t-11 1q-16 0-28-11t-12-29Z';
+const RED = '#FF0033';
+// One icon at `size` px: the rounded square (corner 22%; full bleed at 16 px), the glyph at `k` of the size.
+function icon(path, size) {
+  const cv = document.createElement('canvas'); cv.width = cv.height = size;
+  const g = cv.getContext('2d');
+  const pad = size <= 16 ? 0 : Math.round(size * 0.04), s = size - pad * 2, r = s * 0.22;
+  g.fillStyle = RED; g.beginPath(); g.roundRect(pad, pad, s, s, r); g.fill();
+  const k = size <= 16 ? 0.9 : 0.78, gs = s * k, scale = gs / 960;
+  g.save(); g.translate(pad + (s - gs) / 2, pad + (s - gs) / 2 + gs); g.scale(scale, scale);
+  g.fillStyle = '#fff'; g.fill(new Path2D(path)); g.restore();
+  return cv;
+}
+const out = {};
+for (const [name, path] of [['streamxr', HEADSET], ['skiphelper', SKIP]]) {
+  const row = document.createElement('div'); row.textContent = name + ' ';
+  for (const size of [16, 32, 48, 128]) {
+    const cv = icon(path, size); out[`${name}-${size}`] = cv.toDataURL('image/png').split(',')[1];
+    const big = document.createElement('canvas'); big.width = big.height = size * (size < 64 ? 4 : 1);
+    const bg = big.getContext('2d'); bg.imageSmoothingEnabled = false; bg.drawImage(cv, 0, 0, big.width, big.height);
+    big.style.margin = '6px'; row.appendChild(big);
+    const a = document.createElement('a'); a.href = cv.toDataURL('image/png'); a.download = `icon-${size}.png`; a.textContent = `${name} icon-${size}.png`; a.style.cssText = 'color:#fff;margin:0 8px'; row.appendChild(a);
+    cv.style.margin = '6px'; row.appendChild(cv);
+  }
+  document.getElementById('out').appendChild(row);
+}
+window.ICONS = out;
+</script>

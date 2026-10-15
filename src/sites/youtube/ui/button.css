@@ -1,0 +1,21 @@
+/* The VR buttons (isolated world). The one in YouTube's player controls takes its look from
+   YouTube's own button classes (it's a copy of one); this only sets the icon colour, stops
+   the SVG from swallowing clicks, and hides it off the watch page. The top bar's is at the end. */
+.streamxr-btn { color: #fff; }
+/* Always fully lit, whatever state the copied button's classes carry (YouTube dims a
+   disabled one). */
+.streamxr-btn, .streamxr-btn * { opacity: 1 !important; fill-opacity: 1 !important; }
+.streamxr-btn svg { pointer-events: none; }
+.streamxr-btn.streamxr-hidden { display: none !important; }
+
+/* The VR button in YouTube's top bar (topbar-button.js): a round 40 px icon button like the
+   bar's own, in its text colour, with a faint circle when pointed at or pressed. */
+.streamxr-top-btn {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 40px; height: 40px; margin: 0 8px 0 0; padding: 0;
+  border: 0; border-radius: 50%; background: transparent; cursor: pointer;
+  color: var(--yt-spec-text-primary, #f1f1f1);
+}
+.streamxr-top-btn:hover { background: var(--yt-spec-badge-chip-background, rgba(255, 255, 255, 0.1)); }
+.streamxr-top-btn:active { background: var(--yt-spec-10-percent-layer, rgba(255, 255, 255, 0.2)); }
+.streamxr-top-btn svg { pointer-events: none; }

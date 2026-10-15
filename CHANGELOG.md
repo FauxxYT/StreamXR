@@ -1,0 +1,1102 @@
+# Changelog
+
+What changed in each version of StreamXR (called "StreamVR" until 0.48, "YouTube VR for
+SteamVR" until 0.34.0; older entries use the name and paths of their time). Newest first.
+The format follows [Keep a Changelog](https://keepachangelog.com/); versions are the
+`manifest.json` version. All of these were developed in October 2026. Technical notes for
+developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
+
+## 0.78.7
+
+### Fixed
+- The icons show when the extensions are **pinned** to the toolbar: both manifests now have an
+  `action` with the icons (Chrome draws a pinned extension from it). StreamXR's tooltip says to
+  open YouTube and click the VR button; clicking it does nothing else (Skip Helper 1.3.1).
+
+## 0.78.6
+
+### Added
+- **Extension icons** for StreamXR (Material Symbols' Head Mounted Device) and the Skip Helper
+  (Skip Next), in white on a YouTube Red rounded square, at 16, 32, 48 and 128 px (`icons/`,
+  `skip-helper/icons/`; Skip Helper 1.3.0). `tools/icons/make-icons.html` draws them again.
+
+## 0.78.5
+
+### Changed
+- The 2D Cinema **Distance** slider stops at 2.0 m (was 1.0 m): the screen always stays at least
+  30 cm behind the VR panels (1.7 m away) instead of coming through them. A closer distance
+  remembered from before moves back to it.
+
+### Fixed
+- The extension's description in `chrome://extensions` showed "360Â°" (a garbled character); it
+  says "360°" again.
+
+## 0.78.4
+
+### Changed
+- **Side panels fade with their toolbars**: an open left or right panel now fades out together
+  with its side's toolbar, after the side toolbars' wait (Settings → Auto-hide → Side toolbars),
+  instead of staying until the control panel hides. Pointing where they were brings both back.
+  The Auto-hide hints say so.
+
+## 0.78.3
+
+### Fixed
+- The Quality button's **60 fps** icon on 360° / VR180 videos: YouTube names their qualities
+  with an "s" (for spherical) instead of a "p", e.g. "2160s60", which wasn't recognized.
+
+## 0.78.2
+
+### Changed
+- The popup's "No VR headset found" message says what enables Enter VR: Chrome only looks for a
+  headset when it starts, so connect the headset and start SteamVR, then close every Chrome
+  window and open Chrome again (it said to start SteamVR and reload the page).
+
+## 0.78.1
+
+### Fixed
+- The VR button in the player always looks enabled: it's now a copy of YouTube's Settings button
+  (it was a copy of CC, which YouTube dims on videos without captions), keeps none of the copied
+  icon's fill or opacity, and stays fully lit. It still sits where CC is.
+
+## 0.78.0
+
+### Added
+- **Start VR from any page**: a VR button in YouTube's top bar, next to **+ Create**, on every
+  page (Home, a channel, search results...). With no video playing the popup says so and VR
+  starts anyway: pick a video from Explore, You or Search inside VR. The controls panel then
+  says "No video playing", and Play, ±10 s, Captions and Save rest until a video opens.
+- **YouTube's logo on the screen while no video plays**: the logo from YouTube's own top bar
+  (red play button, white wordmark) on a dark 16:9 screen, with its glow; the video replaces
+  it as soon as one opens.
+
+### Changed
+- The VR buttons and the popup use Material Symbols' **Head Mounted Device** icon (was a
+  drawn goggles icon).
+
+## 0.77.1
+
+### Fixed
+- **Captions on 180°/360° videos** sit lower (22° below the horizon, was 14° below where you
+  looked) and stay put while you look around; once you look more than 25° to the side they
+  glide smoothly back in front of you (about half a second) and settle, instead of
+  jittering after every small head movement. They no longer follow your head up and down,
+  and keep their place between caption lines.
+
+## 0.77.0
+
+### Added
+- **Captions button** (left part of the button row): a menu of Off and the video's caption
+  tracks. The chosen captions show in VR, TV style (white text on dark boxes): over the bottom
+  of the 2D screen, or a little below your view on 180°/360° videos (following it lazily).
+  With no tracks the button shows Closed Captions Disabled and is greyed out.
+- **Save button** (right part): a scrolling menu of Watch later and your playlists, each
+  ticked when the video is in it; a tap adds the video or takes it out (once YouTube
+  confirms; the menu stays open). The bookmark is filled when the video is saved anywhere.
+- Floating menus can scroll (the stick, or a trigger drag), with a scroll bar.
+
+### Changed
+- The controls panel is wider (1216 px, was 1024) for the two new buttons.
+
+## 0.76.3
+
+### Changed
+- The glow's defaults: on, **Glow strength 100%** (was 60%) and **Glow length 80%** (was
+  35%). Settings you changed yourself stay; Default buttons and the global reset give the
+  new values.
+
+## 0.76.2
+
+### Changed
+- **Glass shows the cinema screen's glow**: where a panel's glass is past the screen's edge
+  (the search bar above it, a toolbar beyond its side), it shows the glow there, blurred,
+  instead of only the dark room, so the search bar reads as glass like the side toolbars.
+
+## 0.76.1
+
+### Added
+- **Glow length** (Settings → 2D Cinema): how far the glow reaches out from the screen, 10-80%
+  of its height (default 35%), with a Default button; remembered.
+
+### Changed
+- The Settings panel is taller (600 px, was 520) so the 2D Cinema tab's six rows fit.
+
+## 0.76.0
+
+### Added
+- **Glow around the cinema screen** (on by default): a soft light just outside each edge in
+  the colors of the picture at that edge, following the rounded corners and the curve, and
+  changing with the video. Settings → 2D Cinema → **Glow** (on / off) and **Glow strength**
+  (default 60%), remembered. One extra quad behind the screen, reading the blurred copies
+  of the video the glass look already makes (WebGL 2).
+
+## 0.75.0
+
+### Added
+- **Buffer on the seek bar**: the track past the playback position is solid as far as the
+  video is loaded and faded beyond it (not on live streams or ads).
+- **Rounded corners on the cinema screen**: 2D videos show as a rounded rectangle (radius
+  2.5% of the screen's width, curved or flat).
+
+## 0.74.2
+
+### Fixed
+- **Your channel** only offers the chips your channel has (from its tabs): with no live
+  streams there's no Live chip, instead of one showing your videos.
+
+## 0.74.1
+
+### Changed
+- **Your channel** shows your channel inside the You panel (right), instead of opening the
+  left Channel panel (the left side stays about the playing video): its videos, newest
+  first, with chips for Videos, Shorts, Live and Playlists.
+
+## 0.74.0
+
+### Added
+- **You** panel (right toolbar, the Person icon): Subscriptions, Your channel (opens the
+  Channel panel on your own channel), History, Playlists, Watch later and Liked videos,
+  moved here from Browse, and Movies & TV (Coming Soon).
+- **Sliding rows**: a row of tabs or chips too long for its panel slides along while you
+  point near either end (faster nearer the end); its hidden ends fade out. Tabs keep their
+  full size instead of shrinking. Home shows **all** of YouTube's topic chips this way.
+- "Coming Soon" pages: the text with the Construction icon, in the middle of the panel.
+- Icons: Construction, Music note, Fire (Hype), Newspaper, Lightbulb, School, Podcasts,
+  Membership card, Smart display (Shorts).
+
+### Changed
+- **Browse is now Explore** (the Explore icon): Home (with its chips) first, then YouTube's
+  Explore list: Shorts, Music, Movies & TV, Hype, Live, Gaming, **News** (works), Learning,
+  Courses, Podcasts, Memberships (the others: Coming Soon).
+
+## 0.73.3
+
+### Changed
+- The **Vibration** switch is back in Settings → Appearance. While no controller can
+  vibrate (the Steam Frame's in Chrome), it's greyed out and off, with the note "Haptics are
+  not supported on these controllers yet".
+
+## 0.73.2
+
+### Changed
+- The **Vibration** switch only shows when a controller can vibrate. Chrome gives the Steam
+  Frame's controllers no vibration API (seen in 0.73.1's Details), so it stays hidden there;
+  it turns up by itself if a later Chrome adds one.
+
+## 0.73.1
+
+### Fixed
+- **Vibration**: when the browser doesn't give a controller WebXR's `pulse()`, the buzz
+  tries the Gamepad API's `vibrationActuator` instead. The popup's Details shows, per
+  controller, which vibration APIs it has and how the last buzz went (`haptics`).
+
+## 0.73.0
+
+### Added
+- **Panel size** (Settings → Appearance): 80-130%, remembered. Text, buttons and panels
+  grow or shrink together, and the layout around the Safe Zone follows.
+- **Vibration** switch (Settings → Appearance): turns off the controllers' buzz on pointing
+  and clicking. On by default.
+- **Momentum scrolling**: let go of a trigger drag while it's moving and the text keeps
+  scrolling, slowing down; any trigger press or the stick stops it.
+
+### Changed
+- **Bigger targets**: small controls (chips, tabs, switches, page arrows, the seek bar)
+  can be hit from a little way off, up to Android XR's 56 dp; the nearest one wins. They
+  look the same.
+- **Whole panels move without bouncing**: showing / hiding the panels, opening a side
+  panel, the toolbars, the search bar and the keyboard swap ease in without overshooting.
+  The floating menus keep their small bounce.
+
+## 0.72.2
+
+### Changed
+- The left toolbar's **Channel** button uses the Material Symbols **Account Box** icon.
+
+## 0.72.1
+
+### Changed
+- **Idle controllers are fairly see-through**: they fade to 20% opacity (80% see-through),
+  instead of 85%.
+
+## 0.72.0
+
+### Changed
+- **Right controller buttons swapped**: **A** plays / pauses, **B** brings up the keyboard
+  (and puts it away). (B, X and Y arrive as one button on the Steam Frame, so X and Y open
+  the keyboard too.) The help lines say so.
+- While the keyboard is up, the keyboard button's icon is **Keyboard Hide** (it puts it away).
+- **Idle controllers stay almost solid**: they fade to 85% opacity (15% see-through), up
+  from 55%.
+
+## 0.71.1
+
+### Changed
+- **A still controller's laser goes out** once its wait (Settings → Auto-hide → Lasers) is
+  up, instead of only going see-through; moving the controller or pressing anything brings
+  it back.
+- **Idle controllers stay more visible**: they fade to 55% opacity (45% see-through), up
+  from 35%.
+
+## 0.71.0
+
+### Added
+- **Settings → Auto-hide** (new tab): how long each part waits, unused, before it hides or
+  fades, each a slider from 1 s to 30 s or **Never**, with a Default button: the **control
+  panel** (with the side panels and the lasers; 6 s, while a video plays), the **side
+  toolbars** (3 s), the **search bar** (3 s, now on its own timer), the **controllers** and
+  the **lasers** (3.5 s each, when the controller is held still; the laser now has its own
+  wait). Remembered; the global reset puts them back.
+
+### Changed
+- Settings tabs show every row that fits (they showed at most three).
+
+## 0.70.0
+
+### Added
+- **Idle controllers fade**: a controller left still for 3.5 seconds (no movement, no
+  button, touch or stick) fades to 65% see-through, its icons and its laser beam with it;
+  moving it or pressing anything brings it back at once. You see a faded controller, not
+  its insides.
+
+### Fixed
+- The trigger's and the grip's icons sit a little further out, so they no longer cut into
+  the trigger and the grip.
+
+## 0.69.0
+
+### Changed
+- **Controller icons in Material 3 Expressive**: each button's icon is now a Material
+  Symbols icon on a round tonal button in the colour theme's button color (white with the
+  YouTube theme, pink with Material 3), instead of the hand-drawn white shapes on dark
+  discs: play / pause, keyboard, the laser (trigger), the panels (left D-pad), recenter
+  (grip), −10 s / +10 s (stick; ↕ while it scrolls, a book while it turns pages). The
+  hold-to-reset countdown is an M3 Expressive progress ring in the theme's red. They
+  follow a change of colour theme at once.
+
+### Added
+- **The trigger brings the lasers back**: with the panels hidden (auto-hide or the left
+  D-pad), pulling a trigger shows them again, and the lasers with them.
+
+## 0.68.2
+
+### Fixed
+- **American English** in the interface: Settings → Appearance → **Colors** (was
+  "Colours"), "The panels' color theme", the note above it, and the Safe zone's "Its
+  center, above or below eye level". The README and CONTRIBUTING follow suit, and
+  CONTRIBUTING now says the English tables are in American English.
+
+## 0.68.1
+
+### Changed
+- The **YouTube** colour theme is the default (and what the global reset goes back to);
+  Material 3 stays a choice in Settings → Appearance → Colours. A theme you chose stays
+  as it is.
+
+## 0.68.0
+
+### Added
+- **Colour themes**: Settings → Appearance → **Colours** chooses between **Material 3**
+  (today's look, the default) and **YouTube** (YouTube's own dark look: YouTube Red
+  accents as now, white buttons with Almost Black text, Almost Black panels, white text,
+  blue links). It changes at once, is remembered, and the popup follows it too. The global
+  reset goes back to Material 3. (A site offers its themes; the shell lists them.)
+
+### Changed
+- The Settings panel is taller (520 px, was 390), giving its rows more room.
+
+## 0.67.2
+
+### Changed
+- **The Quality button shows icons** instead of the name (which was cramped): 8K, 4K, 2K
+  (1440p), Full HD (1080p), HD (720p), or "high quality off" below 720p; on a 60 fps video
+  the resolution icon sits smaller and higher with the 60 fps icon under it. The full name
+  ("1080p60") is in its menu.
+- **The controls panel's menus have the glass look** (the volume slider's card too); with
+  the glass off they keep their solid look and soft shadow.
+- **Only glass shines**: the bright rim along glass edges is no longer drawn along solid
+  things on a surface, so a toolbar's grown name pill (and a solid toolbar) doesn't get a
+  glass shine.
+
+## 0.67.1
+
+### Fixed
+- **Quality names show the frame rate**: "1080p60" on a 60 fps video (YouTube's own names
+  from the player, where it gives them), on the Quality button and in its menu.
+- **Long menus fit**: rows get shorter when there are many choices (Premium's speeds up to
+  4× overflowed the Speed menu).
+
+### Changed
+- **More glass**: the dialog has the panels' glass look, and the side toolbars and the
+  search bar get the glass treatment too (the blurred video where they're see-through, and
+  the shine along their edges).
+
+## 0.67.0
+
+### Changed
+- **Floating menus** (docs/Spatial-Layout.md, Android XR's popup level): the controls
+  panel's Quality, Speed and Format menus and the Volume slider no longer replace its
+  button row. They open as a Material 3 menu card floating just in front of the panel,
+  rising from the button you pressed (which stays highlighted while it's open): one row per
+  choice, the current one ticked. Choosing, pressing the button again, or clicking on
+  nothing closes it. (Their Back button is gone.)
+- **Unsubscribing asks in a dialog**: "Unsubscribe from <channel>?" with Cancel and
+  Unsubscribe, floating in front of everything with the rest dimmed behind it (Android XR's
+  dialog level), rising in without bouncing. A click anywhere off it cancels. This replaces
+  the two-click "Unsubscribe?" button, on the controls panel and in the Channel panel.
+
+## 0.66.3
+
+### Changed
+- The search bar has the glass look of a side toolbar: see-through while there are no
+  results, turning solid (fading) once the results panel opens, and back when it's
+  cleared.
+
+## 0.66.2
+
+### Changed
+- The search bar fades out with the side toolbars (after half the auto-hide time, 3 s,
+  while the video plays) instead of with the controls panel; pointing at anything brings
+  it back. A search's results panel stays until everything hides.
+
+## 0.66.1
+
+### Fixed
+- Clearing the search bar (×) stops typing too, instead of leaving the caret in front of
+  the "Search YouTube" placeholder (the keyboard goes away if it came up by itself). The
+  same for a channel's search.
+
+### Added
+- **Clicking on nothing lets go:** a trigger click where there's no panel, button or
+  handle stops typing (as Escape does; the keyboard goes away if it came up by itself) and
+  closes an open menu on the controls panel.
+
+## 0.66.0
+
+### Changed
+- **Search moved to the top** (docs/Spatial-Layout.md): a search bar in the middle, just
+  above the Safe Zone, always there while the panels are up. While you type, YouTube's
+  suggestions drop down from it; the results open in a **panel in the middle** of the
+  Safe Zone (made a little smaller if the zone is too short for it), and go away when you
+  clear the search bar (×). Search is no longer on the right toolbar (Up Next and Browse
+  remain).
+- **The VR keyboard comes up by itself** when you click a text field (the search bar, or
+  a channel's search), in the controls panel's place, and goes away again when you search
+  or press Escape. If you brought it up yourself (A), it stays until you put it away.
+
+## 0.65.2
+
+### Fixed
+- A side toolbar's look now follows its side's panel, not the laser: solid while a panel
+  is open on that side (it stands over that panel's edge), the glass look while none is;
+  it fades between the two as the panel opens or closes, and stays solid while switching
+  panels on that side.
+
+## 0.65.1
+
+### Changed
+- The side toolbars have the glass look again while collapsed; they turn solid only while
+  a name grows out over the panel (fading between the two), so the panel's edge still
+  doesn't show through then.
+
+## 0.65.0
+
+### Changed
+- **Safe Zone defaults** are now the ones set in the headset: width 50%, height 45%,
+  position 1% below eye level.
+- **Toolbar order**, top to bottom: Description, Comments, Channel (left); Search, Up Next,
+  Browse (right).
+- **Browse** has its own icon (Material Symbols' "browse") instead of the house.
+- **The side toolbars are solid**, so the edge of the panel behind them no longer shows
+  through, and they **fade out after half the auto-hide time** (3 s instead of 6 s) while
+  the video plays; pointing at anything (where they are, too) brings them back.
+
+## 0.64.0
+
+### Changed
+- **A new layout around the video** (docs/Spatial-Layout.md, YouTube's own XR layout),
+  placed against the Safe Zone, which keeps the video clear. Everything sits 1.7 m away
+  (was 1.0 m), sized so text looks as big as before, each piece turned to face you:
+  - **The controls panel** in the middle, just under the Safe Zone (the keyboard takes
+    its place, hanging from the same top edge).
+  - **Left of the zone:** Description, Channel and **Comments**; **right:** Up Next,
+    Browse and Search. One panel open on each side at once (which one is remembered; the
+    first time, Description and Up Next).
+  - **Each side has its own toolbar** (an upright Material 3 floating toolbar) standing on
+    the Safe Zone's edge, over its panel's inner edge. Pointing at an icon grows its name
+    out over the panel; clicking opens that panel, or closes it if it's open. The toolbar
+    between the controls and the panel is gone.
+  - **Settings** opens from a **pill** on top of the controls panel, rising above it as a
+    popup in front of everything.
+  - Changing the Safe Zone moves everything with it at once.
+- **Comments are their own panel** (left toolbar), no longer a tab of Description.
+- The side panels are **narrower and taller** (about 35° × 43°): Up Next, Browse and
+  Search show 3 × 3 cards of the same size as before; Channel's sort chips move under its
+  tabs so the tabs keep their names.
+- Tabs that can't fit their names show icons for the ones not chosen (Browse in the
+  narrower panel); text-only tabs that still don't fit are shortened with "…".
+
+## 0.63.0
+
+### Added
+- **The Safe Zone** (docs/Spatial-Layout.md): the part of your view the coming spatial
+  layout will be placed against. Settings → **Safe zone** (new tab) sets it as shares of
+  what your headset shows: **Width** (of the horizontal field of view, default 90%),
+  **Height** (of the vertical one, default 75%) and **Position** (its centre above or below
+  eye level, default 5% below), each with a Default button. Beside each slider: the share
+  and the angle it comes to on your headset; the tab's note gives the headset's field of
+  view (both eyes together, read from WebXR). While the tab is open, an outline (with a
+  small cross at its centre) shows the zone around you, fixed where you last recentered.
+  Remembered; the global reset puts it back. Nothing is placed by it yet.
+
+### Changed
+- Settings sliders: a value too long for the space before the Default button is drawn a
+  little smaller instead of running under it.
+
+## 0.62.0
+
+### Added
+- **Motion, part 2: opening and closing ease** (docs/Materials-Redesign.md, step 5),
+  with Material 3 Expressive's calmer "default spatial" spring:
+  - A panel above the toolbar grows up from it and fades in; closing it folds it back down;
+    switching panels folds one away while the other unfolds. (On entering VR the open panel
+    grows in too.)
+  - The keyboard and the controls panel cross-fade in their shared place when you press A,
+    and the panels above rise with the taller keyboard instead of jumping.
+  - Hiding and showing all the panels (left D-pad, or auto-hide while the video plays)
+    fades and slightly shrinks them instead of popping.
+  - The controls panel's menus (quality, speed, format, volume) and the button row coming
+    back ease in: they fade in and rise into place.
+  - What the laser can click follows the real state at once; only the look eases.
+
+## 0.61.1
+
+### Fixed
+- On the controls panel, the white ring around Like is whole again where it meets Dislike:
+  the rings are now drawn after all the buttons, so a neighbour drawn later can't cover
+  part of one.
+
+## 0.61.0
+
+### Added
+- **Motion, part 1: press and hover animate** (docs/Materials-Redesign.md, step 5), with
+  Material 3 Expressive's springs. Pressing a button, a keyboard key, a chip, a card, a
+  Settings choice or the controls panel's buttons squares its corners and springs back with
+  a little bounce, the pressed tint fading in and out; the white ring and the hover tints
+  fade in (about 0.1 s) and out instead of switching. Switches' handles and sliders grow
+  smoothly while pointed at. Panels redraw every frame only while something is easing.
+
+## 0.60.0
+
+### Added
+- **A "Glass panels" switch in the popup**, above Enter VR, so the glass can be turned off
+  before entering VR (e.g. on a PC where VR stutters). It's the same setting as Settings →
+  Appearance in VR: VR reads it again each time it starts, and the popup shows what was
+  chosen in VR.
+
+### Changed
+- The glass's default tint is now **43%** (was 54%), settled in the headset. A tint you
+  set yourself is kept; Default (or the global reset) gives 43%.
+
+## 0.59.0
+
+### Added
+- **The glass look** (docs/Materials-Redesign.md, step 4): the panels, the toolbar and the
+  keyboard show the video behind them, blurred, under their tinted background, with a
+  fine frosted grain and a light rim along their top edge. It works for every format: the
+  360° / 180° sphere, YouTube's cubemap and the cinema screen (flat or curved; around the
+  screen the panels show the dark void). On by default.
+- **Settings → Appearance** (a new tab, palette icon): **Glass** on / off, and a **Tint**
+  slider (Clearer to Darker, 20-90%, default 54%) with a Default button, so you can tune it
+  live. Both remembered; the global reset (hold the right stick) puts them back.
+
+### Changed
+- The Previous / Next hover card uses the panels' background (no glass: it floats in front
+  of the controls panel, so it shows the panel through its tint instead).
+
+## 0.58.0
+
+### Changed
+- **The "Watch in VR" popup in Material 3 Expressive** (docs/Materials-Redesign.md, step
+  3.5), in the same colours as the VR panels: a rounded dark panel with the red goggles by
+  its title; the format picker as a rounded field with a "Format" label; "See your room" as
+  a switch; **Enter VR and Exit VR as a big YouTube-red button** with the goggles; errors in
+  a dark-red box; the controller help folded into a **Controls** section (like Details), so
+  the popup is about half as tall; Details' buttons as outlined pills.
+- **The popup closes itself once VR has started** (open it again for Exit VR). If VR can't
+  start, it stays open and says why.
+- The popup asks the page for the site's Material 3 palette (a new bridge message), so its
+  colours always match the panels.
+
+## 0.57.0
+
+### Changed
+- **The VR keyboard in Material 3 Expressive** (docs/Materials-Redesign.md, step 3.4), as
+  chosen from the mock-up ("neutral letters"): letters, digits, symbols and the space bar
+  on calm dark-grey keys; Backspace, Shift, ?123 / ABC and Hide pink; Enter YouTube red
+  with ↵ before its name; Shift YouTube red while on (a bar under it for caps lock).
+  Backspace, Shift and Hide are Material Symbols. Keys square up while pressed and get the
+  white ring when pointed at. The header has a keyboard icon before "Typing into …", the
+  background matches the panels, and the grab bar is the controls panel's small pill with
+  a handle (red while moving the keyboard).
+
+## 0.56.1
+
+### Fixed
+- The Channel panel's videos (and Browse and Search) now show the loading indicator, with
+  "Loading…" / "Searching…" under it, while their first page loads, instead of the text
+  alone. The indicator redraws about 30 times a second while it shows (the Channel panel's
+  did 10), so it turns smoothly.
+
+## 0.56.0
+
+### Changed
+- **Description and Channel in Material 3 Expressive** (docs/Materials-Redesign.md,
+  step 3.3, last part), finishing the panel restyle:
+  - Both have the new dark panel background.
+  - **Channel's header:** Subscribe is YouTube red like on the controls panel, Subscribed
+    pink, "Unsubscribe?" dark red; the name in the bolder title style. The featured video
+    gets a tile and the white ring when pointed at.
+  - **Description:** links, timestamps and chapter times in light blue; chapters as tiles,
+    the current one tinted and outlined in blue; the current transcript line tinted;
+    round pink page arrows; the white ring on whatever you point at.
+  - **Comments and posts:** Top / Newest as chips; the creator's name on a pink pill;
+    👍 👎 💬 as Material Symbols (filled when on); "Show more replies" and the replies
+    button (now with an arrow icon) get the white ring; poll choices too.
+  - **Loading:** the Material 3 Expressive loading indicator, a red shape that turns and
+    morphs, replaces the spinner everywhere (panels and over the video while it buffers).
+  - Every remaining hover and press uses the M3 state layers (no more blue press tint).
+
+### Removed
+- The old hand-drawn thumb, speaker and skip glyphs (unused since the controls panel moved
+  to Material Symbols in 0.52).
+
+## 0.55.0
+
+### Changed
+- **Browse, Search, Up Next and the Channel grids in Material 3 Expressive**
+  (docs/Materials-Redesign.md, step 3.3, second part):
+  - Video cards have no tile at rest (like YouTube); the one you point at gets a tile and
+    the white ring. Thumbnails have rounder corners, the duration sits on a dark pill, and
+    the watched bar is YouTube red.
+  - Filter and sort chips are rounded rectangles: the chosen one pink with a ✓, the others
+    outlined.
+  - Browse's tabs have icons (Home, Subscriptions, History, Playlists, Watch later, Liked
+    videos), and stay inside the panel when space is short.
+  - The search field is a rounded pill with 🔍, outlined in YouTube red with a red cursor
+    while typing; its Search button is YouTube red; the suggestions drop down as a menu.
+  - Page arrows, the Channel's search button and back buttons are round pink buttons.
+  - Browse, Search and Up Next have the new dark panel background.
+
+## 0.54.0
+
+### Changed
+- **Settings in Material 3 Expressive** (docs/Materials-Redesign.md, step 3.3, first part):
+  tabs with icons (Playback, Audio, 2D Cinema, Laser, Keyboard, Language) spread across the
+  panel, the current one underlined in YouTube red; each setting's explanation under its
+  name, its control on the right; YouTube-red switches with a ✓; the red and pink sliders
+  of the controls panel; Default buttons as pink pills with ↺ (wider when a language needs
+  it); round pink ‹ › arrows; audio tracks as pink buttons, the playing one deep red with a
+  ✓. The white ring shows what the laser points at.
+- **Every panel's tabs** (Description, Up Next, Browse, Search, Channel) in the same style:
+  the current tab underlined in YouTube red, the pointed-at one with a faint tint and the
+  white ring.
+
+### Removed
+- The "On" / "Off" words next to the old switches (and their strings).
+
+## 0.53.3
+
+### Fixed
+- Clicking another toolbar icon now animates like pointing at one (about 0.2 s): the deep
+  red and the name fade and fold away from the panel that closes while they come in on
+  the one that opens, instead of switching at once.
+
+## 0.53.2
+
+### Fixed
+- Moving the laser from one toolbar icon to the next no longer makes the whole bar widen
+  and shrink back: the expansion is handed from one icon to the next, so the bar stays
+  wide (its width only eases between the two names' widths), and it shrinks back only
+  when the laser leaves the toolbar. The gaps and rounded ends of the bar count as the
+  nearest icon, so crossing them doesn't collapse it.
+
+## 0.53.1
+
+### Fixed
+- The toolbar's icons now always expand at the same speed (about 0.2 s). The row only
+  redraws when something changes, so the first step of an expansion counted all the time
+  since the last redraw and could finish at once; now an expansion starts from zero and
+  one redraw advances it by at most 50 ms.
+
+## 0.53.0
+
+### Changed
+- **The chevron row is now a Material 3 Expressive toolbar** (docs/Materials-Redesign.md,
+  step 3.2): a rounded bar of icons (Description, Channel, Search, Browse, Up Next,
+  Settings). The open panel's icon is deep red with its name beside it; the one you point
+  at turns pink with the white ring and smoothly expands to show its name, staying under
+  the laser while it grows. Sites give each panel an icon in their registration.
+
+## 0.52.0
+
+### Changed
+- **The controls panel in Material 3 Expressive**, the first restyled part of the redesign
+  (docs/Materials-Redesign.md): pink buttons with Material Symbols icons and small labels
+  (value under each: 1080p, 1×, 80%, Cinema ...); a bigger, YouTube-red play / pause; the
+  seek bar and volume as thick sliders (red played part, gaps at chapters); Subscribe and
+  Like in YouTube red, Like / Dislike joined; menus as buttons with the current one ticked;
+  LIVE as a red chip; a white ring around whatever the laser points at, and buttons square
+  up while pressed. Colours: YouTube's Material 3 palette in the "Fidelity" variant with
+  the pink and the deep red swapped, plus YouTube's exact red for the accents. The other
+  panels don't change yet.
+
+## 0.51.0
+
+### Changed
+- Material 3 palettes are now made when VR starts from one seed colour (YouTube: YouTube
+  Red), by **Google's Material Color Utilities**, bundled in `third_party/` (Apache 2.0; the
+  project's one library). About 0.4 ms per palette; the result equals 0.50.1's tables, so
+  nothing looks different. It also makes dynamic colour possible later (e.g. a palette from
+  the video's thumbnail).
+
+## 0.50.1
+
+### Added
+- Under the hood, step 2 of the redesign: YouTube's **Material 3 palette** (the dark scheme
+  from YouTube Red, generated with Google's own colour library) ships in its provider, and
+  the core has Material 3's default palette for other sites. Not drawn yet: nothing looks
+  different.
+
+## 0.50.0
+
+### Changed
+- Under the hood, the first step of the Material 3 Expressive redesign
+  ([docs/Materials-Redesign.md](docs/Materials-Redesign.md)): every colour the panels draw
+  now comes from design tokens named by Material 3 colour role (`vr-panel/tokens.js`,
+  replacing `theme.js`), including YouTube's card flag colours. Nothing looks different
+  (checked pixel for pixel against 0.49.2). The glass tint for later (62%) is one setting
+  there.
+
+## 0.49.2
+
+### Added
+- **Passthrough, ready for when browsers offer it:** a "See your room (passthrough)"
+  checkbox in the popup (remembered; off by default; the global reset turns it off). When
+  the browser offers a see-through session, StreamXR asks for one and your room shows around
+  the video and the panels instead of black. Today desktop Chrome with SteamVR doesn't
+  (checked on the Steam Frame), so it's greyed out with a note saying why, and VR works as
+  before.
+
+## 0.49.1
+
+### Added
+- The popup's **Details** report whether the browser offers camera passthrough
+  (`passthrough.immersiveAr`), for the planned glass look.
+- **Material Symbols icons** (`src/core/page/vr-panel/symbols.js`): 81 icons from Google's
+  Material Symbols (Rounded, outlined and filled), ready for the Material Design 3 redesign;
+  nothing uses them yet. Apache 2.0 license in `third_party/material-symbols/`.
+
+## 0.49.0
+
+### Changed
+- **Renamed to StreamXR** (from StreamVR). Your settings move over by themselves the first
+  time they're read (cinema screen, laser, keyboard, language, the open panel and tabs).
+- The **Skip Helper** is now "StreamXR Skip Helper for YouTube" (1.2.0): reload it together
+  with StreamXR, or Skip ad in VR stops working (their messages were renamed too).
+- Under the hood, getting StreamXR ready to fit into a bigger "BrowseXR" one day
+  ([docs/Future-Plans.md](docs/Future-Plans.md)); watching works exactly as before:
+  - the code is split into `src/core/` (the VR interface) and `src/streamxr/` (the video
+    player), next to `src/sites/`;
+  - a **site registry**: each site registers its provider, and one generic entry point
+    picks the page's site (YouTube's own `main.js` is gone);
+  - a **media source** gives the session its frames (today the site's `<video>`);
+  - StreamXR's words (formats, popup, 2D Cinema) have their own string tables, so a
+    translation is now three files (CONTRIBUTING.md, "Translating").
+
+## 0.48.1
+
+### Added
+- **Spanish (Español)** for testing the translation system: all of StreamVR's own words.
+  Not yet reviewed by a native speaker.
+
+### Changed
+- The Settings panel no longer shows the current format in its top-right corner (the tabs
+  reached it). The 2D Cinema tab says it instead ("Now: 360°"); the controls panel's
+  Format button shows it as always.
+- Words too wide for their space (row names and Default buttons in Settings, the skip-ad
+  button) are drawn smaller to fit, and cut with "…" as a last resort.
+
+## 0.48.0
+
+### Added
+- **Ready for translation:** every word StreamVR writes itself (the controls panel, the
+  keyboard, every chevron panel, the popup and the player's VR button) now comes from
+  string tables, in English for now. Contributors add a language by copying two files and
+  translating them (CONTRIBUTING.md, "Translating"); words left out show in English.
+- **Settings → Language:** the language of those words, ◀ ▶ through your browser's and every
+  language that has a table, with a Default button back to your browser's. Remembered; the
+  global reset sets it back. By default it follows the browser.
+
+### Changed
+- Button words too long for a controls panel button (in other languages) are drawn smaller
+  to fit.
+- "1 videos" on a one-video playlist card now reads "1 video".
+
+## 0.47.0
+
+### Added
+- **Global reset:** hold the right stick down (click it) for 3 seconds to put every
+  adjustable setting back to its default: the cinema screen's size, distance, height and
+  curve, the laser steadiness, and the keyboard's style, language and size. The video and
+  the panels are then recentered in front of you at their default places. While you hold,
+  the stick's icon becomes a 3-2-1 countdown with a blue ring filling around it; a ✓ and a
+  buzz say it's done. Letting go early cancels it. Which panel is open and the tabs you
+  were on are kept.
+
+## 0.46.0
+
+### Added
+- **Search inside a channel:** a 🔍 button at the end of the Channel panel's tabs (on
+  channels YouTube lets you search). It turns the tab row into a search box: type with the
+  VR keyboard, Search, and the channel's matching videos fill the grid; × clears, ‹ goes
+  back to the tab you were on.
+
+## 0.45.0 – 0.45.1
+
+### Added
+- Settings: a **Keyboard** tab for the VR keyboard's **style** (QWERTY, AZERTY, QWERTZ,
+  Dvorak, Colemak) and **language** (English (US / UK), Español, Français, Deutsch,
+  Italiano, Português (Brasil)), each stepped with ◀ ▶; **Default** goes back to your
+  computer's keyboard and your browser's language. Remembered.
+- A language's keys are those of its own keyboards (0.45.1): its punctuation keys and what
+  Shift gives (Spanish º ' ¡ ç ñ, Shift ¿ ª and !"·$%&/()=; UK £ on Shift+3; French
+  AZERTY ² ) ù $ *, Shift on the digits & é " ' ( - è _ ç à; German, Italian and
+  Portuguese likewise). The symbols page shows its currency (€, £ or $) and ends with its
+  accented letters and the other currencies.
+
+### Fixed
+- Changing the language lost € and £ from the symbols page, and Spanish ¡ and French ç
+  were only on the symbols page. (0.45.1)
+
+## 0.44.0 – 0.44.2
+
+### Added
+- **Search suggestions:** while you type in the Search box, YouTube's suggestions drop down
+  under it (the part you haven't typed in bold); click one to search for it.
+
+### Fixed
+- Suggestions didn't show in the headset: they waited on a page timer, which Chrome can
+  hold back while you're in VR. They're now timed by the VR frame loop. (0.44.1)
+- The same could slow the Transcript tab's loading and the format re-check after a new
+  video or an ad; their waits now keep time in VR too. (0.44.2)
+
+## 0.43.0 – 0.43.1
+
+### Added
+- **VR keyboard.** Press **A** on the right controller to bring it up: it takes the
+  controls panel's place and angle, and the controls panel is hidden; the chevron panels
+  stay up above it. A again, Hide, or the left D-pad brings the controls panel back in the
+  same place. The two share one place: moving either one by its bar moves both. (0.43.1;
+  in 0.43.0 it was a separate panel.) Click its keys with the laser and trigger to type
+  into the text box you clicked (Search); holding a key repeats it. Shift (tap twice for
+  caps), "?123" for symbols, Hide. It follows the computer's keyboard layout when Chrome
+  can tell it (else QWERTY English (US)), and names the language on the space bar. Grip a
+  bottom corner to resize it (the size is remembered).
+
+### Changed
+- **B** on the right controller is play / pause (A was too); its icon moved to B.
+
+## 0.42.0 – 0.42.1
+
+### Added
+- **Search panel**, a new chevron between Channel and Browse: a search box on top and the
+  results below (paging, more loading as you go). Click the box and type, then Enter or
+  Search; × clears the search (text and results, 0.42.1), Escape stops typing. For now
+  you type on the computer's keyboard (YouTube's own keyboard shortcuts are held back
+  while you type); the in-VR keyboard comes next.
+
+### Fixed
+- Typing into Search could pause the video (k, Space): the panels auto-hid while you typed,
+  letting the keys through to YouTube. Typing now keeps them up, and each key's release
+  is held back too. (0.42.1)
+
+## 0.41.0
+
+### Added
+- **Most replayed:** while you point at or drag the seek bar, a soft graph above it shows
+  which parts of the video people rewatch most, as on YouTube (on videos that have one).
+
+## 0.40.0 – 0.40.1
+
+### Added
+- **Posts: comments, likes and polls.**
+  - Each post has 👍 (with its likes), 👎 and 💬 (with its comment count).
+  - 💬 opens the post with its comments under it: Top / Newest, replies, 👍 / 👎 on
+    comments and the creator's ❤, more loading as you scroll. "‹ Posts" goes back to the
+    feed where you left it.
+  - Signed in: like / dislike a post and vote in its poll (click your choice again to take
+    the vote back); after voting, each choice shows its share as a bar.
+
+### Changed
+- Internal: the comment list is shared by the Description panel's Comments tab and the
+  Channel panel (`styles/thread.js`). No visible change in Comments.
+
+## 0.39.0 – 0.39.1
+
+### Added
+- **Channel panel: Posts, Store and About tabs** (when the channel has them).
+  - Posts: a scrolling feed of the channel's posts with their pictures, polls and attached
+    videos (click one to play it); more load as you scroll.
+  - Store: the channel's products, to look at (buying leads off YouTube), each listed
+    once even when the store's shelves repeat it. (0.39.1)
+  - About: the full description and details (joined, country, views, videos, subscribers,
+    links), scrolling.
+
+### Changed
+- When a channel has many tabs, they shrink to fit beside the sort buttons.
+
+## 0.38.0
+
+### Added
+- Settings: a **Laser** tab with a Steadiness slider (Off to Steadiest, with a Default
+  button) for the laser smoothing; your choice is remembered.
+
+## 0.37.0
+
+### Added
+- **Steadier lasers:** hand tremor is smoothed out of the pointing, clicks and anything
+  you hold (moving the controls panel, moving or resizing the cinema screen). Fast moves
+  still follow at once. Tunable as `laserSmoothing` in `vr-panel/config.js`.
+
+## 0.36.0
+
+### Added
+- Video cards show how much of a video you've watched: a red bar along the bottom of the
+  thumbnail, as on YouTube (signed in).
+
+## 0.35.0 – 0.35.3
+
+### Added
+- **Browse panel: History, Playlists, Watch later and Liked videos** tabs (signed in),
+  after Subscriptions. Videos opened from Watch later or Liked videos play in that list
+  (Previous / Next work); playlists play from the start. (A You tab in 0.35.0 was removed
+  in 0.35.1: its shelves all have their own tabs.)
+- **Documentation for developers and AI agents:** [ARCHITECTURE.md](ARCHITECTURE.md) (how
+  the code is built), a decision record ([docs/decisions/](docs/decisions/)),
+  [AGENTS.md](AGENTS.md), this changelog, and notes in [docs/](docs/): what's been learned
+  about YouTube and the hardware, the interface's design choices, and known issues.
+- **Issue forms** for bug reports, "YouTube changed something", videos that look wrong in
+  VR, headset / controller compatibility, feature proposals, support for another site,
+  documentation problems, and questions.
+- [SECURITY.md](SECURITY.md): how to report a security problem privately.
+- **Pull request automation:** an automatic summary in each pull request (linked issue,
+  commit history, changed files, and checks of the project's rules), and checks that every
+  script parses and the shared copies and manifest are in order.
+
+### Changed
+- The README starts with Getting started, a Controls table and what's in VR.
+- The feature backlogs moved to [docs/features/](docs/features/).
+- `Separation.md` was replaced by ARCHITECTURE.md and the decision record.
+
+### Fixed
+- Watch later showed "Nothing here yet" (0.35.1), then cards without views or age: YouTube
+  writes them short there ("7.4K • 4d ago"). (0.35.3)
+
+## 0.34.0
+
+### Changed
+- **Renamed to StreamVR.** The VR interface is now a reusable shell with one folder per
+  supported site (YouTube today); see [ARCHITECTURE.md](ARCHITECTURE.md) and
+  [decision 0001](docs/decisions/0001-shell-provider-site.md).
+- Remembered settings (open panel, tabs, cinema screen size and curve) moved to new names;
+  your old ones carry over automatically.
+- The Skip Helper is now "StreamVR Skip Helper for YouTube" (1.1.0). Reload it together
+  with StreamVR.
+- The panels' red and dark colours come from the site (YouTube's brand colours), and the
+  popup's messages name the site.
+
+## 0.33.0
+
+### Changed
+- Internal: a middle layer (the YouTube "provider") between the VR interface and YouTube.
+  The controls panel, format detection, ads, live streams and playlists go through it. No
+  visible change.
+
+## 0.32.0
+
+### Changed
+- Internal: the five chevron panels are built on standard styles (Info, Catalog, Queue,
+  Profile, Options). No visible change, except: choosing the Comments sort that's already
+  selected no longer jumps to the top, and folding the Description panel no longer
+  re-centres Chapters.
+
+## 0.31.0
+
+### Added
+- Stick paging: while the laser is on a panel with page arrows (Up Next, Browse, Channel,
+  Chapters), the stick's left / right turns the page; its icon changes to ◀▯▶.
+
+### Changed
+- Up Next and Description are the same size as Browse.
+
+## 0.30.1
+
+### Added
+- Comments: 👍 / 👎 buttons (signed in) and the creator's ❤ on comments they liked.
+
+## 0.30.0
+
+### Added
+- Comments tab in the Description panel: Top / Newest, replies, clickable times, more
+  comments as you scroll.
+
+## 0.29.0 – 0.29.3
+
+### Added
+- Description tab (views · date and the description without its chapter list; timestamps
+  seek, links to YouTube videos open them) and Transcript tab (follows the video, click a
+  line to seek).
+- Scrolling by dragging with the trigger or with the stick (its icon changes to ▲≡▼).
+- A loading spinner, also shown over the video while it buffers.
+- Clicking the video title opens the Description tab (again to fold it). (0.29.2)
+- Long titles scroll like a marquee. (0.29.3)
+
+### Changed
+- The Chapters tab only shows on videos with chapters. (0.29.1)
+
+## 0.28.0 – 0.28.1
+
+### Added
+- Description panel with a Chapters tab (two columns, the playing chapter marked; click to
+  jump). Its chevron is the leftmost. (0.28.1)
+
+## 0.27.0 – 0.27.4
+
+### Added
+- Channel panel: a Featured tab when the channel has a featured video.
+- Settings: an Audio tab on videos with several audio tracks (e.g. auto-dubbed).
+- Unsubscribe from the controls panel (two clicks).
+- Playlists and mixes in Up Next, where YouTube places them.
+
+### Changed
+- Mix flag orange (0.27.1), Playlist flag emerald green (0.27.2).
+- YouTube's brand colours (YouTube Red, Almost Black, Almost White) everywhere. (0.27.3)
+
+### Fixed
+- VR180 videos without "180" in the title showed a 2D flag. (0.27.4)
+
+## 0.26.0 – 0.26.3
+
+### Added
+- Live streams: a red ● LIVE label in place of the time, grey with "−0:45" when behind
+  (click it to go back live); the seek bar covers the rewindable part.
+- A red LIVE flag on cards of streams that are live now. (0.26.1)
+
+### Fixed
+- After pausing and playing a live stream, the label stayed red. (0.26.1)
+
+### Changed
+- 2D / 180° / 360° flags share one snug width. (0.26.3)
+
+## 0.25.0 – 0.25.8
+
+### Added
+- Loop and Autoplay switches.
+- Channel panel: a Shows tab.
+
+### Changed
+- "Format Settings" is now "Settings", with tabs (Playback first). (0.25.1)
+- Every card is the height of a two-line title; badges line up with the text. (0.25.6)
+- The Browse panel trims its height to its cards. (0.25.7)
+
+### Fixed
+- Live / Playlists / Shows tabs showed "Nothing here yet" when signed in. (0.25.2)
+- A show's first video played a 1-minute "not available on this device" placeholder. (0.25.3)
+- Playlist cards lacked views, age and badges (0.25.4), stopped at 200 videos (0.25.5),
+  and long playlists started at the wrong place (0.25.8).
+- "Subscribed" showed for every channel. (0.25.7)
+
+## 0.23.0 – 0.24.0
+
+### Added
+- Playlists: Previous / Next buttons and "Playlist 3 / 25 · name" on the controls panel.
+- Pointing at Previous / Next shows a card of that video. (0.23.1 – 0.23.3)
+- Up Next gets a Playlist tab with all of the playlist's videos. (0.24.0)
+
+## 0.22.0 – 0.22.1
+
+### Added
+- Browse panel: YouTube's Home feed with its topic chips (incl. "Immersive videos") and,
+  signed in, your Subscriptions.
+
+### Fixed
+- Signed-in requests now act as the channel identity you browse YouTube as, not the
+  account's default one. (0.22.1)
+
+## 0.21.0 – 0.21.1
+
+### Added
+- Channel panel: click the channel name to see its videos, shorts, live streams and
+  playlists (sortable), and subscribe without leaving VR.
+
+## 0.18 – 0.20
+
+### Added
+- Code for YouTube's channel pages, Home page and subscriptions (signed-in requests,
+  subscribe / unsubscribe, the notification bell), used by the VR panels from 0.21 on.
+- Endless Up Next: the next batch loads as you near the last page. (0.20.1)
+
+## 0.17.0 – 0.17.4
+
+### Added
+- A Format Settings panel: curve the cinema screen (on/off, intensity), move it closer or
+  farther (Distance slider), each with a Default button.
+
+### Changed
+- The cinema screen's corner handles are rounded arcs.
+- The panels above the controls tilt toward you on their own. (0.17.4)
+
+## 0.16.0 – 0.16.1
+
+### Changed
+- Skip ad moved into a separate, optional extension (the Skip Helper), so the main
+  extension needs no extra permissions: only access to youtube.com. (0.16.1)
+
+## 0.15.0 – 0.15.3
+
+### Added
+- Ads in VR: shown on the cinema screen with their progress, then the video's own format
+  comes back; Skip ad when YouTube allows it.
+
+### Fixed
+- The format is checked again after an ad (a VR180 video came back as a 360° cubemap). (0.15.1)
+- VR180 detection uses YouTube's own VR180 flag. (0.15.2)
+- Skip ad only worked sometimes: the popup covered YouTube's button. (0.15.3)
+
+## 0.14.0 – 0.14.1
+
+### Added
+- New button row: Exit, Quality, Speed | −10, Play, +10 | Volume, Format, Recenter.
+- Speed and Volume menus; chapter gaps in the seek bar; a preview frame while pointing at
+  or scrubbing the seek bar.
+
+### Fixed
+- The seek preview showed a dark box. (0.14.1)
+
+## 0.13.0
+
+### Added
+- Code that reads everything YouTube offers on a watch page (no visible change).
+
+## 0.10.0 – 0.12
+
+### Added
+- First versions: 360° (equirectangular and YouTube's cubemap) and VR180 videos around you,
+  regular videos on a cinema screen (resizable, movable, remembered), automatic format
+  detection with switching inside VR.
+- The laser-pointer controls panel (seek bar with scrubbing, quality and format menus,
+  ±10 s, recenter, grab bar, auto-hide), the Up Next panel, and a pause overlay.
+- Steam Frame controller models (from Valve's CAD) that light up as you press, with icons
+  showing what each button does.
+- The "Watch in VR" popup with a Details report (headset and controller diagnostics).

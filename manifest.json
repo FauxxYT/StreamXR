@@ -1,0 +1,143 @@
+{
+  "manifest_version": 3,
+  "name": "StreamXR",
+  "version": "0.78.7",
+  "description": "Watch streaming video in a SteamVR headset: 360° and VR180 videos around you, regular videos on a cinema screen. Supports YouTube.",
+  "action": {
+    "default_title": "StreamXR: open YouTube and click the VR button (the headset)",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "host_permissions": [
+    "https://www.youtube.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.youtube.com/*"
+      ],
+      "world": "MAIN",
+      "run_at": "document_idle",
+      "js": [
+        "third_party/material-color-utilities/material-color-utilities.js",
+        "src/core/shared/bridge.js",
+        "src/core/shared/i18n.js",
+        "src/core/shared/strings-en.js",
+        "src/core/shared/strings-es.js",
+        "src/core/shared/controls.js",
+        "src/streamxr/shared/strings-en.js",
+        "src/streamxr/shared/strings-es.js",
+        "src/streamxr/shared/formats.js",
+        "src/core/page/math3d.js",
+        "src/core/page/pose-smoother.js",
+        "src/core/page/gl-utils.js",
+        "src/core/page/storage.js",
+        "src/core/page/sites.js",
+        "src/core/page/frame-clock.js",
+        "src/core/page/diagnostics.js",
+        "src/core/page/input.js",
+        "src/core/page/controllers/config.js",
+        "src/core/page/controllers/icons.js",
+        "src/core/page/controllers/models.js",
+        "src/core/page/controllers/model-pass.js",
+        "src/core/page/controllers/icon-pass.js",
+        "src/core/page/controllers/controllers.js",
+        "src/core/page/vr-panel/config.js",
+        "src/core/page/vr-panel/tokens.js",
+        "src/core/page/vr-panel/glyphs.js",
+        "src/core/page/vr-panel/symbols.js",
+        "src/core/page/vr-panel/motion.js",
+        "src/core/page/vr-panel/panel-ui.js",
+        "src/core/page/vr-panel/styles/kit.js",
+        "src/core/page/vr-panel/styles/grid.js",
+        "src/core/page/vr-panel/styles/thread.js",
+        "src/core/page/vr-panel/styles/queue.js",
+        "src/core/page/vr-panel/styles/catalog.js",
+        "src/core/page/vr-panel/styles/profile.js",
+        "src/core/page/vr-panel/styles/info.js",
+        "src/core/page/vr-panel/styles/options.js",
+        "src/core/page/vr-panel/orbiters-ui.js",
+        "src/core/page/vr-panel/popups-ui.js",
+        "src/core/page/vr-panel/laser-options.js",
+        "src/core/page/vr-panel/appearance-options.js",
+        "src/core/page/vr-panel/safe-zone.js",
+        "src/core/page/vr-panel/safe-zone-options.js",
+        "src/core/page/vr-panel/fade-options.js",
+        "src/core/page/vr-panel/keyboard-options.js",
+        "src/core/page/vr-panel/language-options.js",
+        "src/core/page/vr-panel/hover-card-ui.js",
+        "src/core/page/vr-panel/keyboard.js",
+        "src/core/page/vr-panel/panel-pass.js",
+        "src/core/page/vr-panel/laser-pass.js",
+        "src/core/page/vr-panel/vr-panel.js",
+        "src/streamxr/page/media-source.js",
+        "src/streamxr/page/video-sphere.js",
+        "src/streamxr/page/cinema-screen.js",
+        "src/streamxr/page/cinema-options.js",
+        "src/streamxr/page/pause-overlay.js",
+        "src/streamxr/page/captions-overlay.js",
+        "src/streamxr/page/xr-session.js",
+        "src/sites/youtube/page/youtube-data.js",
+        "src/sites/youtube/page/youtube-player.js",
+        "src/sites/youtube/page/youtube-page.js",
+        "src/sites/youtube/page/youtube-content.js",
+        "src/sites/youtube/page/youtube-channel.js",
+        "src/sites/youtube/page/youtube-home.js",
+        "src/sites/youtube/page/youtube-subscriptions.js",
+        "src/sites/youtube/page/provider/strings-en.js",
+        "src/sites/youtube/page/provider/strings-es.js",
+        "src/sites/youtube/page/provider/badges.js",
+        "src/sites/youtube/page/provider/cards.js",
+        "src/sites/youtube/page/provider/comments.js",
+        "src/sites/youtube/page/provider/upnext.js",
+        "src/sites/youtube/page/provider/browse.js",
+        "src/sites/youtube/page/provider/search.js",
+        "src/sites/youtube/page/provider/channel.js",
+        "src/sites/youtube/page/provider/description.js",
+        "src/sites/youtube/page/provider/comments-panel.js",
+        "src/sites/youtube/page/provider/settings.js",
+        "src/sites/youtube/page/provider/panels.js",
+        "src/sites/youtube/page/provider/extras.js",
+        "src/sites/youtube/page/provider/provider.js",
+        "src/streamxr/page/main.js"
+      ]
+    },
+    {
+      "matches": [
+        "https://www.youtube.com/*"
+      ],
+      "run_at": "document_idle",
+      "js": [
+        "src/core/ui/shared/bridge.js",
+        "src/core/ui/shared/i18n.js",
+        "src/core/ui/shared/strings-en.js",
+        "src/core/ui/shared/strings-es.js",
+        "src/core/ui/shared/controls.js",
+        "src/streamxr/ui/shared/strings-en.js",
+        "src/streamxr/ui/shared/strings-es.js",
+        "src/streamxr/ui/shared/formats.js",
+        "src/sites/youtube/ui/site.js",
+        "src/sites/youtube/ui/skip-helper.js",
+        "src/streamxr/ui/goggles-icon.js",
+        "src/streamxr/ui/panel.js",
+        "src/sites/youtube/ui/player-button.js",
+        "src/sites/youtube/ui/topbar-button.js",
+        "src/sites/youtube/ui/main.js"
+      ],
+      "css": [
+        "src/streamxr/ui/popup.css",
+        "src/sites/youtube/ui/button.css"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+# Video Page Features
+
+YouTube watch-page features that the code can already read or control (in the
+`src/sites/youtube/page/youtube-*.js` modules) but that the VR interface doesn't use yet. Ordered from
+least to most work. Tick an item off (or delete it) when it ships in VR.
+
+Full data inventory with live-probed notes: the maintainer's private "YouTube Watch Page Data" notes (not
+published; what matters from them is in this file and docs/youtube.md).
+
+## Small: a button or switch on something that already exists
+
+- [x] ~~**Loop on/off**~~ DONE (v0.25.0: Playback group in Format Settings)
+  - ~~Code: `youtube.loop()`, `youtube.setLoop(on)`~~
+- [x] ~~**Autoplay on/off**~~ DONE (v0.25.0: next to Loop)
+  - ~~Code: `youtube.autoplay()`, `youtube.setAutoplay(on)`~~
+- [x] ~~**Audio track menu**~~ DONE (v0.27.0: an "Audio" tab in Settings, only on videos with
+  more than one track; a grid of tracks marked auto-dubbed / original)
+  - ~~Code: `youtube.audioTracks()`, `youtube.setAudioTrack(id)`~~
+- [x] ~~**Live streams**~~ DONE (v0.26.0: red "● LIVE" label in place of the time; grey
+  with "−0:45" when behind, click it to jump back to live; seek bar = the rewindable part)
+  - ~~Code: `youtube.live()`, `youtube.goLive()`~~
+- [x] ~~**Playlist controls**~~ DONE (v0.23.0-0.24.0: Previous/Next buttons with hover
+  cards, "Playlist 3 / 25 · name", Playlist tab in Up Next)
+  - ~~Code: `youtube.playlistPosition()`, `youtube.nextVideo()`, `youtube.previousVideo()`,
+    `youtube.playAt(index)`, `youtubeContent.playlist()`~~
+
+## Small to medium: additions to existing panels
+
+- [x] ~~**Endless Up Next**~~ DONE (v0.20.1: loads the next batch near the last page)
+  - ~~Code: `youtubePage.loadMoreRecommendations()`~~
+- [x] ~~**Playlists and mixes in Up Next**~~ DONE (v0.27.0: merged into Recommended where
+  YouTube puts them, labelled "Mix" / "Playlist"; they open as playlists. Signed out,
+  YouTube suggested none on the videos checked, so this is unverified until seen signed in)
+- [x] ~~**Chapter list**~~ DONE (v0.28.0: "Chapters" tab of the new Description panel; the
+  Description panel is where the description text (below) will go as a second tab)
+  - ~~Code: `youtubeContent.chapters()`~~
+- [x] ~~**Most Replayed graph on the seek bar**~~ DONE (v0.41.0: a soft curve over the seek
+  bar while it's pointed at or dragged, as on YouTube)
+  - ~~Code: `youtubeContent.mostReplayed()`~~
+- [ ] **Movies in Up Next** (seen by the maintainer in 0.66.1, signed in: a free movie rated
+  PG-13 in Recommended). Two parts:
+  - **Fix:** its card's grey line shows the movie's price ("Free") and rating ("PG-13")
+    where a video shows its views and upload date: YouTube's movie items put those in the
+    fields our parser reads as views / age. Read movies as their own kind and show what
+    fits (e.g. the year, the rating, the price or "Free"), never price / rating in the
+    views slot.
+  - **Add:** a **Movie tag** on the card, beside the 2D / 180° / 360° tag (`cards.js`
+    kinds): the Material Symbols **`movie`** icon (already in `symbols.js`) instead of
+    text, in **yellow** (the maintainer's choice), so movies stand out from regular videos.
+  - Code: the Up Next items (`youtubePage` recommendations, the card fields in
+    `provider/cards.js`); check Browse and Search results show movies the same way.
+- [ ] **Premium features** (the maintainer, after 0.78.4): YouTube Premium's extras in VR, marked with
+  Material Symbols' **Diamond** icon: **purple** when you don't have Premium (an upsell, like
+  YouTube's own), **YouTube Red** when you do. To include: the Premium quality levels
+  ("1080p Premium" in the Quality menu: check they show and work), **Add to queue**, and
+  Premium's other features (to list from the watch page: e.g. Jump ahead, downloads where
+  they make sense in VR). Find out first how the page says whether you have Premium.
+
+## Medium: new panels with scrolling or long text
+
+- [x] ~~**Captions**~~ DONE (v0.77.0: a Captions button and menu (Off + tracks) on the controls
+  panel; the lines YouTube shows on the page are read from its DOM and drawn in VR)
+  - ~~Code: `youtube.captions()`, `youtube.setCaptions(track)`, `youtube.captionLines()`~~
+  - Note: YouTube draws captions on the page, not into the video picture, so VR never sees
+    them; StreamXR reads the lines as they appear (captions-overlay.js draws them).
+- [ ] **End screen**
+  - Code: `youtubeContent.endScreen()`
+  - VR idea: show the suggested videos and channel links when a video ends.
+- [x] ~~**Description panel**~~ DONE (v0.29.0: "Description" tab: views · date, the text
+  without its chapter list, scrolling; timestamps seek, YouTube video links open)
+  - ~~Code: `youtubeContent.descriptionWithoutChapters()`, `youtubeContent.metadata()`~~
+- [x] ~~**Transcript panel**~~ DONE (v0.29.0: "Transcript" tab when the video has one;
+  loading spinner, current line highlighted and followed, click a line to seek)
+  - ~~Code: `youtubeContent.transcript()`, `youtubeContent.hasTranscript()`~~
+- [ ] **Info cards**
+  - Code: `youtubeContent.cards()`
+  - VR idea: show the "i" cards (linked videos/playlists) at their times.
+
+## Large
+
+- [x] ~~**Comments**~~ DONE (v0.30.0: "Comments" tab of the Description panel: Top / Newest,
+  scrolling with more loading near the end, replies opened under a comment, clickable times)
+  - ~~Code: `youtubeContent.comments(sort)`, `replies(comment)`, `commentsInfo()`~~
+  - v0.30.1: the creator's ❤ shows; like / dislike buttons (confirmed signed in).
+  - Not yet: replies to replies (YouTube's newer nested threads), writing comments
+    (writing needs the VR keyboard).
+- [ ] **Live chat** (medium to large, read-only first)
+  - Code: none yet. YouTube's chat polls `live_chat/get_live_chat` with a continuation token
+    (from the watch page's live chat data) and says how long to wait before the next poll;
+    a finished stream's chat replay uses `live_chat_replay/get_live_chat_replay`, each
+    message tagged with its video time. Both need probing live before writing the reader.
+  - Messages: text with emoji images, author with badges (moderator, member, verified),
+    Super Chats / Stickers (coloured, with the amount), membership messages.
+  - VR idea: a tall narrow panel standing beside the cinema screen (or to the side in
+    180°/360°), not in the chevron stack, so you can watch and read at once. Newest at the
+    bottom, auto-scrolling, with "jump to newest" after scrolling back. A switch to hide it;
+    only shown on live streams and chat replays (replay follows the video time and seeks).
+  - Sending messages needs the VR keyboard (see Search), so it comes later.
+- [x] ~~**Search**~~ DONE (v0.42.0: a "Search" chevron between Channel and Browse, Catalog
+  style with a search field; v0.43.0: the in-VR keyboard, right controller's A)
+  - ~~Code: `youtubeContent.search(query)`~~ (ads and the Shorts shelf are skipped)
+
+## Also available (no plan yet)
+
+- **Channel/owner details**: `youtubeContent.owner()`
+- **Technical info**: `youtube.statsForNerds()` (codecs, resolution, bandwidth, buffer),
+  `youtube.videoData()`, `youtube.loadedFraction()`. These could go in the VR Details panel.
+- **YouTube's own 360° view angle**: `youtube.sphericalView()`, `youtube.setSphericalView()`

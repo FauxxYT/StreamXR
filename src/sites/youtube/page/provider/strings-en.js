@@ -1,0 +1,176 @@
+// The YouTube panels' words in English (the complete table: every other language falls
+// back to it). Added to the same languages as the shell's tables (src/core/shared/
+// strings-*.js); these keys all start with 'yt.'. To translate: copy this file to
+// strings-<language>.js next to it, translate the texts (never the keys), and list it in
+// manifest.json after this one (CONTRIBUTING.md, "Translating"). Leaving a key out shows
+// the English text.
+//
+// {name} is filled in by the code (keep it, move it wherever your language needs it).
+// A text written as { one: '...', other: '...' } has plural forms, chosen by {n} with
+// your language's rules (use its forms: zero, one, two, few, many, other).
+//
+// Not here on purpose: what YouTube itself writes (titles, "1.2M views", "3 days ago",
+// its filter chips): it arrives in your YouTube language.
+(function (ns) {
+  'use strict';
+
+  ns.i18n.add('en', {
+    // The chevron panels' names.
+    'yt.panel.desc': 'Description',
+    'yt.panel.channel': 'Channel',
+    'yt.panel.comments': 'Comments',
+    'yt.panel.search': 'Search',
+    'yt.panel.browse': 'Explore',
+    'yt.panel.you': 'You',
+    'yt.panel.recs': 'Up Next',
+    'yt.panel.settings': 'Settings',
+
+    // Shared by several panels.
+    'yt.loading': 'Loading…',
+    'yt.searching': 'Searching…',
+    'yt.nothingYet': 'Nothing here yet.',
+    'yt.comingSoon': 'Coming Soon',
+    'yt.noVideo': 'No video playing',
+    'yt.noVideoHint': 'Pick one from Explore, You or Search',
+    'yt.cc.off': 'Off',
+    'yt.save': 'Save',
+    'yt.save.signIn': 'Sign in on YouTube to save videos',
+    'yt.save.none': 'No playlists yet',
+    'yt.save.busy': 'Updating…',
+    'yt.save.failed': 'Couldn’t save ({error})',
+    'yt.noResults': 'No results for “{query}”.',
+    'yt.search': 'Search',
+
+    // Video cards' flags and corner.
+    'yt.card.nowPlaying': 'Now playing',
+    'yt.card.mix': 'Mix',
+    'yt.card.playlist': 'Playlist',
+    'yt.card.short': 'Short',
+    'yt.card.live': 'LIVE',
+    'yt.card.videos': { one: '{n} video', other: '{n} videos' },
+
+    // The controls panel: Subscribe button, playlist position.
+    'yt.subscribe': 'Subscribe',
+    'yt.subscribed': 'Subscribed ✓',
+    'yt.unsubscribe': 'Unsubscribe',
+    'yt.unsubscribeFrom': 'Unsubscribe from {name}?',
+    'yt.playlistPosition': 'Playlist {index} / {count}',
+    'yt.subscribers': { one: '{n} subscriber', other: '{n} subscribers' },
+    'yt.auto': 'Auto',
+
+    // Up Next.
+    'yt.recs.title': 'Up next',
+    'yt.recs.empty': 'No suggestions on this page yet.',
+    'yt.recs.recommended': 'Recommended',
+    'yt.recs.playlist': 'Playlist · {index} / {count}',
+
+    // Search.
+    'yt.search.placeholder': 'Search YouTube',
+    'yt.search.hint': 'Click the search box and type what to look for.',
+    'yt.search.failed': 'Couldn’t search ({error}).',
+    'yt.search.resultsFor': 'Results for “{query}”',
+
+    // Browse.
+    'yt.browse.home': 'Home',
+    'yt.browse.shorts': 'Shorts',
+    'yt.browse.music': 'Music',
+    'yt.browse.movies': 'Movies & TV',
+    'yt.browse.hype': 'Hype',
+    'yt.browse.live': 'Live',
+    'yt.browse.gaming': 'Gaming',
+    'yt.browse.news': 'News',
+    'yt.browse.learning': 'Learning',
+    'yt.browse.courses': 'Courses',
+    'yt.browse.podcasts': 'Podcasts',
+    'yt.browse.memberships': 'Memberships',
+    'yt.browse.mychannel': 'Your channel',
+    'yt.browse.mychannelMissing': 'Couldn’t find your channel. Are you signed in on YouTube?',
+    'yt.browse.subs': 'Subscriptions',
+    'yt.browse.subsNote': 'New videos from the channels you subscribe to',
+    'yt.browse.history': 'History',
+    'yt.browse.historyNote': 'Videos you’ve watched, newest first',
+    'yt.browse.playlists': 'Playlists',
+    'yt.browse.playlistsNote': 'Your playlists and the ones you saved',
+    'yt.browse.later': 'Watch later',
+    'yt.browse.laterNote': 'Videos you saved to watch later',
+    'yt.browse.liked': 'Liked videos',
+    'yt.browse.likedNote': 'Videos you liked',
+    'yt.browse.failed': 'Couldn’t load this feed ({error}).',
+
+    // Description panel.
+    'yt.desc.description': 'Description',
+    'yt.desc.chapters': 'Chapters',
+    'yt.desc.transcript': 'Transcript',
+    'yt.desc.comments': 'Comments',
+    'yt.desc.commentsCount': 'Comments · {n}',
+    'yt.desc.noChapters': 'This video has no chapters.',
+    'yt.desc.chapterNow': '{time} · Now playing',
+    'yt.desc.loadingTranscript': 'Loading transcript…',
+    'yt.desc.noTranscript': 'No transcript for this video.',
+    'yt.desc.noDescription': 'No description.',
+
+    // Comments (under a video and under a channel post).
+    'yt.comments.top': 'Top',
+    'yt.comments.newest': 'Newest',
+    'yt.comments.hide': 'Hide replies',
+    'yt.comments.more': 'Show more replies',
+    'yt.comments.empty': 'No comments yet.',
+    'yt.comments.pinned': 'Pinned',
+    'yt.comments.replies': { one: '{n} reply', other: '{n} replies' },
+    'yt.comments.count': { one: '{n} comment', other: '{n} comments' },
+    'yt.comments.failed': 'Couldn’t load comments ({error}).',
+    'yt.comments.off': 'Comments are turned off for this video.',
+
+    // Channel panel.
+    'yt.channel.videos': 'Videos',
+    'yt.channel.shorts': 'Shorts',
+    'yt.channel.live': 'Live',
+    'yt.channel.playlists': 'Playlists',
+    'yt.channel.shows': 'Shows',
+    'yt.channel.posts': 'Posts',
+    'yt.channel.store': 'Store',
+    'yt.channel.about': 'About',
+    'yt.channel.featured': 'Featured',
+    'yt.channel.featuredVideo': 'Featured video',
+    'yt.channel.latest': 'Latest',
+    'yt.channel.popular': 'Popular',
+    'yt.channel.oldest': 'Oldest',
+    'yt.channel.newest': 'Newest',
+    'yt.channel.lastAdded': 'Last added',
+    'yt.channel.loading': 'Loading channel…',
+    'yt.channel.noAbout': 'This channel has no About page.',
+    'yt.channel.joined': 'Joined',
+    'yt.channel.country': 'Country',
+    'yt.channel.views': 'Views',
+    'yt.channel.videoCount': 'Videos',
+    'yt.channel.subscribers': 'Subscribers',
+    'yt.channel.link': 'Channel',
+    'yt.channel.otherLink': 'Link',
+    'yt.channel.noPosts': 'No posts yet.',
+    'yt.channel.searchIn': 'Search {name}',
+    'yt.channel.thisChannel': 'this channel',
+    'yt.channel.searchHint': 'Type what to look for in this channel, then Search.',
+    'yt.channel.failed': 'Couldn’t load this channel ({error}).',
+    'yt.channel.tabFailed': 'Couldn’t load this tab ({error}).',
+    'yt.channel.aboutFailed': 'Couldn’t load the About page ({error}).',
+
+    // Settings panel (the shell adds its own tabs' words: 2D Cinema, Laser, Keyboard, Language).
+    'yt.settings.playback': 'Playback',
+    'yt.settings.audio': 'Audio',
+    'yt.settings.cinema': '2D Cinema',
+    'yt.settings.appearance': 'Appearance',
+    'yt.theme.material': 'Material 3',
+    'yt.theme.youtube': 'YouTube',
+    'yt.settings.safezone': 'Safe zone',
+    'yt.settings.fade': 'Auto-hide',
+    'yt.settings.laser': 'Laser',
+    'yt.settings.keyboard': 'Keyboard',
+    'yt.settings.language': 'Language',
+    'yt.settings.loop': 'Loop',
+    'yt.settings.loopHint': 'Replays this video',
+    'yt.settings.autoplay': 'Autoplay',
+    'yt.settings.autoplayHint': 'Plays the next video',
+    'yt.settings.autoDubbed': 'auto-dubbed',
+    'yt.settings.original': 'original',
+  });
+})(globalThis.__streamxr = globalThis.__streamxr || {});
