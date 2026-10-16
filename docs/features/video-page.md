@@ -84,11 +84,12 @@ published; what matters from them is in this file and docs/youtube.md).
   - v0.30.1: the creator's ❤ shows; like / dislike buttons (confirmed signed in).
   - Not yet: replies to replies (YouTube's newer nested threads), writing comments
     (writing needs the VR keyboard).
-- [ ] **Live chat** (medium to large, read-only first)
-  - Code: none yet. YouTube's chat polls `live_chat/get_live_chat` with a continuation token
-    (from the watch page's live chat data) and says how long to wait before the next poll;
-    a finished stream's chat replay uses `live_chat/get_live_chat_replay` (to confirm), each
-    message tagged with its video time. Both need probing live before writing the reader.
+- [ ] **Live chat** (medium to large, read-only first): **phase 1 (reading) built in 0.79.0**,
+  working in the headset since 0.79.1 (checked by the maintainer).
+  - Code: `youtube-chat.js` (the views, the chat page, polling every 2 s; docs/youtube.md,
+    "Live chat") and `provider/live-chat.js` (the panel; Info style's `chat` content). A
+    finished stream's chat replay (`live_chat/get_live_chat_replay`, to confirm; each message
+    tagged with its video time) isn't read yet: the panel is offered on live streams only.
   - Messages: text with emoji images, author with badges (moderator, member, verified),
     Super Chats / Stickers (coloured, with the amount), membership messages.
   - Decided (design-choices.md, 2026-10-16): a **right-side panel** from a Chat button on the
@@ -97,8 +98,9 @@ published; what matters from them is in this file and docs/youtube.md).
     auto-scrolling, with "jump to newest" after scrolling back; a replay follows the video
     time and seeks.
   - Phases: 1. **reading** (messages, badges, Super Chats / Stickers, memberships, the pinned
-    message as a banner, member emojis inline); 2. **reactions** (a row of reaction buttons
-    on the panel; sending needs probing); 3. **typing** with the existing VR keyboard, which
+    message as a banner, member emojis inline: 0.79.0); 2. **reactions** (a row of reaction
+    buttons on the panel; each is a ready `feedbackEndpoint` that `youtubeData.runEndpoint` can
+    send: docs/youtube.md); 3. **typing** with the existing VR keyboard, which
     gains an **emoji layer** (standard emojis plus the set the panel hands it: the channel's
     member emojis), and a **"Support on desktop"** button (paying stays out of VR).
   - Then **every side panel movable** (left and right): a grab bar on each, as the keyboard

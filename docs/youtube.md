@@ -37,6 +37,9 @@ backlogs in [features/](features/)):
   and no bell), subscribe / unsubscribe / `setNotifications` (they report ok only when
   YouTube's answer shows the new state). Filter chips: none on desktop for the tested
   account (the documented ones seem app-only).
+- `youtube-chat.js` (`ns.youtubeChat`): a live stream's chat ("Live chat" below): `info()`
+  (its views), `open(token)` (a view's chat page), `poll(next)`, and the chat items as plain
+  messages and changes (add, remove, banner).
 
 The provider (`provider/`) is the only code that calls these modules on the shell's behalf.
 
@@ -152,6 +155,60 @@ Checked on a Lofi Girl stream:
   minus its smallest value for this video. Anything under 12 s behind (`LIVE_SLACK`) counts
   as live (the player says "not at head" 15 s behind right after joining).
 - No storyboard previews on live streams.
+
+## Live chat
+
+Probed signed in on a members' live stream and a busy public one (2026-10-16, console
+snippets); read by `youtube-chat.js` since 0.79.0:
+
+- **The watch page** has a `liveChatRenderer` (in `conversationBar`) naming the views ("Top
+  chat", "Live chat" in `sortFilterSubMenuRenderer.subMenuItems`), but **its tokens don't
+  work**: `/live_chat?continuation=<one of them>` answers 200 with an empty page (~79 KB,
+  `window["ytInitialData"] = <!-- …`, no chat), and `live_chat/get_live_chat` answers
+  **HTTP 400** (probe 6, 2026-10-16). Use the **chat frame's** tokens (its own view selector:
+  different tokens, each loading a full chat page, ~455 KB) or, with no frame on the page, the
+  **pop-out page**'s (`/live_chat?is_popout=1&v=<video id>`: ~452 KB of data, but no
+  `liveChatContinuation`; its view selector is read wherever it is: to confirm on a real page).
+- **The chat page / chat frame** (`#chatframe`, same origin): its `ytInitialData` is shaped like
+  a chat update, `continuationContents.liveChatContinuation`, with `continuations[0]`
+  (`invalidationContinuationData`: the token to poll with), `header` (the view selector
+  again, with its own reload tokens), `ticker`, `actionPanel` (the message box, the emoji picker,
+  the reactions, the send endpoint `sendLiveChatMessageEndpoint`), `emojis` (the channel's
+  custom emojis), `participantsList`, `itemList`. Its `actions` are gone once the frame has
+  shown them (`undefined` when read later). The chat page's HTML writes it as
+  `window["ytInitialData"] = {…};`: fetching `/live_chat?continuation=<a view's reload token>`
+  and reading that (brace matching, then `JSON.parse`) works without any frame, and comes
+  with the recent messages in `actions` (77 on a busy stream). That's how to open the
+  **Live chat** view (every message) whatever view the page's frame shows (Top chat by default).
+- **Polling:** `live_chat/get_live_chat` `{ continuation }` with the invalidation token
+  answers in ~100-200 ms with `actions` and the next `invalidationContinuationData`
+  (`timeoutMs: 10000`). YouTube's own frame doesn't wait that long: it is told about new
+  messages by a push service (`/punctual/v1/chooseServer`, `/punctual/multi-watch/channel`).
+  **Polling every 2 s works** (20 polls in a row on a busy stream: no errors, new messages
+  in each, no duplicates; each poll's token is the previous answer's).
+- **A message:** `addChatItemAction.item.liveChatTextMessageRenderer`: `message.runs`
+  (text and emojis), `authorName.simpleText`, `authorPhoto.thumbnails` (32 and 64 px),
+  `authorExternalChannelId`, `id`, `timestampUsec`, `contextMenuEndpoint` ("Chat actions").
+  The action also has a `clientId`.
+- **Other items seen** (in `addChatItemAction.item`): `liveChatPlaceholderItemRenderer`
+  (only `id` and `timestampUsec`: a message YouTube holds back; none was filled in within
+  40 s, so skip them), `liveChatViewerEngagementMessageRenderer` (YouTube's "Welcome to live
+  chat! Remember to guard your privacy…" notice: `icon`, `message.runs`, a "Learn more"
+  `actionButton` to support.google.com).
+- **Banners:** `addBannerToLiveChatCommand.bannerRenderer.liveChatBannerRenderer` (`contents`,
+  `actionId`, `bannerType`, `bannerProperties` with `isEphemeral` / `autoCollapseDelay`).
+  Seen: `LIVE_CHAT_BANNER_TYPE_CHAT_SUMMARY`, an AI "Chat summary" ("Auto-generated
+  experiment • Quality may vary") with thumbs up / down, gone after 12-30 s. Pinned messages
+  use the same command (not seen yet).
+- Not seen yet: Super Chats / Stickers, memberships, ticker items, deletions, replacements.
+- **Custom emojis** (`liveChatContinuation.emojis`, 132 on that channel): `emojiId`
+  (`<channel id>/<id>`), `shortcuts` (`:_C80:`, `:C80:`), `searchTerms`, `image.thumbnails`
+  (24 and 48 px on yt3.ggpht.com), `isCustomEmoji`.
+- **Reactions** (`reactionControlPanelViewModel.expandedButtons`): ❤ 😄 🎉, each a
+  `reactionControlPanelButtonViewModel` with `emojiId`, `buttonIcon` (Noto emoji PNG on
+  fonts.gstatic.com), `a11yLabel` ("Send ❤") and `onTap.innertubeCommand`: a
+  `feedbackEndpoint` (`feedbackToken`) to `/youtubei/v1/feedback`, which
+  `youtubeData.runEndpoint` can send as it is.
 
 ## Playlists
 

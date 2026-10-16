@@ -224,6 +224,9 @@
     // second). The seek bar then covers the rewindable part (time 0 = its start, duration =
     // its length) and the time shows the LIVE label (`liveLabel`).
     const liveNow = cached(() => { const l = youtube.live(); return l.isLive ? l : null; }, 250, null);
+    // Its chat's views (youtube-chat.js info(); re-read every second), or null: none, or a
+    // replay (replays follow the video's time: not read yet).
+    const liveChat = cached(() => { const c = ns.youtubeChat.info(); return c && !c.replay ? c : null; }, 1000, null);
     const LIVE_SLACK = 12;          // seconds behind the live moment that still count as live
     // How far behind live: the larger of (a) the gap to the rewindable end and (b) the
     // broadcast delay (now - ingestion) beyond its smallest value seen for this video (the
@@ -362,12 +365,13 @@
         recommendations: page.recommendations(),
         playback: { loop: youtube.loop(), autoplay: !!youtube.autoplay() }, audio: audioTracks(),
         extras: extras.state({ ad: ad() }),
+        liveChat: l ? liveChat() : null,                             // a live stream's chat (live-chat.js; not replays yet)
       };
       // No video playing (VR started from the Home page...): what the panels show instead of
       // the last video's leftovers (YouTube may keep its old player around): a line saying how
       // to pick one, an empty seek bar, nothing in Up Next or Description.
       if (watching()) return st;
-      return { ...st, title: tr('yt.noVideo'), time: 0, duration: 0, paused: true, live: null, buffered: null, chapters: [], heatmap: [], ad: null,
+      return { ...st, title: tr('yt.noVideo'), time: 0, duration: 0, paused: true, live: null, buffered: null, chapters: [], heatmap: [], ad: null, liveChat: null,
         nowPlaying: { info: [{ text: tr('yt.noVideoHint'), color: 'onSurfaceVariant' }], creator: null, actions: [], queue: null },
         channelId: null, details: {}, playlist: null, description: null, recommendations: [], extras: extras.state({ ad: null, noVideo: true }) };
     }
@@ -377,13 +381,15 @@
 
   ns.ytVr = ns.ytVr || {};
   // YouTube's brand colours (its brand page): YouTube Red, Almost Black (vr-panel/tokens.js),
-  // and its card flags' own colours (cards.js): VR180 purple, Mix orange, Playlist green.
+  // its card flags' own colours (cards.js): VR180 purple, Mix orange, Playlist green, and its
+  // live chat's (live-chat.js): the owner's yellow name chip, moderators' blue, members' green.
   // seed: its Material 3 palette is made from YouTube Red when VR starts (tokens.js
   // scheme()), in the Fidelity variant, with the pink and the deep red swapped (buttons
   // pink, accents red); the accents themselves use the exact YouTube Red (`accent`, the
   // brand role). Decided in docs/Materials-Redesign.md, "The colours".
   const M3_THEME = { accent: '#FF0033', accentPressed: '#ff4d70', dark: '#212121', onAccent: '#FFFFFF',
-    custom: { vr180: '#b388ff', mix: '#ff8a00', playlist: '#2ecc71' },
+    custom: { vr180: '#b388ff', mix: '#ff8a00', playlist: '#2ecc71',
+      chatOwner: '#ffd600', onChatOwner: '#0f0f0f', chatModerator: '#5e84f1', chatMember: '#2ba640', onChatMember: '#ffffff' },
     seed: '#FF0033', scheme: 'fidelity',
     swap: [['primary', 'secondaryContainer'], ['onPrimary', 'onSecondaryContainer']] };
   // The "YouTube" theme's roles, set over that palette (tokens.js theme.palette): Almost Black

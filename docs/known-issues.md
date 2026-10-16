@@ -8,6 +8,12 @@ permissions, Firefox) are in [ARCHITECTURE.md](../ARCHITECTURE.md#known-limits).
 
 - **Signed-in Home feeds** other than the main one, History, Playlists, Watch later and
   Liked videos (those were verified in 0.35) (`youtube-home.js`).
+- **Live chat (0.79.0)**: written from probes of real chats (text messages, the welcome notice,
+  emojis, banners) and, for what didn't show up during the probes, from the shapes YouTube
+  is known to send: **Super Chats, Super Stickers, memberships and gifted memberships, the
+  owner / moderator / member badges, deletions, pinned messages** (`youtube-chat.js`). Check
+  them on a busy stream. While everything else is hidden, the chat stays up but the lasers are
+  hidden with the rest. Chat replays (after a stream) aren't read yet.
 
 ## Known quirks
 

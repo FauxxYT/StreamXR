@@ -13,9 +13,11 @@
 //     Material Symbols name, symbols.js); grows: 'left' or 'right', the side the names
 //     grow towards (away from the video)
 //   tb.draw({ open: { <item id>: bool }, hover, pressed, now (ms) })
+//   tb.setHidden({ <item id>: true })   items left out (the bar shrinks to the rest, from its
+//     top; the canvas keeps room for them all); returns whether that changed anything
 //   tb.hitTest(u, v) -> { id } | null; tb.solidAt(u, v); tb.moving() (keep redrawing)
-//   tb.barCentre: the bar's centre in canvas pixels { x, y }, tb.barWidth (px) (the bar isn't
-//     centred in the canvas: the room for the names is on one side)
+//   tb.barCentre: the bar's centre in canvas pixels { x, y } (kept up to date by setHidden),
+//     tb.barWidth (px) (the bar isn't centred in the canvas: the room for the names is on one side)
 //
 // The pill: one M3 tonal button (icon + name), filled while its panel is open; e.g. Settings
 // on the controls panel's top edge.
@@ -52,10 +54,21 @@
     const BAR_W = 104, PAD = 8, GAP = 6, ITEM = BAR_W - PAD * 2;   // the bar's width; an item is ITEM px square
     const ICON = 40, LABEL_GAP = 14, END = 30;                       // a grown pill: icon, gap, room after the name
     const ROOM = 300, MARGIN = 10;                                   // the most a name can grow; room for the ring
-    const BAR_H = PAD * 2 + items.length * ITEM + (items.length - 1) * GAP;
-    const TW = MARGIN * 2 + BAR_W + ROOM, TH = MARGIN * 2 + BAR_H;
+    const heightFor = n => PAD * 2 + n * ITEM + Math.max(0, n - 1) * GAP;   // the bar with n items
+    const TW = MARGIN * 2 + BAR_W + ROOM, TH = MARGIN * 2 + heightFor(items.length);
     const left = grows === 'left';
     const barX = left ? TW - MARGIN - BAR_W : MARGIN, barY = MARGIN;
+    let shownItems = items, BAR_H = heightFor(items.length), hiddenKey = '';
+    const barCentre = { x: barX + BAR_W / 2, y: barY + BAR_H / 2 };
+    function setHidden(hidden = {}) {
+      const key = items.filter(it => hidden[it.id]).map(it => it.id).join(',');
+      if (key === hiddenKey) return false;
+      hiddenKey = key;
+      shownItems = items.filter(it => !hidden[it.id]);
+      BAR_H = heightFor(shownItems.length);
+      barCentre.y = barY + BAR_H / 2;
+      return true;
+    }
     const canvas = document.createElement('canvas');
     canvas.width = TW; canvas.height = TH;
     const g = canvas.getContext('2d');
@@ -82,10 +95,12 @@
       }
 
       g.clearRect(0, 0, TW, TH);
+      bodies = [];
+      if (!shownItems.length) return;
       // The bar: the panels' glass tint while its side has no panel open; solid while one is
       // (it stands over that panel's edge, which mustn't show through), fading as it opens / closes.
       // (the sum, so switching panels on that side, one fading out as the other fades in, stays solid)
-      const solid = Math.min(1, items.reduce((a, it) => a + sel.get(it.id), 0));
+      const solid = Math.min(1, shownItems.reduce((a, it) => a + sel.get(it.id), 0));
       g.fillStyle = T.panelFill();
       roundRect(g, barX, barY, BAR_W, BAR_H, BAR_W / 2); g.fill();
       if (solid > 0.01) {
@@ -93,7 +108,7 @@
         roundRect(g, barX, barY, BAR_W, BAR_H, BAR_W / 2); g.fill(); g.globalAlpha = 1;
       }
       g.font = T.font('labelLarge', 26);
-      bodies = items.map((it, i) => {
+      bodies = shownItems.map((it, i) => {
         const label = labelText(it), e = 1 - Math.pow(1 - grow.get(it.id), 3), s = smooth(sel.get(it.id));
         const room = Math.min(ROOM, LABEL_GAP + g.measureText(label).width + END) * e;
         const y = barY + PAD + i * (ITEM + GAP), x = barX + PAD;
@@ -139,7 +154,7 @@
     const solidAt = (u, v) => !!hitTest(u, v);
     // Still animating? (A name growing or shrinking, or a selection fading.)
     const moving = () => items.some(it => grow.get(it.id) !== growGoal.get(it.id) || sel.get(it.id) !== selGoal.get(it.id));
-    return { canvas, aspect: TH / TW, draw, hitTest, solidAt, moving, barCentre: { x: barX + BAR_W / 2, y: barY + BAR_H / 2 }, barWidth: BAR_W };
+    return { canvas, aspect: TH / TW, draw, setHidden, hitTest, solidAt, moving, barCentre, barWidth: BAR_W };
   }
 
   function createPill(item) {

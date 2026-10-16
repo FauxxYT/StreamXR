@@ -23,6 +23,7 @@
     'yt.panel.browse': 'Explore',
     'yt.panel.you': 'You',
     'yt.panel.recs': 'Up Next',
+    'yt.panel.chat': 'Live chat',
     'yt.panel.settings': 'Settings',
 
     // Shared by several panels.
@@ -120,6 +121,15 @@
     'yt.comments.count': { one: '{n} comment', other: '{n} comments' },
     'yt.comments.failed': 'Couldn’t load comments ({error}).',
     'yt.comments.off': 'Comments are turned off for this video.',
+
+    // Live chat panel.
+    'yt.chat.none': 'This video has no live chat.',
+    'yt.chat.empty': 'No messages yet.',
+    'yt.chat.ended': 'The chat has ended.',
+    'yt.chat.error': 'Couldn’t load the chat.',
+    'yt.chat.newest': 'Jump to newest',
+    'yt.chat.newestCount': { one: '{n} new message', other: '{n} new messages' },
+    'yt.chat.newMember': 'New member',
 
     // Channel panel.
     'yt.channel.videos': 'Videos',

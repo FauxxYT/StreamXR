@@ -283,8 +283,43 @@
       if (z === 'top') return;                       // its controller decides (model().open)
       open[z] = open[z] === which ? null : which;
       if (OPEN_KEY[z]) ns.storage.set(OPEN_KEY[z], open[z] || 'none');
+      replaced[z] = undefined;                       // (your choice now: nothing to bring back)
     }
-    const shown = p => visible && isOpen(p.reg.id);
+    // Shown: open while the panels are up, or open and registered to stay while they're hidden.
+    const shown = p => isOpen(p.reg.id) && (visible || !!p.reg.stays);
+
+    // A side panel offered only some of the time (its registration's `available(st)`, asked
+    // every frame; e.g. a live stream's chat): while it isn't, its toolbar item is hidden and it
+    // can't be open. One registered `autoOpen` opens whenever it becomes available (not
+    // remembered); the panel it replaced comes back when it goes (else the side's default).
+    const replaced = { left: undefined, right: undefined };   // per side: the panel an autoOpen one replaced
+    const availableNow = p => p.available !== false;
+    const fallbackOf = side => { const d = [...panels.values()].find(p => p.zone === side && p.reg.default && availableNow(p)); return d ? d.reg.id : null; };
+    function refreshAvailable(st) {
+      let changed = false;
+      for (const p of panels.values()) {
+        if (!p.reg.available || (p.zone !== 'left' && p.zone !== 'right')) continue;
+        let a = false;
+        try { a = !!p.reg.available(st); } catch (_) { /* treated as unavailable */ }
+        if (a === p.available) continue;
+        p.available = a; changed = true;
+        const z = p.zone, id = p.reg.id;
+        if (a && p.reg.autoOpen && open[z] !== id) { replaced[z] = open[z]; open[z] = id; }
+        else if (!a && open[z] === id) {
+          const back = replaced[z];
+          open[z] = back === null || (back && back !== id && availableNow(panels.get(back))) ? back : fallbackOf(z);
+          replaced[z] = undefined;
+        }
+      }
+      if (!changed) return;
+      for (const side of ['left', 'right']) {
+        const o = orbiters[side];
+        if (!o) continue;
+        const hidden = {};
+        for (const p of panels.values()) if (p.zone === side && !availableNow(p)) hidden[`toggle:${p.reg.id}`] = true;
+        if (o.ui.setHidden(hidden)) { laidOut = -1; o.key = ''; }   // the bar's length changed: lay it out again
+      }
+    }
 
     // ------------------------------------------------------------ the keyboard
     // keyboard.js's keys, standing in for the controls panel: while it's up (toggleKeyboard,
@@ -663,6 +698,7 @@
       extrasNow = st.extras || null;
       const headPos = [head.x, head.y, head.z];
       const frameInfo = { st, now };
+      refreshAvailable(st);                            // (before the ticks: a panel just gone is closed)
       for (const p of panels.values()) if (p.ctrl.tick) p.ctrl.tick(frameInfo);
 
       lastHead = headPos;
@@ -974,9 +1010,10 @@
       }
 
       // Redraw the canvas only when something visible changed.
+      let hover = null;
+      for (const h of hands.values()) if (h.hover) hover = h.hover;
+      let topModel = null;
       if (visible) {
-        let hover = null;
-        for (const h of hands.values()) if (h.hover) hover = h.hover;
         const quality = st.quality || { current: null, levels: [] };
         const format = st.format || { current: null, options: [] };
         const currentFormat = format.options.find(o => o.id === format.current);
@@ -1061,7 +1098,6 @@
 
         // The top panel's controller is asked every frame (its search bar is always shown):
         // { model, key } as any panel's, plus bar (the bar's field) and open (show the panel).
-        let topModel = null;
         if (topPanel) {
           topModel = topPanel.ctrl.model(frameInfo);
           topPanel.topOpen = !!topModel.open; topPanel.bar = topModel.bar || null;
@@ -1081,22 +1117,23 @@
           o.pass.upload();
           o.key = oKey;
         }
+      }
 
-        // The open panels: each controller says what to show (and a key that changes whenever
-        // that would look different); redrawn only when the key, the hover / pressed control
-        // or the loaded images change.
-        for (const p of panels.values()) {
-          if (!shown(p)) continue;
-          const { model: pm, key: ck } = p === topPanel ? topModel : p.ctrl.model(frameInfo);
-          const pui = { hover: localOf(hover, p), pressed: localOf(pressed && pressed.id, p) };
-          const pKey = [ck, pui.hover, pui.pressed, p.style.imagesReady(), ns.i18n.version(), ns.vrTokens.glass.version,
-            p.style.animating && p.style.animating() ? now : ''].join('\u0001');   // every frame while a hover / press eases
-          if (pKey !== p.key) {
-            p.style.draw(pm, pui);
-            if (p.ctrl.afterDraw) p.ctrl.afterDraw();
-            try { p.pass.upload(); } catch (err) { console.warn(`[streamxr] ${p.reg.id} panel blocked (images):`, err); }
-            p.key = pKey;
-          }
+      // The open panels (while the panels are up; one that stays, also while they're hidden):
+      // each controller says what to show (and a key that changes whenever that would look
+      // different); redrawn only when the key, the hover / pressed control or the loaded
+      // images change.
+      for (const p of panels.values()) {
+        if (!shown(p)) continue;
+        const { model: pm, key: ck } = p === topPanel ? topModel : p.ctrl.model(frameInfo);
+        const pui = { hover: localOf(hover, p), pressed: localOf(pressed && pressed.id, p) };
+        const pKey = [ck, pui.hover, pui.pressed, p.style.imagesReady(), ns.i18n.version(), ns.vrTokens.glass.version,
+          p.style.animating && p.style.animating() ? now : ''].join('\u0001');   // every frame while a hover / press eases
+        if (pKey !== p.key) {
+          p.style.draw(pm, pui);
+          if (p.ctrl.afterDraw) p.ctrl.afterDraw();
+          try { p.pass.upload(); } catch (err) { console.warn(`[streamxr] ${p.reg.id} panel blocked (images):`, err); }
+          p.key = pKey;
         }
       }
     }
@@ -1147,7 +1184,8 @@
     function drawPanel(viewerPose, layer, backdrop = null) {
       if (!fovMeasured) { ns.vrSafeZone.measure(viewerPose); fovMeasured = true; }
       const V = Math.min(1, Math.max(0, anim.vis.get()));
-      if (V < 0.01) return;
+      const staying = [...panels.values()].some(p => p.reg.stays && isOpen(p.reg.id));   // (drawn while the rest is hidden)
+      if (V < 0.01 && !staying) return;
       const K = Math.min(1, Math.max(0, anim.kb.get())), vRaw = anim.vis.get(), kRaw = anim.kb.get();
       gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL);
       gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -1158,12 +1196,13 @@
       const cpA = V * (1 - K), kbA = V * K, C = [0, 0];
       if (cpA > 0.01) items.push([panelPass, scaled(model, C, shrink(vRaw) * shrink(1 - kRaw)), size, backdrop, cpA]);
       if (kbA > 0.01) items.push([kbPass, scaled(kbModel(), C, shrink(vRaw) * shrink(kRaw)), kbSize(), backdrop, kbA]);
-      // (a side panel also fades with its side's toolbar: anim.bars, the side toolbars' own wait)
+      // (a side panel also fades with its side's toolbar: anim.bars, the side toolbars' own
+      // wait; one that stays fades with neither, only opening and closing)
       const B = Math.min(1, Math.max(0, anim.bars.get()));
       for (const p of panels.values()) {
-        const a = anim.open.get(p.reg.id), o = a ? a.get() : 0;
-        const oa = Math.min(1, Math.max(0, o)) * V * (p.zone === 'left' || p.zone === 'right' ? B : 1);
-        if (oa > 0.01 && (p.zone === 'controls' || p.pose)) items.push([p.pass, scaled(panelModel(p), pivotOf(p), shrink(o) * shrink(vRaw)), p.size, backdrop, oa]);
+        const a = anim.open.get(p.reg.id), o = a ? a.get() : 0, stays = !!p.reg.stays;
+        const oa = Math.min(1, Math.max(0, o)) * (stays ? 1 : V * (p.zone === 'left' || p.zone === 'right' ? B : 1));
+        if (oa > 0.01 && (p.zone === 'controls' || p.pose)) items.push([p.pass, scaled(panelModel(p), pivotOf(p), shrink(o) * (stays ? 1 : shrink(vRaw))), p.size, backdrop, oa]);
       }
       for (const [name, o] of Object.entries(orbiters)) {
         // the pill goes with the controls panel; the side toolbars and the search bar also

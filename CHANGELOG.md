@@ -6,6 +6,32 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.79.1
+
+### Fixed
+- **Live chat** said "Couldn't load the chat" on both tabs: the watch page's view tokens load an
+  empty chat page. The views' tokens now come from the chat frame beside the stream (the ones
+  YouTube itself uses), or, when the page shows no chat, from the pop-out chat page.
+
+## 0.79.0
+
+### Added
+- **Live chat** (reading): on a live stream, a **Live chat** panel opens on the right (its
+  button, at the top of the right toolbar, shows only on live streams). It **stays up while
+  you watch** when everything else fades. Tabs for YouTube's **Top chat** and **Live chat**
+  views (the one you pick is remembered); new messages every 2 seconds. Messages show the
+  author's picture and name (the owner on a yellow chip, moderators in blue with a wrench,
+  members in green with their badge), custom and standard emojis inline, **Super Chats**,
+  **Super Stickers** and **memberships** as coloured cards, YouTube's welcome notice, and the
+  **pinned message** in a banner at the top. Scrolling back pauses the list ("Chat paused", as on
+  YouTube) and a button shows how many new messages are waiting; it, or scrolling to the end,
+  goes back to the newest. Deleted messages disappear. YouTube's AI "Chat summary" banner is
+  left out. Not yet: chat replays (after a stream), reactions, typing.
+- For other sites' panels (generic registry options, ARCHITECTURE.md): `available` (a side
+  panel offered only some of the time: its toolbar button hides meanwhile), `autoOpen` (opens
+  whenever it becomes available, the panel it replaced coming back after) and `stays` (doesn't
+  fade with the rest); the Info style's `chat` content (`styles/chat.js`).
+
 ## 0.78.10
 
 ### Changed

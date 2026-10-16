@@ -10,6 +10,9 @@
 //              author (optionally highlighted, with a badge) · meta, text with clickable clock
 //              times, a footer (a site slot), and children (replies) opened under them;
 //              more load as you scroll (YouTube's Comments).
+//   'chat':    a live chat (chat.js): a pinned message in a banner, then the messages oldest
+//              first, following the newest (scrolled to the bottom) while `follow`; when not,
+//              a "jump to newest" button over the bottom of the list.
 //   'message': a grey message in the middle (optionally under the loading spinner).
 // Knows nothing about any site.
 //
@@ -29,11 +32,13 @@
 //         threads: [{ comment: { id, author, avatar, highlight, badge, meta, text, childrenLabel },
 //                     children: null | { open, items: [comments], loading, more } }],
 //         loading, done, error }
+//       { kind: 'chat', banner: null | { header, item }, items: [item] (chat.js; keep each
+//         item object while it's shown: its layout is kept by id), follow, labels: { newest, empty } }
 //       { kind: 'message', text, spinner } }
 //   Control ids: 'tab:<id>', 'page:prev', 'page:next', 'row:<index>' (paged / rows),
 //   'link:<index in links>', 'pill:<id>', 'time:<seconds>', 'children:<thread>',
-//   'more:<thread>', 'text' (anywhere else in a scrolling area: a trigger drag can start
-//   there), plus the footer slot's own ids.
+//   'more:<thread>', 'newest' (chat), 'text' (anywhere else in a scrolling area: a trigger
+//   drag can start there), plus the footer slot's own ids.
 //   Scrolling: scrollAt(u, v), maxScroll(), shownScroll() (after clamping / following),
 //   pxPerV. Also hitTest(u, v) -> { id } | null, has(id), imagesReady(), perPage.
 (function (ns) {
@@ -279,6 +284,34 @@
       endScroll();
     }
 
+    // ------------------------------------------------------------ 'chat'
+    // The banner (if any) under the tabs, then the messages scrolling below it; following the
+    // newest, the list stays scrolled to its end. Its pictures (avatars, emojis: many) have
+    // their own kit, with room for more of them.
+    const chatKit = ns.vrKit.createCardKit(g, onImageLoaded, 400);
+    const chat = ns.vrStyleChat.create(g, chatKit);
+    const NEWEST = { h: 52, pad: 28 };                     // the "jump to newest" button
+
+    function drawChat(c, m, ui) {
+      const bannerH = chat.bannerHeight(c.banner, VIEW.w);
+      if (bannerH) chat.drawBanner(c.banner, VIEW.x, TOP, VIEW.w);
+      const top = TOP + (bannerH ? bannerH + 10 : 0);
+      const view = { x: VIEW.x, y: top, w: VIEW.w, h: H - top - 20 };
+      if (!(c.items || []).length) { message((c.labels || {}).empty || ''); return; }
+      const lay = chat.layout(c.items, view.w);
+      beginScroll(m, lay.height + 8, c.follow ? lay.height : null, view);
+      g.save(); g.beginPath(); g.rect(view.x - 8, view.y, view.w + 16, view.h); g.clip();
+      chat.draw(lay, view.x, view.y - scrollPx, view);
+      g.restore();
+      if (!c.follow) {                                     // scrolled back: a way to the newest
+        const label = (c.labels || {}).newest || '';
+        g.font = T.font('labelLarge', 22);
+        const w = g.measureText(label).width + 28 + 8 + NEWEST.pad * 2;
+        ns.vrKit.button(g, regions, 'newest', W / 2 - w / 2, view.y + view.h - NEWEST.h - 16, w, NEWEST.h, { icon: 'expand_more', label, kind: 'filled' }, ui);
+      }
+      endScroll();
+    }
+
     // ------------------------------------------------------------ scrolling
     // Start drawing a scrolling area (`view`, VIEW unless given) with `contentH` of content:
     // clamp the scroll (or use `want`, e.g. the rows following their current one) and
@@ -319,6 +352,7 @@
       else if (c.kind === 'text') drawText(c, m, ui);
       else if (c.kind === 'rows') drawRows(c, m, ui);
       else if (c.kind === 'thread') drawThread(c, m, ui);
+      else if (c.kind === 'chat') drawChat(c, m, ui);
       else message(c.text || '', c.spinner ? m.now || 0 : null);
     }
 
@@ -328,7 +362,8 @@
     const scrollAt = (u, v) => scrollable && u * W >= curView.x - 8 && u * W <= W - 16 && v * H >= curView.y && v * H <= curView.y + curView.h;
 
     return {
-      canvas, aspect: H / W, draw, hitTest, has, scrollAt, imagesReady: kit.imagesReady, perPage: PER_PAGE, animating: motion.moving,
+      canvas, aspect: H / W, draw, hitTest, has, scrollAt, perPage: PER_PAGE, animating: motion.moving,
+      imagesReady: () => kit.imagesReady() + chatKit.imagesReady(),
       maxScroll: () => maxScrollPx,          // how far the last drawn tab can scroll (px)
       shownScroll: () => scrollPx,           // where it actually is (after clamping / following)
       pxPerV: H,                             // canvas pixels per unit of v (for drag scrolling)

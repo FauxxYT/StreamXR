@@ -11,7 +11,11 @@
 //   symbols.js), style ('queue' | 'catalog' | 'profile' | 'info' | 'options'), size ('wide'
 //   | 'tall' | 'standard', see vr-panel/config.js), overrides (the style's slots, optional),
 //   default (optional: the panel open the first time on its side, before one is
-//   remembered), create(host) -> controller }.
+//   remembered), available (optional, side panels: st => bool, asked every frame: while
+//   false, its toolbar item is hidden and it can't be open), autoOpen (optional: open it
+//   whenever it becomes available, without remembering it; the panel it replaced comes back
+//   when it goes), stays (optional: it doesn't fade with the rest while you watch),
+//   create(host) -> controller }.
 // host (given by vr-panel.js): { actions (the session's: provider + shell), style (this panel's style instance:
 //   maxScroll(), shownScroll() ...), perPage (cards / rows per page), open(), close(),
 //   isOpen() (this panel), closeMenu() (the controls panel's open menu), confirm(d) (ask
@@ -47,7 +51,9 @@
       overrides: footer },
     { id: 'channel', zone: 'left', label: () => ns.i18n.t('yt.panel.channel'), icon: 'account_box', style: 'profile', size: 'tall', create: yt.channelPanel.create,
       overrides: footer },                                                   // an opened post's comments
-    // right of the Safe Zone: what to watch
+    // right of the Safe Zone: a live stream's chat (only then; it stays while you watch), and what to watch
+    { id: 'chat', zone: 'right', label: () => ns.i18n.t('yt.panel.chat'), icon: 'chat_bubble', style: 'info', size: 'tall', create: yt.liveChatPanel.create,
+      available: st => !!st.liveChat, autoOpen: true, stays: true },
     { id: 'recs', zone: 'right', label: () => ns.i18n.t('yt.panel.recs'), icon: 'playlist_play', style: 'queue', size: 'wide', create: yt.upNextPanel.create, default: true },
     { id: 'browse', zone: 'right', label: () => ns.i18n.t('yt.panel.browse'), icon: 'explore', style: 'catalog', size: 'wide', create: yt.browsePanel.create },   // Explore
     { id: 'you', zone: 'right', label: () => ns.i18n.t('yt.panel.you'), icon: 'person', style: 'catalog', size: 'wide', create: yt.youPanel.create },

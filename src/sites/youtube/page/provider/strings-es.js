@@ -13,6 +13,7 @@
     'yt.panel.browse': 'Explorar',
     'yt.panel.you': 'Tú',
     'yt.panel.recs': 'A continuación',
+    'yt.panel.chat': 'Chat en directo',
     'yt.panel.settings': 'Ajustes',
 
     // Shared by several panels.
@@ -110,6 +111,15 @@
     'yt.comments.count': { one: '{n} comentario', other: '{n} comentarios' },
     'yt.comments.failed': 'No se pudieron cargar los comentarios ({error}).',
     'yt.comments.off': 'Los comentarios están desactivados en este vídeo.',
+
+    // Live chat panel.
+    'yt.chat.none': 'Este vídeo no tiene chat en directo.',
+    'yt.chat.empty': 'Todavía no hay mensajes.',
+    'yt.chat.ended': 'El chat ha terminado.',
+    'yt.chat.error': 'No se pudo cargar el chat.',
+    'yt.chat.newest': 'Ir a lo más reciente',
+    'yt.chat.newestCount': { one: '{n} mensaje nuevo', other: '{n} mensajes nuevos' },
+    'yt.chat.newMember': 'Nuevo miembro',
 
     // Channel panel.
     'yt.channel.videos': 'Vídeos',

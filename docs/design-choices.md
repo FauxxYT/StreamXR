@@ -66,7 +66,12 @@ even where they look like something to "fix".
   buttons on the panel), then **typing** with the existing VR keyboard (no second keyboard),
   which gains an **emoji layer** (standard emojis and the channel's member emojis).
   Paying (Super Chat, memberships) stays out of VR: a **"Support on desktop"** button opens
-  YouTube's own screen in the browser window.
+  YouTube's own screen in the browser window. YouTube's AI **"Chat summary"** banner is left
+  out; pinned messages and the welcome notice are shown (the maintainer, 2026-10-16).
+  **Reading built in 0.79.0**, with one choice of its own, to confirm in the headset: the chat
+  **opens by itself** when a live stream starts (as on YouTube), the panel it replaced coming
+  back when the stream ends; tabs for YouTube's Top chat / Live chat views (the choice
+  remembered).
 - **Every side panel can be moved (planned; the maintainer, 2026-10-16):** the left and
   right panels all get a grab bar, as the keyboard and the controls panel have, not only the
   chat. Moving a panel moves its **whole side**: the toolbar and every panel on that side

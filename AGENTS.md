@@ -109,12 +109,12 @@ for the code rules.
   `streamxr-*`, storage `streamxr.*` (storage.js moves old `streamvr.*` / `ytvr.*` values over).
 - No ES modules: each file is a plain script that adds to `globalThis.__streamxr`, and
   `manifest.json` holds the load order.
-- YouTube's panels' ids are `desc`, `comments`, `channel` (left of the Safe Zone), `recs`,
-  `browse` (Explore), `you` (right), `search` (the search bar over the zone, its results in
-  the middle) and `settings` (the pill's popup); the open side panels are remembered as
-  `streamxr.leftPanel` / `streamxr.rightPanel`. Their controllers are in
+- YouTube's panels' ids are `desc`, `comments`, `channel` (left of the Safe Zone), `chat`
+  (live streams only), `recs`, `browse` (Explore), `you` (right), `search` (the search bar over
+  the zone, its results in the middle) and `settings` (the pill's popup); the open side panels
+  are remembered as `streamxr.leftPanel` / `streamxr.rightPanel`. Their controllers are in
   `src/sites/youtube/page/provider/` (`description.js`, `comments-panel.js` (+ `comments.js`),
-  `channel.js`, `search.js`, `browse.js` (Explore and You), `upnext.js`, `settings.js`),
+  `channel.js`, `search.js`, `browse.js` (Explore and You), `upnext.js`, `settings.js`, `live-chat.js`),
   registered in `panels.js`; the controls panel's Captions and Save buttons are `extras.js`.
 - New YouTube behavior goes in the provider or a panel controller; a style or the shell
   never gets a YouTube field (add a generic option or slot instead).
