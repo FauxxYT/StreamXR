@@ -1,7 +1,4 @@
 # 🥽 StreamXR
-<video controls src="StreamXR Demo - Copy.mp4" title="Title"></video>
->180° Video Used: [URSA Cine Immersive vs Canon EOS VR - VR180 Image-Quality Battle (Watch in Headset!)](https://youtu.be/0M4ce-0VSZg?) by [Hugh Hou](https://www.youtube.com/@hughhou)
-
 **YouTube, all around you.** StreamXR turns YouTube in your desktop browser into a full VR
 experience: 360° and VR180 videos wrap around you, regular videos play on a giant cinema
 screen, and you can browse, search, subscribe, like, save and read comments without ever
