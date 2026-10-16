@@ -1,4 +1,6 @@
 # 🥽 StreamXR
+<video controls src="StreamXR Demo.mp4" title="Title"></video>
+>180° Video Used: [URSA Cine Immersive vs Canon EOS VR - VR180 Image-Quality Battle (Watch in Headset!)](https://youtu.be/0M4ce-0VSZg?) by [Hugh Hou](https://www.youtube.com/@hughhou)
 
 **YouTube, all around you.** StreamXR turns YouTube in your desktop browser into a full VR
 experience: 360° and VR180 videos wrap around you, regular videos play on a giant cinema
@@ -81,7 +83,6 @@ reviews: "I want to watch on my VR headset, from my browser." The more people as
 more likely they are to open the door. **If and when they do, I'll make it work ASAP.** 🚀
 
 ## 🌟 What you get
-
 ### 🎥 Every kind of video, the way it was meant to be seen
 - **360° and VR180** wrap around you (YouTube's cubemap "mesh" format included); the format
   is detected automatically and can be changed any time.
@@ -179,7 +180,7 @@ The full design story is in [docs/Materials-Redesign.md](docs/Materials-Redesign
 |---|---|---|
 | 🖥️ **Computer** | **Windows 10 / 11** | Tested on Windows 11. macOS and Linux aren't supported (Chrome's WebXR needs Windows + SteamVR). |
 | 🌐 **Browser** | **Google Chrome** | Tested. Other Chromium browsers (Edge, Brave) should work but haven't been tried. Firefox can't yet: desktop Firefox has no WebXR (a 🦊 Firefox version will come once it does). |
-| 🥽 **Headset** | **Valve Steam Frame** | Tested and tuned for it, controller models and all. Other SteamVR headsets may well play video, but they're untested and their buttons may be mapped differently ([help add yours](#-adding-a-headset)). |
+| 🥽 **Headset** | **Valve Steam Frame** | Tested and tuned for it, controller models and all, streamed from your PC. (Running in the Frame's own browser, no PC needed, comes once it supports WebXR: see the [roadmap](#-roadmap).) Other SteamVR headsets may well play video, but they're untested and their buttons may be mapped differently ([help add yours](#-adding-a-headset)). |
 | 🎮 **VR software** | **SteamVR** | Running **before** you open Chrome, and set as your OpenXR runtime. On the Steam Frame, stream it with **Stream VR without game** ([how](#-get-started-in-a-minute)). |
 | 📺 **Site** | **YouTube** | Signed in or out. With YouTube Premium, even better (no ads). |
 | 🧩 **Optional** | **Skip Helper** | A tiny second extension that lets you skip ads from inside VR ([why it's separate](#-skipping-ads)). |
@@ -376,7 +377,7 @@ No dates, just what I'll work on after release, in this order:
 7. 🟣 **Twitch.tv support:** the first site after YouTube.
 8. 🔐 **Groundwork for YouTube Movies, Netflix, HBO Max, Disney+ and other protected videos:** the
    infrastructure to play them in VR, ready for the day they allow it
-   ([why they don't yet](#-what-about-netflix-hbo-max-and-the-others)).
+   ([why they don't yet](#-what-about-netflix-max-and-the-others)).
 9. ✨ **Whatever else I can think of** (and whatever you ask for!).
 
 ### ⏳ The "as soon as it's possible" roadmap\*
@@ -395,9 +396,12 @@ They're waiting on browsers, Valve, YouTube or the streaming services, not on me
 - 🎮 **Full Steam Frame controller support:** every button on its own (no more B, X and Y
   acting as one), as soon as Chrome recognizes the Steam Frame controllers instead of
   reporting them as Oculus Touch.
+- 🥽 **Native Steam Frame support:** StreamXR running right in the Steam Frame's own
+  Chromium browser, with no PC and no SteamVR streaming needed, as soon as that browser
+  supports WebXR. I'll update StreamXR to work there the moment it does.
 - 🔐 **Streaming services**, starting with 🎬 **HBO Max** and 🍿 **Netflix** (the ones I'd use
   most!), then Disney+, Prime Video and the rest: as soon as they allow their protected
-  videos in VR in desktop browsers ([why they can't yet](#-what-about-netflix-hbo-max-and-the-others),
+  videos in VR in desktop browsers ([why they can't yet](#-what-about-netflix-max-and-the-others),
   and how you can help make it happen).
 
 ## 🧱 Built to grow: three layers
@@ -456,7 +460,7 @@ You don't have to write code to make StreamXR better:
   [Mozilla Connect](https://connect.mozilla.org), Firefox's official place for ideas and
   feedback. The more people ask, the sooner StreamXR can come to Firefox.
 - 🔐 **Ask Netflix, HBO Max, Disney+ and co. for XR support** in desktop browsers
-  ([why it matters](#-what-about-netflix-hbo-max-and-the-others)).
+  ([why it matters](#-what-about-netflix-max-and-the-others)).
 - ⭐ **Star the repo and share it** with anyone who has a headset and loves movies.
 
 ## 🎉 Made something cool with StreamXR? Show me!

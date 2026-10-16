@@ -64,8 +64,9 @@ until another headset or two has been tried and the unverified items are cleared
 YouTube Movies (copy-protected: once YouTube allows protected video in desktop XR; showing
 them in Up Next with price / rating can come before),
 Firefox (desktop WebXR), full Steam Frame controller support (Chrome recognizing the
-controllers instead of "Oculus Touch"), streaming services (HBO Max and Netflix first) once they
-allow protected video in desktop XR.
+controllers instead of "Oculus Touch"), native Steam Frame support (StreamXR in the Frame's own
+Chromium browser, no PC, once that browser supports WebXR), streaming services (HBO Max and
+Netflix first) once they allow protected video in desktop XR.
 
 ## Features to build (easiest first)
 
