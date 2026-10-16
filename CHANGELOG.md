@@ -6,14 +6,6 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
-## Unreleased
-
-### Documentation
-- The README's "as soon as it's possible" roadmap and "What you need" table: **native Steam
-  Frame support**, StreamXR running in the Frame's own Chromium browser (no PC) once that
-  browser supports WebXR. Also in `docs/hardware.md` and `docs/whats-left.md`.
-- The README's links to "What about Netflix, MAX and the others?" work again.
-
 ## 0.78.9
 
 ### Changed
@@ -26,6 +18,10 @@ developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
   **Streaming Status** → your PC → **Advanced** → **Stream VR without game**, then open Chrome.
   Also in the troubleshooting table, the "What you need" table, the question issue form and
   `docs/hardware.md`.
+- The README's "as soon as it's possible" roadmap and "What you need" table: **native Steam
+  Frame support**, StreamXR running in the Frame's own Chromium browser (no PC) once that
+  browser supports WebXR. Also in `docs/hardware.md` and `docs/whats-left.md`.
+- The README's links to "What about Netflix, MAX and the others?" work again.
 
 ## 0.78.8
 
