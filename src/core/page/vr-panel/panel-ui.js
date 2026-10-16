@@ -25,7 +25,8 @@
 //                        queue: null | { hasPrev, hasNext } (in a list: Previous / Next at
 //                                    the seek bar's ends, ids pl:prev / pl:next) },
 //          quality: { current, currentLabel, levels, icons (optional: Material Symbols names
-//                     shown on its button instead of icon + name: one, or two stacked) },
+//                     shown on its button instead of icon + name: one, or two stacked; each
+//                     level can have its own, shown in the Quality menu: popups-ui.js) },
 //          format: { id, label }, speed,
 //          volume: { level, muted }, chapters: [{ title, start }],
 //          heatmap: [{ start, duration, intensity (0..1) }] (how much each part is rewatched:

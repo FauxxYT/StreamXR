@@ -10,7 +10,9 @@
 // right above its button.
 //   const menu = ns.vrPopupsUI.createMenu();
 //   menu.draw(m, { hover, pressed })   m: { items: [{ id, text ("1080p" or "1080p\nPremium"),
-//     on (the current one: ticked), disabled }], note (a grey line above the items), scroll
+//     on (the current one: ticked), disabled, icons (optional: Material Symbols names drawn
+//     on the row's left, e.g. ['4k', '60fps']; the tick then moves to the right end) }],
+//     note (a grey line above the items), scroll
 //     (a long list scrolls: see drawList), key, width }
 //     or { volume: { level (0-100), muted } }; ids: the items', or 'vol:mute' / 'vol:slider'
 //   menu.hitTest(u, v) -> { id, fraction? } | null; menu.solidAt(u, v); menu.moving()
@@ -37,6 +39,7 @@
     const W = 680, H = 760;                              // room for the widest (volume) and tallest (a long list)
     const LIST_W = 360, ROW_H = 64, MIN_ROW_H = 40, PAD = 8, NOTE_H = 48;   // rows shrink (to MIN_ROW_H) so a long list fits
     const SCROLL_ROWS = 8;                               // a scrolling list shows this many rows
+    const ICON = 32, ICON_STEP = 36, ICON_LEFT = 20;     // items' leading icons: size, spacing, left margin (px)
     const VOL = { w: 640, h: 112 };
     const canvas = document.createElement('canvas');
     canvas.width = W; canvas.height = H;
@@ -70,8 +73,13 @@
     // (scrollBy, the laser's stick or a trigger drag: vr-panel.js), a thin bar on its right
     // saying where; m.key: a new one starts it at the top. m.width: the card's width (px;
     // default LIST_W).
+    // Items with `icons` get them on the left, in a column as wide as the most icons in any
+    // row (so the names line up); the card grows by that much, and the tick goes to the right.
     function drawList(m, ui) {
-      const items = m.items || [], listW = Math.min(W, m.width || LIST_W);
+      const items = m.items || [];
+      const lead = Math.max(0, ...items.map(it => (it.icons || []).length));
+      const textX = lead ? ICON_LEFT + lead * ICON_STEP + 12 : 64;    // where the names start in a row
+      const listW = Math.min(W, (m.width || LIST_W) + (lead ? textX - 64 + 40 : 0));
       const noteH = m.note ? NOTE_H : 0;
       const rowH = m.scroll ? ROW_H : Math.max(MIN_ROW_H, Math.min(ROW_H, Math.floor((H - PAD * 2 - noteH) / Math.max(1, items.length))));
       const shownRows = m.scroll ? Math.min(items.length, SCROLL_ROWS) : items.length;
@@ -101,12 +109,13 @@
         g.globalAlpha = it.disabled ? 0.38 : 1;
         const fg = it.on ? P.onSecondaryContainer : P.onSurface;
         g.fillStyle = fg;
-        if (it.on) S.draw(g, 'check', r.x + 32, r.y + r.h / 2, 28, false);
-        const lines = String(it.text).split('\n');
+        if (it.on) S.draw(g, 'check', lead ? r.x + r.w - 30 : r.x + 32, r.y + r.h / 2, 28, false);
+        (it.icons || []).forEach((name, k) => S.draw(g, name, r.x + ICON_LEFT + ICON_STEP * k + ICON_STEP / 2, r.y + r.h / 2, ICON, false));
+        const lines = String(it.text).split('\n'), textW = r.w - textX - (lead ? 52 : 12);
         g.textAlign = 'left'; g.textBaseline = 'middle';
         g.font = T.font('labelLarge', 24);
-        g.fillText(clip(lines[0], r.w - 76), r.x + 64, r.y + r.h / 2 + (lines.length > 1 ? -11 : 1));
-        if (lines.length > 1) { g.font = T.font('labelMedium', 17); g.fillStyle = it.on ? fg : P.onSurfaceVariant; g.fillText(clip(lines.slice(1).join(' '), r.w - 76), r.x + 64, r.y + r.h / 2 + 15); }
+        g.fillText(clip(lines[0], textW), r.x + textX, r.y + r.h / 2 + (lines.length > 1 ? -11 : 1));
+        if (lines.length > 1) { g.font = T.font('labelMedium', 17); g.fillStyle = it.on ? fg : P.onSurfaceVariant; g.fillText(clip(lines.slice(1).join(' '), textW), r.x + textX, r.y + r.h / 2 + 15); }
         g.globalAlpha = 1;
         hoverRing(g, r.x, r.y, r.w, r.h, rad, hv);
       });

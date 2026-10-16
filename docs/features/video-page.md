@@ -87,14 +87,23 @@ published; what matters from them is in this file and docs/youtube.md).
 - [ ] **Live chat** (medium to large, read-only first)
   - Code: none yet. YouTube's chat polls `live_chat/get_live_chat` with a continuation token
     (from the watch page's live chat data) and says how long to wait before the next poll;
-    a finished stream's chat replay uses `live_chat_replay/get_live_chat_replay`, each
+    a finished stream's chat replay uses `live_chat/get_live_chat_replay` (to confirm), each
     message tagged with its video time. Both need probing live before writing the reader.
   - Messages: text with emoji images, author with badges (moderator, member, verified),
     Super Chats / Stickers (coloured, with the amount), membership messages.
-  - VR idea: a tall narrow panel standing beside the cinema screen (or to the side in
-    180°/360°), not in the chevron stack, so you can watch and read at once. Newest at the
-    bottom, auto-scrolling, with "jump to newest" after scrolling back. A switch to hide it;
-    only shown on live streams and chat replays (replay follows the video time and seeks).
+  - Decided (design-choices.md, 2026-10-16): a **right-side panel** from a Chat button on the
+    right toolbar, shown only on live streams and chat replays; it **doesn't fade** with its
+    toolbar (a generic registry option, no chat field in the shell). Newest at the bottom,
+    auto-scrolling, with "jump to newest" after scrolling back; a replay follows the video
+    time and seeks.
+  - Phases: 1. **reading** (messages, badges, Super Chats / Stickers, memberships, the pinned
+    message as a banner, member emojis inline); 2. **reactions** (a row of reaction buttons
+    on the panel; sending needs probing); 3. **typing** with the existing VR keyboard, which
+    gains an **emoji layer** (standard emojis plus the set the panel hands it: the channel's
+    member emojis), and a **"Support on desktop"** button (paying stays out of VR).
+  - Then **every side panel movable** (left and right): a grab bar on each, as the keyboard
+    and the controls panel have. Moving one moves its whole side (toolbar and panels);
+    Recenter or a Safe Zone change puts it back. No resizing.
   - Sending messages needs the VR keyboard (see Search), so it comes later.
 - [x] ~~**Search**~~ DONE (v0.42.0: a "Search" chevron between Channel and Browse, Catalog
   style with a search field; v0.43.0: the in-VR keyboard, right controller's A)

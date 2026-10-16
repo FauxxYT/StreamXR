@@ -57,6 +57,22 @@ even where they look like something to "fix".
   covers the text.
 - The Previous / Next hover card sits 32 dp (about 4.7 cm) in front of and 2 cm above its
   button, in the controls panel's tilt.
+- **Live Chat (planned; the maintainer, 2026-10-16):** a **right-side panel**, where YouTube
+  and Twitch put chat, opened from a Chat button on the right toolbar that shows **only on
+  live streams** (and chat replays). Like the other side panels it shares the right zone (one
+  open at a time), but it **doesn't fade**: its toolbar still fades, the chat stays up while
+  you watch. Built in phases: **reading** first (messages, badges, Super Chats / Stickers,
+  memberships, the pinned message, member emojis), then **reactions** (a row of reaction
+  buttons on the panel), then **typing** with the existing VR keyboard (no second keyboard),
+  which gains an **emoji layer** (standard emojis and the channel's member emojis).
+  Paying (Super Chat, memberships) stays out of VR: a **"Support on desktop"** button opens
+  YouTube's own screen in the browser window.
+- **Every side panel can be moved (planned; the maintainer, 2026-10-16):** the left and
+  right panels all get a grab bar, as the keyboard and the controls panel have, not only the
+  chat. Moving a panel moves its **whole side**: the toolbar and every panel on that side
+  follow (they open where you put them). **Recenter or a Safe Zone change puts it back**, as
+  for a moved controls panel. Moving only; no resizing (the Panel size setting scales
+  everything).
 
 ## Look
 

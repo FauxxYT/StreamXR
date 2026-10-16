@@ -6,6 +6,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.78.10
+
+### Changed
+- The **Quality menu** shows each quality's icons on the left (4K, 2K, Full HD, HD, below-HD,
+  plus 60 fps where it applies), the same icons as the Quality button; the tick moves to the
+  right end. (A generic menu option, `icons` on an item, popups-ui.js.)
+
 ## 0.78.9
 
 ### Changed

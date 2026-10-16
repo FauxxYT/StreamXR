@@ -19,7 +19,7 @@
 //              whatever the site's panels use,
 //              state() -> { title, time, duration, paused,
 //                           nowPlaying (what the controls panel shows: see panel-ui.js),
-//                           quality: { current, currentLabel, levels: [{ id, label }] },
+//                           quality: { current, currentLabel, levels: [{ id, label, icons? }] },
 //                           live: null | { atHead, behind (seconds), dvr } (a live stream; time
 //                             and duration then cover only the rewindable part),
 //                           speed, speeds: [rates], volume: { level, muted },
@@ -983,7 +983,7 @@
         let menuState = null;
         if (menu === 'quality') {
           menuState = {
-            items: quality.levels.map(q => ({ id: `q:${q.id}`, text: q.label, on: q.id === quality.current })),
+            items: quality.levels.map(q => ({ id: `q:${q.id}`, text: q.label, on: q.id === quality.current, icons: q.icons })),
             note: quality.levels.length ? null : tr('panel.noQualities', { site: site.name || tr('panel.theSite') }),
           };
         } else if (menu === 'format') {

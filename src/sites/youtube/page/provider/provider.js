@@ -26,7 +26,7 @@
 //            setVolume, setMuted, storyboard, skipAd, previousVideo, nextVideo, extra; the rest are
 //            for this site's own panels),
 //   state(): polled every frame: { title, nowPlaying (see nowPlaying below), time, duration,
-//            live, paused, quality: { current, currentLabel, levels: [{ id, label }] }, speed,
+//            live, paused, quality: { current, currentLabel, icons, levels: [{ id, label, icons }] }, speed,
 //            speeds, volume, chapters, heatmap, ad, extras (its own controls panel buttons:
 //            vr-panel.js; used through actions.extra), ...whatever this site's panels read },
 //   ad() -> null | { ... }     the ad playing now (the shell shows ads on the cinema screen)
@@ -354,7 +354,7 @@
         title, time: l ? l.current - l.start : youtube.currentTime(), duration: l ? l.end - l.start : youtube.duration(),
         live: l && liveLabel(l), paused: youtube.isPaused(),
         buffered: l || ad() ? null : youtube.bufferedEnd(),           // the seek bar's loaded part (not on live streams or ads)
-        quality: { current: q.current, currentLabel: qualityName(q.current, q.labels), icons: qualityIcons(q.current, q.labels), levels: (q.levels || []).map(id => ({ id, label: qualityName(id, q.labels) })) },
+        quality: { current: q.current, currentLabel: qualityName(q.current, q.labels), icons: qualityIcons(q.current, q.labels), levels: (q.levels || []).map(id => ({ id, label: qualityName(id, q.labels), icons: qualityIcons(id, q.labels) })) },
         speed: youtube.speed(), speeds: youtube.speeds(), volume: youtube.volume(), chapters: chapters(), heatmap: l ? [] : heatmap(), ad: ad(),
         nowPlaying: nowPlaying({ title, channel, details, playlist: pl, subscribeUi: subscribeUi() }),
         // For YouTube's panels:
