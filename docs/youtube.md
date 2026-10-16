@@ -207,8 +207,14 @@ snippets); read by `youtube-chat.js` since 0.79.0:
 - **Reactions** (`reactionControlPanelViewModel.expandedButtons`): ❤ 😄 🎉, each a
   `reactionControlPanelButtonViewModel` with `emojiId`, `buttonIcon` (Noto emoji PNG on
   fonts.gstatic.com), `a11yLabel` ("Send ❤") and `onTap.innertubeCommand`: a
-  `feedbackEndpoint` (`feedbackToken`) to `/youtubei/v1/feedback`, which
-  `youtubeData.runEndpoint` can send as it is.
+  `feedbackEndpoint` (`feedbackToken`) to `/youtubei/v1/feedback`. They're in the chat page's
+  `actionPanel` (absent when the stream has no reactions, or signed out). Sent by
+  `youtubeChat.react()` as YouTube's web client sends a feedback token: `{ feedbackTokens:
+  [token], isFeedbackTokenUnencrypted: false, shouldMerge: false }`, the answer's
+  `feedbackResponses[].isProcessed` saying whether it was taken (0.80.0; checked from the
+  console on a live stream, 2026-10-16: taken). The set varies by stream (that one offered five,
+  not ❤ 😄 🎉). `emojiId` is written without the
+  emoji selector (❤ = U+2764 alone), which fonts draw as a plain glyph: add U+FE0F.
 
 ## Playlists
 

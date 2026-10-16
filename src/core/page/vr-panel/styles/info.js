@@ -12,7 +12,8 @@
 //              more load as you scroll (YouTube's Comments).
 //   'chat':    a live chat (chat.js): a pinned message in a banner, then the messages oldest
 //              first, following the newest (scrolled to the bottom) while `follow`; when not,
-//              a "jump to newest" button over the bottom of the list.
+//              a "jump to newest" button over the bottom of the list; optionally a row of
+//              reaction buttons (an emoji each) along the panel's bottom.
 //   'message': a grey message in the middle (optionally under the loading spinner).
 // Knows nothing about any site.
 //
@@ -33,11 +34,12 @@
 //                     children: null | { open, items: [comments], loading, more } }],
 //         loading, done, error }
 //       { kind: 'chat', banner: null | { header, item }, items: [item] (chat.js; keep each
-//         item object while it's shown: its layout is kept by id), follow, labels: { newest, empty } }
+//         item object while it's shown: its layout is kept by id), follow, labels: { newest, empty },
+//         reactions: [{ id, emoji (a character), on (just sent: shown selected) }] }
 //       { kind: 'message', text, spinner } }
 //   Control ids: 'tab:<id>', 'page:prev', 'page:next', 'row:<index>' (paged / rows),
 //   'link:<index in links>', 'pill:<id>', 'time:<seconds>', 'children:<thread>',
-//   'more:<thread>', 'newest' (chat), 'text' (anywhere else in a scrolling area: a trigger
+//   'more:<thread>', 'newest', 'react:<id>' (chat), 'text' (anywhere else in a scrolling area: a trigger
 //   drag can start there), plus the footer slot's own ids.
 //   Scrolling: scrollAt(u, v), maxScroll(), shownScroll() (after clamping / following),
 //   pxPerV. Also hitTest(u, v) -> { id } | null, has(id), imagesReady(), perPage.
@@ -291,12 +293,29 @@
     const chatKit = ns.vrKit.createCardKit(g, onImageLoaded, 400);
     const chat = ns.vrStyleChat.create(g, chatKit);
     const NEWEST = { h: 52, pad: 28 };                     // the "jump to newest" button
+    const REACT = { size: 64, gap: 16, bar: 92 };          // the reaction buttons; the row's height
+
+    // The reaction buttons, centred in the row along the panel's bottom: round tonal buttons
+    // (filled while `on`) with the emoji drawn by the font.
+    function drawReactions(list, ui) {
+      const total = list.length * REACT.size + (list.length - 1) * REACT.gap;
+      let x = W / 2 - total / 2;
+      const y = H - REACT.bar + (REACT.bar - REACT.size) / 2 - 6;
+      for (const r of list) {
+        ns.vrKit.button(g, regions, `react:${r.id}`, x, y, REACT.size, REACT.size, { kind: r.on ? 'filled' : 'tonal' }, ui);
+        g.font = `34px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = P.onSurface;
+        g.fillText(r.emoji, x + REACT.size / 2, y + REACT.size / 2 + 2);
+        x += REACT.size + REACT.gap;
+      }
+    }
 
     function drawChat(c, m, ui) {
+      const reactions = c.reactions || [];
+      if (reactions.length) drawReactions(reactions, ui);
       const bannerH = chat.bannerHeight(c.banner, VIEW.w);
       if (bannerH) chat.drawBanner(c.banner, VIEW.x, TOP, VIEW.w);
       const top = TOP + (bannerH ? bannerH + 10 : 0);
-      const view = { x: VIEW.x, y: top, w: VIEW.w, h: H - top - 20 };
+      const view = { x: VIEW.x, y: top, w: VIEW.w, h: H - top - (reactions.length ? REACT.bar : 20) };
       if (!(c.items || []).length) { message((c.labels || {}).empty || ''); return; }
       const lay = chat.layout(c.items, view.w);
       beginScroll(m, lay.height + 8, c.follow ? lay.height : null, view);

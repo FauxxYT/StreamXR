@@ -5,8 +5,9 @@
 // POLL_MS (youtube-chat.js; YouTube's own frame is pushed new messages, so its suggested 10 s
 // wait would lag); closed, it rests, and reopening after a while starts it afresh. The list
 // follows the newest message; scrolling back pauses it (new messages are counted, not
-// shown) until you scroll to the end or press "jump to newest". A panel controller: see
-// panels.js.
+// shown) until you scroll to the end or press "jump to newest". The stream's reaction buttons
+// (❤ 😄 🎉, from the chat page) sit along the panel's bottom: a click sends one (at most one
+// every REACT_GAP_MS) and lights the button a moment. A panel controller: see panels.js.
 //   frame.st used: liveChat (youtubeChat.info(): { views } | null).
 (function (ns) {
   'use strict';
@@ -17,6 +18,8 @@
   const RESTART_MS = 30000;         // closed longer than this: start afresh when reopened
   const MAX_ITEMS = 150;            // messages kept while following (more while paused, up to MAX_PAUSED)
   const MAX_PAUSED = 600;
+  const REACT_GAP_MS = 500;         // the shortest time between two reactions sent
+  const REACT_LIT_MS = 700;         // how long a sent reaction's button stays lit
   const VIEW_KEY = 'chatView';      // storage.js name: the chosen view's position (0: Top chat, 1: Live chat)
   const tr = (key, vars) => ns.i18n.t(key, vars);   // words in the interface language (strings-en.js)
 
@@ -49,8 +52,9 @@
     { const v = parseInt(ns.storage.get(VIEW_KEY), 10); if (v >= 0) view = v; }
     // The chat being followed: { video, view (its position), items, ids, banner, next, status
     // ('loading' | 'live' | 'ended' | 'error'), busy (a request out), due (ms: next poll),
-    // tries, version (changes with what's shown) }
+    // tries, version (changes with what's shown), reactions (youtube-chat.js open()'s) }
     let chat = null, lastOpen = 0;
+    let lastReact = 0, lit = {};      // when the last reaction was sent; when each button was (ms)
     let follow = true, frozen = null, unseen = 0, scroll = 0;
 
     const viewsOf = st => (st.liveChat && st.liveChat.views) || [];
@@ -65,14 +69,14 @@
     // (youtube-chat.js views(): the same title, else the same position), then load it.
     function start(index, title) {
       const c = chat = { video: ns.youtubeData.currentVideoId(), view: index, items: [], ids: new Set(), banner: null, next: null,
-        status: 'loading', busy: true, due: 0, tries: 0, version: 0 };
+        status: 'loading', busy: true, due: 0, tries: 0, version: 0, reactions: [] };
       follow = true; frozen = null; unseen = 0; scroll = 0;
       ns.youtubeChat.views().then(list => {
         const v = (title && list.find(x => x.title === title)) || list[index] || list[0];
         return ns.youtubeChat.open(v.token);
       }).then(r => {
         if (chat !== c) return;
-        apply(c, r.items); c.next = r.next; c.status = r.next ? 'live' : 'ended';
+        apply(c, r.items); c.next = r.next; c.status = r.next ? 'live' : 'ended'; c.reactions = r.reactions || [];
       }, err => {
         if (chat !== c) return;
         console.warn('[streamxr] live chat unavailable:', err && err.message || err);
@@ -132,13 +136,17 @@
       else if (!chat || (chat.status === 'loading' && !chat.items.length)) content = { kind: 'message', text: tr('yt.loading'), spinner: true };
       else if (chat.status === 'error' && !chat.items.length) content = { kind: 'message', text: tr('yt.chat.error') };
       else {
-        content = { kind: 'chat', banner: chat.banner, items: follow ? chat.items : (frozen || chat.items), follow,
+        // (an emoji written without its emoji selector, as YouTube writes ❤, gets one: drawn in colour, not as a plain glyph)
+        const reactions = chat.status === 'live' ? chat.reactions.map((r, k) => ({ id: String(k), emoji: /️$/.test(r.emoji) ? r.emoji : `${r.emoji}️`,
+          on: frame.now - (lit[k] || -Infinity) < REACT_LIT_MS })) : [];
+        content = { kind: 'chat', banner: chat.banner, items: follow ? chat.items : (frozen || chat.items), follow, reactions,
           labels: { newest: unseen ? tr('yt.chat.newestCount', { n: unseen }) : tr('yt.chat.newest'), empty: chat.status === 'ended' ? tr('yt.chat.ended') : tr('yt.chat.empty') } };
       }
       const m = { tabs, tab: String(i), content, scroll, now: frame.now / 1000 };
       const loading = !chat || chat.status === 'loading';
+      const lits = content.reactions ? content.reactions.map(r => (r.on ? 1 : 0)).join('') : '';
       const key = [tabs.map(t => t.label).join(','), i, chat ? `${chat.video}:${chat.status}:${follow ? chat.version : 'paused'}` : '',
-        follow, unseen, Math.round(scroll), chat && chat.banner ? chat.banner.id : '', loading ? Math.floor(frame.now / 33) : '', ns.i18n.version()].join('#');
+        follow, unseen, Math.round(scroll), chat && chat.banner ? chat.banner.id : '', lits, loading ? Math.floor(frame.now / 33) : '', ns.i18n.version()].join('#');
       return { model: m, key };
     }
 
@@ -149,11 +157,21 @@
     }
     function resume() { follow = true; frozen = null; unseen = 0; if (chat && chat.items.length > MAX_ITEMS) chat.items = chat.items.slice(-MAX_ITEMS); }
 
+    // Send reaction k (lit at once; a refusal is only logged: YouTube shows nothing either).
+    function react(k) {
+      const r = chat && chat.reactions[k], now = performance.now();
+      if (!r || now - lastReact < REACT_GAP_MS) return;
+      lastReact = now; lit[k] = now;
+      ns.youtubeChat.react(r).then(ok => { if (!ok) console.warn('[streamxr] reaction not taken:', r.emoji); },
+        err => console.warn('[streamxr] reaction failed:', err && err.message || err));
+    }
+
     function event(ev) {
       if (ev.type === 'tab') {
         const k = +ev.value;
         if (k !== view) { view = k; ns.storage.set(VIEW_KEY, String(k)); chat = null; }
       } else if (ev.type === 'newest') resume();
+      else if (ev.type === 'react') react(+ev.value);
       else if (ev.type === 'scroll') {
         const max = host.style.maxScroll();
         scroll = Math.max(0, Math.min(max, ev.value));

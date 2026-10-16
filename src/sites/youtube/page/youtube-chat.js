@@ -11,8 +11,11 @@
 //   await ns.youtubeChat.views(opts) -> [{ title, selected, token }]   the views with the
 //     tokens that load them (from the chat frame, else the pop-out page; kept a minute per
 //     video); opts.skipFrame: ask the pop-out page (for checking it)
-//   await ns.youtubeChat.open(token) -> { items, next }   a view's chat page
+//   await ns.youtubeChat.open(token) -> { items, next, reactions }   a view's chat page;
+//     reactions: the reaction buttons (❤ 😄 🎉 ...; [] when the stream has none, or signed
+//     out): [{ emoji (the character), label ("Send ❤"), token (what sends it) }]
 //   await ns.youtubeChat.poll(next) -> { items, next }     what's new since `next`
+//   await ns.youtubeChat.react(reaction) -> true | false   send one (YouTube's feedback request)
 //     items: changes in order, each one of
 //       { op: 'add', msg }        a new message (see below)
 //       { op: 'remove', id }      a message taken down (deleted, or replaced by a removal)
@@ -101,11 +104,29 @@
     return jsonAfter(await res.text(), 'ytInitialData');
   }
 
-  // Load a view's chat page: its recent messages (and pinned message) and the token to poll with.
+  // Load a view's chat page: its recent messages (and pinned message), the token to poll with
+  // and the reaction buttons.
   async function open(token) {
     const lcc = chatIn(await page(`/live_chat?continuation=${encodeURIComponent(token)}`));
     if (!lcc) throw new Error('live_chat: no chat data in the page');
-    return { items: changes(lcc.actions), next: nextOf(lcc) };
+    return { items: changes(lcc.actions), next: nextOf(lcc), reactions: reactionsIn(lcc) };
+  }
+
+  // The reaction buttons in a chat's message box (reactionControlPanelViewModel's
+  // expandedButtons): each one's emoji, label and feedback token.
+  function reactionsIn(lcc) {
+    const panel = findKey(lcc && lcc.actionPanel, 'reactionControlPanelViewModel') || {};
+    return (panel.expandedButtons || []).map(b => {
+      const v = b.reactionControlPanelButtonViewModel || {};
+      return { emoji: v.emojiId || '', label: v.a11yLabel || v.emojiId || '', token: dig(findKey(v.onTap, 'feedbackEndpoint'), 'feedbackToken') || '' };
+    }).filter(r => r.emoji && r.token);
+  }
+
+  // Send a reaction: YouTube's feedback request with its token. True when YouTube took it.
+  async function react(reaction) {
+    const r = await D.innertube('feedback', { feedbackTokens: [reaction.token], isFeedbackTokenUnencrypted: false, shouldMerge: false });
+    const answers = (r && r.feedbackResponses) || [];
+    return !answers.some(a => a && a.isProcessed === false);
   }
 
   // What's new since the last poll.
@@ -211,5 +232,5 @@
     return out;
   }
 
-  ns.youtubeChat = { info, views, open, poll, changes };
+  ns.youtubeChat = { info, views, open, poll, react, changes };
 })(globalThis.__streamxr = globalThis.__streamxr || {});

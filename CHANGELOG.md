@@ -6,6 +6,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.80.0
+
+### Added
+- **Live chat reactions:** the stream's reaction buttons (❤ 😄 🎉) along the bottom of the Live
+  chat panel; clicking one sends it to YouTube (at most one every half second) and lights the
+  button a moment. Shown only when the stream offers reactions (signed in). Other viewers'
+  floating reactions aren't shown yet. (Info style's `chat` content: `reactions`.)
+
 ## 0.79.1
 
 ### Fixed

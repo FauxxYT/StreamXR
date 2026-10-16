@@ -99,8 +99,8 @@ published; what matters from them is in this file and docs/youtube.md).
     time and seeks.
   - Phases: 1. **reading** (messages, badges, Super Chats / Stickers, memberships, the pinned
     message as a banner, member emojis inline: 0.79.0); 2. **reactions** (a row of reaction
-    buttons on the panel; each is a ready `feedbackEndpoint` that `youtubeData.runEndpoint` can
-    send: docs/youtube.md); 3. **typing** with the existing VR keyboard, which
+    buttons along the panel's bottom, sent with `youtubeChat.react()`: 0.80.0, working in the
+    headset; other viewers' floating reactions not shown); 3. **typing** with the existing VR keyboard, which
     gains an **emoji layer** (standard emojis plus the set the panel hands it: the channel's
     member emojis), and a **"Support on desktop"** button (paying stays out of VR).
   - Then **every side panel movable** (left and right): a grab bar on each, as the keyboard
