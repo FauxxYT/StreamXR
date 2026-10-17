@@ -328,8 +328,9 @@ what bugs you most):
   CC BY, CC BY-SA, CC BY-NC-SA or CC0), like the Steam Frame models' (CC BY-NC-SA 4.0).
 
 **🎬 Video**
-- **No 3D (stereo) videos.** On desktop, YouTube only sends one eye's picture, so 3D videos
-  play flat.
+- **Most 3D (stereo) videos play flat.** On desktop, YouTube sends only one eye's picture for
+  most 3D videos (and caps some VR180 videos at 4K), while the Meta Quest app gets both eyes.
+  StreamXR shows what YouTube's own player plays and won't bypass it: [why](docs/decisions/0002-site-player-only.md).
 - **Shorts are very tall** on the cinema screen: they keep their vertical shape at the
   screen's full width. Honestly, I left this in because I think it's funny, but I'll fix it
   eventually lol 😂
@@ -527,7 +528,7 @@ A reusable VR **shell** in two parts, the **core** (`src/core/`: the VR interfac
 and plugs in through its **provider** (a middle layer), its panels (built on five standard
 styles) and its page buttons. No build step and no ES modules: plain scripts loaded in
 order by `manifest.json` (one vendored library, Google's Material Color Utilities, in
-`third_party/`). There are no 3D formats: on desktop YouTube sends one eye only.
+`third_party/`). Most 3D videos reach desktop as one eye only, and StreamXR never bypasses the site's player to get more ([decision 0002](docs/decisions/0002-site-player-only.md)).
 
 | Read | For |
 |---|---|

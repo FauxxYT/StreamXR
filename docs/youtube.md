@@ -98,7 +98,16 @@ The formats are in `src/streamxr/shared/formats.js`; YouTube's detection is the 
   (`youtube-player.js` `quality().labels`); with Premium it also lists "1080p Premium",
   skipped in favour of the plain entry. Unverified in the headset (see known-issues.md).
 
-- Desktop YouTube sends **one eye only**, even for 3D videos, so there are no 3D formats.
+- Desktop YouTube sends **one eye only** for most 3D videos (checked 2026-10-17 with frames
+  from the page's `<video>`): the "Left Right Test in VR 180" (`kle719aQvsc`, 1920×2160) and
+  a 3D VR180 tour (`KJ-_LUrGhYE`, 3840×2160, 2160s at most on desktop) hold the left eye
+  only. **Some arrive side by side** (both eyes in one frame): "VR180 Left/Right"
+  (`ccU0imlNp5Q`, 3840×2160, LEFT | RIGHT). Nothing in the player response tells them apart
+  (all `MESH`, `vrConfig.partialSpherical`, no stereo field). The Quest app gets both eyes
+  and higher resolutions, most likely as a VR client; StreamXR doesn't bypass the page's
+  player to get them ([decisions/0002](decisions/0002-site-player-only.md)).
+- 8K reaches desktop where YouTube offers it, e.g. an 8K 360° video (`tR8ZtyhSDYw`):
+  `4320s`, 7680×3840, AV1 (itag 571).
 - Formats: `flat` (cinema screen), `360mono`, `360eac`, `180mono`.
 - "MESH" 360° videos use an **equi-angular cubemap**, 3×2: top row left | front | right,
   bottom row down | back | up; down and up rotated 270° clockwise, back 90° (the same as

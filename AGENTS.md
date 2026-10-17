@@ -18,6 +18,9 @@ for the code rules.
 ## Never
 - Add a library, a package manager, a build step or ES modules (plain scripts only).
 - Add a permission or a host to `manifest.json` without the maintainer agreeing to it first.
+- Bypass the site's own player (fetching its streams yourself, posing as another client) to
+  get 3D, resolutions or anything else: StreamXR draws what the site's player plays. Point
+  such requests to [docs/decisions/0002](docs/decisions/0002-site-player-only.md) and its risks.
 - Name a site (YouTube or any other) in `src/core/` or `src/streamxr/`: site code goes behind
   its provider in `src/sites/<site>/`.
 - Write on-screen words in the code: they go in the string tables (see "Where things go").

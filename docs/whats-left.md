@@ -68,6 +68,31 @@ controllers instead of "Oculus Touch"), native Steam Frame support (StreamXR in 
 Chromium browser, no PC, once that browser supports WebXR), streaming services (HBO Max and
 Netflix first) once they allow protected video in desktop XR.
 
+## Next: from u/TehSuperFruitSnack's Reddit feedback (after 0.88.1)
+
+1. [ ] **Cubemap seams** (small): thin lines along the cube's edges on 360° cubemap ("MESH")
+   videos; regular (equirectangular) 360° videos don't have them. Likely cause: the glass look
+   (on by default) builds mipmaps of the video (`gl-utils.js` `videoMipmaps`), and the
+   sphere's cubemap lookup (`video-sphere.js` `eacUv`) jumps across the texture where two faces
+   meet, so the GPU picks the smallest mipmap along those lines. Check first: the seams should
+   go away with the glass off (Settings → Appearance). Fix: in cubemap mode, sample the video
+   at full resolution (an explicit level of detail, or gradients from the smooth view direction).
+   - Test: [SheiKra 8K 360° roller coaster](https://www.youtube.com/watch?v=tR8ZtyhSDYw)
+     (cubemap, 8K); for comparison, with no seams:
+     [a regular 360° video](https://www.youtube.com/watch?v=Q7UwGaom0XA).
+2. [ ] **3D side-by-side videos** (medium): some VR180 videos reach desktop with both eyes in
+   one frame (LEFT | RIGHT), and StreamXR stretches the whole frame over the half sphere. Add a
+   side-by-side format to the Format menu that gives each eye its half (`video-sphere.js`
+   `uUvXform`, the per-eye hook); picked by hand, since YouTube's data doesn't mark these
+   videos (auto-detecting by comparing the frame's halves could come later). Update the
+   "no 3D formats" notes in `formats.js` and `docs/youtube.md` with it.
+   - Test: [VR180 Left/Right](https://www.youtube.com/watch?v=ccU0imlNp5Q) (side by side:
+     LEFT in the left eye, RIGHT in the right). For comparison, one eye only, which stays flat:
+     [Left Right Test in VR 180](https://youtu.be/kle719aQvsc?t=8).
+   - Not planned: 3D for videos that reach desktop as one eye, and more than 4K where desktop
+     YouTube caps it (e.g. [this VR180 tour](https://www.youtube.com/watch?v=KJ-_LUrGhYE)):
+     desktop YouTube limits ([decisions/0002](decisions/0002-site-player-only.md)).
+
 ## Features to build (easiest first)
 
 - [ ] **Movies in Up Next**: the price / rating in place of views and date, a yellow Movie tag
