@@ -1,12 +1,14 @@
 // YouTube's feed panels, both in the Catalog style: Explore (YouTube's Home feed with its
 // topic chips, then the Explore pages of YouTube's left menu) and You (your own feeds, signed
-// in: Subscriptions, Your channel, History, Playlists, Watch later, Liked videos, Movies &
+// in: Subscriptions, Channels (the ones you subscribe to: a click opens one in the Channel
+// panel), Your channel, History, Playlists, Watch later, Liked videos, Movies &
 // TV). Each shows its sources as tabs (the row slides when they don't all fit), the loaded
 // videos (a pager that loads more pages as you page through) and the current page. A source
 // that isn't built yet shows "Coming soon" with the construction icon. A source loads the
 // first time it shows. Panel controllers: see panels.js.
 //   actions used: browseHome(chip) -> pager (youtube-home.js home(); p.chips after a page),
-//   browseSubscriptions() -> pager (youtube-subscriptions.js feed()), browseFeed(name) ->
+//   browseSubscriptions() -> pager (youtube-subscriptions.js feed()), browseChannels() ->
+//   pager (youtube-subscriptions.js channels()), browseFeed(name) ->
 //   pager (youtube-home.js feedVideos()), browsePlaylist(id) -> pager (youtube-content.js
 //   playlistVideos()), myChannelId() -> Promise of id | null (youtube-home.js),
 //   channelHeader(id) -> Promise of header (its tabs), channelList(id, tab) -> pager
@@ -21,8 +23,11 @@
   // in the string tables, and with `note` the grey line under the tabs 'yt.browse.<id>Note'),
   // icon (Material Symbols, symbols.js), and either load(actions, chip) (makes the pager;
   // `list` is the playlist its videos play in) with optional chips, or soon (not built yet:
-  // "Coming soon"). chips: 'home' (the Home feed's topic chips, from its pager), or a fixed
-  // list of chip ids (named 'yt.channel.<id>'), the first one chosen at first.
+  // "Coming soon"). card (optional): how an item becomes a card (default: a video card);
+  // pick(host, item) (optional): what clicking one does (default: play it). chips: 'home'
+  // (the Home feed's topic chips, from its pager), 'sorts' (the sort choices its pager
+  // offers, p.sorts: [{ text, selected }]), or a fixed list of chip ids (named
+  // 'yt.channel.<id>'), the first one chosen at first.
   const EXPLORE = [
     { id: 'home', icon: 'home', load: (a, chip) => a.browseHome(chip), chips: 'home' },
     { id: 'shorts', icon: 'smart_display', soon: true },
@@ -37,9 +42,28 @@
     { id: 'podcasts', icon: 'podcasts', soon: true },
     { id: 'memberships', icon: 'card_membership', soon: true },
   ];
+  // A subscribed channel (youtube-subscriptions.js channels()) as a card: its round picture,
+  // name, handle · subscribers, and the bell's setting when YouTube offers one; a flag with
+  // its section's title when it's listed apart (e.g. "Purchased": a channel you're a member of).
+  function channelCard(c) {
+    const n = c.notifications || {}, cur = String(n.current || '').toLowerCase();
+    const now = (n.options || []).find(o => o.selected) || (n.options || []).find(o => cur && cur.includes(String(o.label).toLowerCase()));
+    const bell = now ? now.label : '';
+    return { title: c.title, thumb: c.thumb, fit: 'round', flags: c.aside ? [{ text: c.aside, bg: 'tertiary', fg: 'surface' }] : [],
+      lines: [{ text: [c.handle, c.subscribers].filter(Boolean).join(' · '), badge: c.badge || null },
+        ...(bell ? [{ text: tr('yt.bell.line', { name: bell }) }] : [])] };
+  }
+
+  // Clicking a channel: show it in the Channel panel (left of the zone).
+  function showChannel(host, c) {
+    const ch = host.panel && host.panel('channel');
+    if (ch && ch.show) ch.show(c.id, { subscribed: true, notifications: c.notifications });
+  }
+
   const MY_TABS = ['videos', 'shorts', 'live', 'playlists'];   // Your channel's chips (those it has)
   const YOU = [
     { id: 'subs', icon: 'subscriptions', load: a => a.browseSubscriptions(), note: true },
+    { id: 'channels', icon: 'person', load: (a, sort) => a.browseChannels(sort), chips: 'sorts', note: true, card: channelCard, pick: showChannel },
     { id: 'mychannel', icon: 'account_box', load: (a, chip) => myChannel(a, chip, MY_TABS), chips: MY_TABS },
     { id: 'history', icon: 'history', load: a => a.browseFeed('history'), note: true },
     { id: 'playlists', icon: 'playlist_play', load: a => a.browseFeed('playlists'), note: true },
@@ -82,6 +106,7 @@
     const perPage = host.perPage;
     let source = sources[0].id;
     let homeChips = [];                                  // the Home feed's chip texts on offer, in display order
+    const sortsOf = {};                                  // source id -> the sort choices its pager offers (chips: 'sorts')
     const chipOf = { home: 'All' };                      // source id -> its chosen chip id
     const availOf = {};                                  // source id -> the fixed chips it turned out to have (p.tabs)
     let pager = null, page = 0, loading = false, error = '', ver = 0;
@@ -94,6 +119,7 @@
     // A source's chips ([{ id, label }]) and its chosen one.
     function chipList(s = current()) {
       if (s.chips === 'home') return homeChips.map(t => ({ id: t, label: t }));
+      if (s.chips === 'sorts') return (sortsOf[s.id] || []).map(t => ({ id: t, label: t }));
       return (availOf[s.id] || s.chips || []).map(id => ({ id, label: tr(`yt.channel.${id}`) }));
     }
     const chipNow = (s = current()) => chipOf[s.id] || (Array.isArray(s.chips) ? s.chips[0] : null);
@@ -113,6 +139,12 @@
       loading = true; bump();
       p.next().then(() => {
         if (p === pager && current().chips === 'home' && p.chips && p.chips.length) homeChips = orderChips(p.chips);
+        // A list with its own sort choices (the Channels list): offered as its pills, the one
+        // it's sorted by chosen.
+        if (p === pager && current().chips === 'sorts' && p.sorts && p.sorts.length) {
+          sortsOf[source] = p.sorts.map(x => x.text);
+          const on = p.sorts.find(x => x.selected); if (on) chipOf[source] = on.text;
+        }
         // A list that found out which of its chips exist (Your channel's tabs), and which it read.
         if (p === pager && p.tabs && p.tabs.length) { availOf[source] = p.tabs; if (p.tab) chipOf[source] = p.tab; }
       }, err => { if (p === pager) error = tr('yt.browse.failed', { error: err && err.message || err }); })
@@ -141,7 +173,8 @@
         page = ev.value === 'next' ? Math.min(pageCount() - 1, page + 1) : Math.max(0, page - 1); bump();
       } else if (ev.type === 'item') {
         const it = items()[page * perPage + +ev.value];
-        if (it) actions.openVideo(it.id, it.playlistId || current().list);
+        if (it && current().pick) current().pick(host, it);
+        else if (it) actions.openVideo(it.id, it.playlistId || current().list);
       }
     }
 
@@ -157,7 +190,7 @@
         title: tr(title), tabs: tabs(), tab: source,
         pills: chips, pill: chips.length ? chipNow(s) : null,
         note: s.note ? tr(`yt.browse.${source}Note`) : '',
-        items: items().slice(page * perPage, page * perPage + perPage).map(it => ns.ytVr.card(it)),
+        items: items().slice(page * perPage, page * perPage + perPage).map(it => (s.card ? s.card(it) : ns.ytVr.card(it))),
         page, pageCount: pageCount(), more: !!pager && !pager.done, loading,
         emptyText: s.soon ? tr('yt.comingSoon') : loading ? tr('yt.loading') : message || tr('yt.nothingYet'),
         emptyIcon: s.soon ? 'construction' : null,

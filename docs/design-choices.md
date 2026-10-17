@@ -276,3 +276,13 @@ even where they look like something to "fix".
 - The lasers are smoothed against hand tremor (pointing, clicks and grabbing alike), with
   fast moves passing through at once. The user sets how much in Settings → Laser
   (Steadiness, Off to Steadiest; the middle is the default, which felt right in testing).
+- **Subscriptions (the maintainer, 2026-10-17):** your subscribed channels are a **Channels** tab
+  in the You panel, right after Subscriptions (round channel pictures, a click opens the
+  channel in the Channel panel). A channel's **notification bell** (All / Personalized / None)
+  is a bell button beside Subscribe on the Channel panel, opening a small floating menu like
+  the controls panel's menus. The Subscriptions feed was to show **community posts** (desktop's
+  feed has none: 0.90.2), but not its
+  shelves (the Shorts row, "Most relevant"), as on Home.
+- **Premium (the maintainer, 2026-10-17):** from the audit in `features/video-page.md`: 1080p
+  Premium in the Quality menu and Jump ahead, with the Diamond; queueing isn't Premium on
+  desktop and is its own item.

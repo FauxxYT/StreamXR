@@ -13,6 +13,8 @@
 //                instead of the title while header is null),
 //              action: { id, label, look: 'primary' | 'secondary' | 'danger' | 'busy' } | null
 //                (one button on the right; 'busy' isn't clickable),
+//              iconAction: { id, icon, look: 'primary' | 'secondary' | 'busy' } | null (a round
+//                icon button just left of the action button, e.g. one that opens a menu),
 //              tabs: [{ id, label }], tab, pills: [{ id, label }], pill,
 //              search: bool (a search button at the tab row's end, 'search'),
 //              field: null | a text field (grid.js: { id, text, placeholder, focused, button,
@@ -41,7 +43,9 @@
 //   'clear:<id>' / 'submit:<id>' (searching), the thread's own (thread.js), 'text' (anywhere
 //   else on a scrolling body: a trigger drag can start there).
 //   Scrolling (a body): scrollAt(u, v), maxScroll(), shownScroll(), pxPerV.
-//   Also: hitTest(u, v) -> { id } | null, has(id), imagesReady(), perPage, canvas, aspect.
+//   Also: hitTest(u, v) -> { id } | null, has(id), rectOf(id) -> { x, y, w, h } (px) | null
+//   (a control's place in the last draw, for a menu opening from it), imagesReady(),
+//   perPage, canvas, aspect.
 (function (ns) {
   'use strict';
 
@@ -60,6 +64,7 @@
   // the same everywhere on this page).
   function create(onImageLoaded, W = 1280, H = 960, overrides = {}) {
     const ACTION = { x: W - PAD - 240, y: 132, w: 240, h: 60 };
+    const ICON_ACTION = { x: ACTION.x - 60 - 16, y: ACTION.y, w: 60, h: 60 };
     // A narrow panel puts the pills on a row of their own under the tabs, so the tabs keep
     // their names; everything below moves down with it.
     const PILLS_Y = W < NARROW ? TAB_Y + TAB_H + 10 : TAB_Y;
@@ -98,7 +103,7 @@
     // Name (+ badge) and the stats line beside the picture.
     function drawTitle(m) {
       const h = m.header;
-      const maxW = ACTION.x - NAME_X - 24;
+      const maxW = (m.iconAction ? ICON_ACTION.x : ACTION.x) - NAME_X - 24;
       g.textAlign = 'left'; g.textBaseline = 'middle';
       g.fillStyle = P.onSurface; g.font = T.font('titleLargeEmphasized', 36);
       const name = wrap(g, h ? h.title : m.loadingTitle, maxW - (h && h.badge ? 34 : 0), 1)[0] || '';
@@ -117,6 +122,9 @@
       if (!a) return;
       ns.vrKit.button(g, regions, `action:${a.id}`, ACTION.x, ACTION.y, ACTION.w, ACTION.h,
         { label: a.label, kind: KIND[a.look] || 'filled', enabled: a.look !== 'busy' }, ui);
+      const i = m.iconAction;                 // the round icon button left of it
+      if (i) ns.vrKit.button(g, regions, `action:${i.id}`, ICON_ACTION.x, ICON_ACTION.y, ICON_ACTION.w, ICON_ACTION.h,
+        { icon: i.icon, kind: KIND[i.look] || 'tonal', enabled: i.look !== 'busy' }, ui);
     }
 
     // The featured card (id 'featured'): the thumbnail on the left (with its dot flags drawn
@@ -449,11 +457,12 @@
     // (It also tells the sliding rows where the laser is: grid.js strips.)
     const hitTest = (u, v) => { grid.point(u * W, v * H); const r = regionAt(regions, u, v, W, H); return r ? { id: r.id } : null; };
     const has = id => regions.some(r => r.id === id);    // an enabled control from the last draw?
+    const rectOf = id => { const r = regions.find(x => x.id === id); return r ? { x: r.x, y: r.y, w: r.w, h: r.h } : null; };
     // Is (u, v) on the scrolling body of the last draw?
     const scrollAt = (u, v) => scrollable && u * W >= curView.x - 8 && u * W <= W - 16 && v * H >= curView.y && v * H <= curView.y + curView.h;
 
     return {
-      canvas, aspect: H / W, draw, hitTest, has, scrollAt, imagesReady: kit.imagesReady, perPage: grid.PER_PAGE, animating: () => motion.moving() || grid.moving(),
+      canvas, aspect: H / W, draw, hitTest, has, rectOf, scrollAt, imagesReady: kit.imagesReady, perPage: grid.PER_PAGE, animating: () => motion.moving() || grid.moving(),
       maxScroll: () => maxScrollPx,          // how far the last drawn body can scroll (px)
       shownScroll: () => scrollPx,           // where it actually is (after clamping)
       pxPerV: H,                             // canvas pixels per unit of v (for drag scrolling)

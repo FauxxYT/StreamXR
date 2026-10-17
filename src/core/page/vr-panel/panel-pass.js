@@ -38,7 +38,10 @@
   //     drawn at the tint, so alpha / tint is 1 anywhere on the panel, less on its
   //     antialiased edge, 0 outside it);
   //   - behind(): the ray from the eye (uEye) through this point, into the backdrop:
-  //       uKind 1 'sphere' (equirectangular, uSpan radians of longitude, turned by uYaw),
+  //       uKind 1 'sphere' (equirectangular, uSpan radians of longitude, turned by uYaw;
+  //       its across coordinate then scaled and shifted by uUvX: (1, 0) for the whole
+  //       frame, (0.5, 0) / (0.5, 0.5) for the left / right eye's half of a side-by-side 3D
+  //       frame, set per eye),
   //       uKind 2 'eac' (YouTube's cubemap, the same layout as video-sphere.js),
   //       uKind 3 'screen' (the cinema screen: centre uScrC, axes uScrR / uScrU / uScrN
   //       (toward you), size uScrSize, bent by uBend radians around a vertical circle);
@@ -59,7 +62,7 @@
     uniform sampler2D uTex, uBack;
     uniform float uGlass, uTint, uKind, uSpan, uYaw, uBend, uBlur, uAlpha;
     uniform vec3 uEye, uScrC, uScrR, uScrU, uScrN, uVoid;
-    uniform vec2 uScrSize, uTexel;
+    uniform vec2 uScrSize, uTexel, uUvX;
     uniform vec3 uGlow;                     // the cinema screen's glow: strength (0: none), reach (m), corner radius (m)
     varying vec2 vUv; varying vec3 vWorld;
     const float PI = 3.14159265;
@@ -93,7 +96,7 @@
         vec3 l = vec3(c * d.x - s * d.z, d.y, s * d.x + c * d.z);
         if (uKind > 1.5) return vec3(eacUv(l), 1.0);
         float lon = atan(l.x, -l.z), pol = acos(clamp(l.y, -1.0, 1.0));
-        return vec3(lon / uSpan + 0.5, pol / PI, step(abs(lon), uSpan * 0.5));
+        return vec3((lon / uSpan + 0.5) * uUvX.x + uUvX.y, pol / PI, step(abs(lon), uSpan * 0.5));
       }
       // The cinema screen, in its own axes.
       vec3 e = eye - uScrC;
@@ -179,7 +182,7 @@
     const prog = G.createProgram(gl, VS, FS, 'vr panel');
     const U = G.uniforms(gl, prog, { proj: 'uProj', view: 'uView', model: 'uModel', size: 'uSize', tex: 'uTex', back: 'uBack',
       alpha: 'uAlpha', glass: 'uGlass', tint: 'uTint', kind: 'uKind', span: 'uSpan', yaw: 'uYaw', bend: 'uBend', blur: 'uBlur', eye: 'uEye',
-      scrC: 'uScrC', scrR: 'uScrR', scrU: 'uScrU', scrN: 'uScrN', voidC: 'uVoid', scrSize: 'uScrSize', texel: 'uTexel', glow: 'uGlow' });
+      scrC: 'uScrC', scrR: 'uScrR', scrU: 'uScrU', scrN: 'uScrN', voidC: 'uVoid', scrSize: 'uScrSize', texel: 'uTexel', glow: 'uGlow', uvX: 'uUvX' });
     const vao = vaos.create(); vaos.bind(vao);
     // Two triangles making the square (6 corners, x/y pairs).
     const buf = G.floatAttribute(gl, prog, 'aCorner', new Float32Array([-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5]), 2);
@@ -220,6 +223,9 @@
         gl.uniform1f(U.blur, BLUR[backdrop.kind] || 0.01);
         gl.uniform1f(U.span, backdrop.span || Math.PI * 2);
         gl.uniform1f(U.yaw, backdrop.yaw || 0);
+        // (uvX: one [scale, offset] for both eyes, or { left, right }: each eye its own part)
+        const ux = backdrop.uvX, eyeX = !ux ? [1, 0] : Array.isArray(ux) ? ux : view.eye === 'right' ? ux.right : ux.left;
+        gl.uniform2fv(U.uvX, eyeX);
         if (backdrop.kind === 'screen') {
           gl.uniform3fv(U.scrC, backdrop.centre); gl.uniform3fv(U.scrR, backdrop.right);
           gl.uniform3fv(U.scrU, backdrop.up); gl.uniform3fv(U.scrN, backdrop.normal);

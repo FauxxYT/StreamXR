@@ -12,7 +12,9 @@
 //     current (outlined in blue: the item playing now),
 //     progress (0-1: how much of it you've watched, a bar along the thumbnail's bottom in
 //               the brand colour (the site's theme); 0 or missing: no bar),
-//     fit ('contain': the whole picture, letterboxed, e.g. a product; default: cropped to fill),
+//     fit ('contain': the whole picture, letterboxed, e.g. a product; 'round': a round picture
+//          in the middle, e.g. a person or a channel (a letter until it loads); default:
+//          cropped to fill),
 //     inert (just to look at: not clickable, no hover highlight) }
 // Badges: a site registers its own (registerBadge); drawBadge(name) draws one if registered.
 (function (ns) {
@@ -168,7 +170,11 @@
       // Thumbnail (a grey box with a play triangle until it loads)
       g.save(); roundRect(g, x, y, W_, TH, T.shape.medium); g.clip();
       const img = image(card.thumb);
-      if (img && card.fit === 'contain') { g.fillStyle = TC.n17; g.fillRect(x, y, W_, TH); drawImageContain(img, x, y, W_, TH); }
+      if (card.fit === 'round') {                    // a round picture (a person) in the middle of the box
+        const s = Math.round(TH * 0.8);
+        g.fillStyle = TC.n17; g.fillRect(x, y, W_, TH);
+        avatar(card.thumb, card.title, x + (W_ - s) / 2, y + (TH - s) / 2, s);
+      } else if (img && card.fit === 'contain') { g.fillStyle = TC.n17; g.fillRect(x, y, W_, TH); drawImageContain(img, x, y, W_, TH); }
       else if (img) drawImageCover(img, x, y, W_, TH);
       else {
         g.fillStyle = TC.n17; g.fillRect(x, y, W_, TH);

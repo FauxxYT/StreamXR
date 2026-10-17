@@ -140,7 +140,7 @@ glassy toolbars on each side:
   and **Channel** (videos, Shorts, live streams, playlists, posts, About, Subscribe).
 - 🔎 **Search** above the video, with suggestions as you type on the **VR keyboard**.
 - ➡️ **What to watch:** **Up Next**, **Explore** (your Home feed with all its topic chips,
-  "Immersive videos" included, plus News) and **You** (Subscriptions, Your channel,
+  "Immersive videos" included, plus News) and **You** (Subscriptions with its posts, your Channels with their notification bells, Your channel,
   History, Playlists, Watch later, Liked videos).
 - 💬 **Live chat** on live streams (and **chat replays** on finished ones, playing along with the
   video): it opens by itself and stays up while you watch. Read it with emojis, badges, Super

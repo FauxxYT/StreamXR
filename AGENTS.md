@@ -118,7 +118,7 @@ for the code rules.
   are remembered as `streamxr.leftPanel` / `streamxr.rightPanel`. Their controllers are in
   `src/sites/youtube/page/provider/` (`description.js`, `comments-panel.js` (+ `comments.js`),
   `channel.js`, `search.js`, `browse.js` (Explore and You), `upnext.js`, `settings.js`, `live-chat.js`),
-  registered in `panels.js`; the controls panel's Captions and Save buttons are `extras.js`.
+  registered in `panels.js`; the controls panel's Captions, Jump ahead and Save buttons are `extras.js`.
 - New YouTube behavior goes in the provider or a panel controller; a style or the shell
   never gets a YouTube field (add a generic option or slot instead).
 - Tunables: `vr-panel/config.js`, `controllers/config.js`, `SETTINGS` in `cinema-screen.js`,

@@ -40,7 +40,8 @@
 //              "Skip on desktop" without the Skip Helper extension),
 //          extras: { left: [...], right: [...] } (the site's own buttons, at the inner ends
 //                  of the outer parts of the button row: { id, icon, label (under the
-//                  icon), on (icon filled), disabled }; ids 'x:<id>'),
+//                  icon), on (icon filled), disabled, icons (optional: one or two icons, e.g.
+//                  { name, color } ones, stacked in place of icon + label, like Quality's) }; ids 'x:<id>'),
 //          menuOpen: null | 'quality' | 'speed' | 'format' | 'volume' | 'x:<id>' (that button
 //                    is shown selected: its menu floats in front of the panel, popups-ui.js) }
 //   hover/pressed: a control id or null. Fixed ids: seek, exit, quality, speed, back10,
@@ -71,9 +72,11 @@
   };
   // The button row: one M3E button group, in three parts ([Exit, Quality, Speed, the site's
   // left extras] [-10 s, play / pause, +10 s] [the site's right extras, Volume, Format,
-  // Recenter]), centred (room for one extra a side). Buttons are BTN.w x
-  // BTN.h, play / pause is bigger; GAP between buttons, SEP between the parts.
+  // Recenter]), centred (room for one extra a side at full width; with more, the buttons
+  // narrow to stay inside ROW_MARGIN). Buttons are BTN.w x BTN.h, play / pause is bigger;
+  // GAP between buttons, SEP between the parts.
   const BTN = { w: 88, h: 88, y: ROW_Y + 2 }, PLAY = { w: 132, h: 104, y: ROW_Y - 6 }, GAP = 8, SEP = 20;
+  const ROW_MARGIN = 48;              // the button row keeps this far from the panel's sides
   // In a playlist: Previous / Next video buttons at the two ends of the seek row, and the
   // seek bar shortened between them.
   const PLAYLIST = {
@@ -91,7 +94,7 @@
   const tr = (key, vars) => ns.i18n.t(key, vars);   // words in the interface language (i18n.js)
 
   // Which icon a format gets on the Format button.
-  const FORMAT_ICONS = { flat: 'theaters', '360mono': '360', '360eac': 'view_in_ar', '180mono': 'panorama_photosphere' };
+  const FORMAT_ICONS = { flat: 'theaters', '360mono': '360', '360eac': 'view_in_ar', '180mono': 'panorama_photosphere', '180sbs': '3d_rotation' };
   // The speaker for a volume (0-100) / muted.
   const volumeIcon = v => (v.muted ? 'volume_off' : v.level <= 0 ? 'volume_mute' : v.level < 50 ? 'volume_down' : 'volume_up');
 
@@ -229,8 +232,8 @@
     // An icon over a small label (the button row's buttons), or the icon alone, centred.
     // One icon big, or two stacked (the first smaller and higher, e.g. 4K over 60 fps).
     function iconStack(icons) {
-      if (icons.length < 2) { S.draw(g, icons[0], 0, 0, 48, false); return; }
-      S.draw(g, icons[0], 0, -14, 38, false); S.draw(g, icons[1], 0, 20, 30, false);
+      if (icons.length < 2) { S.drawIcon(g, icons[0], 0, 0, 48, false); return; }
+      S.drawIcon(g, icons[0], 0, -14, 38, false); S.drawIcon(g, icons[1], 0, 20, 30, false);
     }
     function iconLabel(icon, text, filled = false) {
       if (text) { S.draw(g, icon, 0, -13, 36, filled); label(text, 'labelMedium', 23); }
@@ -333,7 +336,12 @@
         ['format', FORMAT_ICONS[state.format && state.format.id] || 'theaters', fmtLabel],
         ['recenter', 'recenter', tr('panel.recenter')],
       ];
-      const width = it => (it[0] === 'play' ? PLAY.w : BTN.w);
+      // Buttons narrow (from BTN.w) when a site's extra buttons would push the row past the
+      // panel's side margins; heights stay.
+      const n = items.filter(it => it && it[0] !== 'play').length, seps = items.filter(it => !it).length;
+      const gaps = (items.length - seps - 1) * GAP + seps * (SEP - GAP);
+      const bw = Math.min(BTN.w, Math.floor((W - ROW_MARGIN * 2 - PLAY.w - gaps) / Math.max(1, n)));
+      const width = it => (it[0] === 'play' ? PLAY.w : bw);
       const total = items.reduce((s, it) => s + (it ? width(it) + GAP : SEP - GAP), -GAP);
       let x = (W - total) / 2;
       for (const it of items) {
@@ -345,8 +353,9 @@
         } else {
           // the button whose menu is open shows selected (its menu floats in front: popups-ui.js);
           // an extra that's `on` (e.g. captions showing) has its icon filled
-          const qi = id === 'quality' && state.quality && state.quality.icons;   // the quality as icons (its full name is in its menu)
-          button({ x, y: BTN.y, w: BTN.w, h: BTN.h }, id, state, () => (qi && qi.length ? iconStack(qi) : iconLabel(icon, text, !!(extra && extra.on))),
+          // the quality as icons (its full name is in its menu), or a site button's own icons
+          const qi = id === 'quality' ? state.quality && state.quality.icons : extra && extra.icons;
+          button({ x, y: BTN.y, w: bw, h: BTN.h }, id, state, () => (qi && qi.length ? iconStack(qi) : iconLabel(icon, text, !!(extra && extra.on))),
             { kind: state.menuOpen === id ? 'selected' : 'tonal', disabled: !!(extra && extra.disabled) });
         }
         x += width(it) + GAP;

@@ -1,11 +1,12 @@
 // YouTube's own buttons on the controls panel (the shell's "extras", vr-panel.js): Captions
 // (left: a menu of Off and the video's caption tracks; the chosen track's lines are drawn in
-// VR by the shell, captions-overlay.js) and Save (right: a scrolling menu of Watch later and
+// VR by the shell, captions-overlay.js), Save (right: a scrolling menu of Watch later and
 // your playlists, each ticked when the video is in it; a choice adds it or takes it out, and
-// the menu stays open).
+// the menu stays open), and Jump ahead (right, before Save: YouTube Premium's jump to where
+// most viewers skip to, marked with the Diamond).
 //
 //   const ex = ns.ytVr.extras.create();       one per VR session (provider.js session())
-//   ex.state(st) -> { left: [captions], right: [save] }   every frame (st: { ad, noVideo }: both
+//   ex.state(st) -> { left: [captions], right: [jump, save] }   every frame (st: { ad, noVideo, paused, live }: all
 //                   are greyed out during an ad or with no video playing; the provider's
 //                   state); the buttons as panel-ui.js / vr-panel.js read them
 //   ex.extra(id, itemId)   the shell's actions.extra: a button's menu opened (itemId null) or
@@ -72,10 +73,16 @@
         menu: { items: list.map(o => ({ id: o.id, text: o.busy ? `${o.title}\n${tr('yt.save.busy')}` : o.title, on: o.saved, disabled: o.busy })),
           note: save.loading && !list.length ? tr('yt.loading') : save.note || null, scroll: true, width: 520, stay: true },
       };
-      return { left: [cc], right: [sv] };
+      // Jump ahead (YouTube Premium): fast-forward over the Diamond; usable while a video plays
+      // (not live, not during an ad); without Premium it's greyed out with the purple Diamond.
+      const playing = !ad && !(st && (st.paused || st.live));
+      const ja = { id: 'jump', icon: 'fast_forward', label: tr('yt.jumpAhead'), icons: ['fast_forward', premiumMark()],
+        disabled: !youtube.hasPremium() || !playing };
+      return { left: [cc], right: [ja, sv] };
     }
 
     function extra(id, itemId) {
+      if (id === 'jump') { youtube.jumpAhead(); return; }
       if (id === 'captions' && itemId != null) {
         const c = captions();
         youtube.setCaptions(itemId === 'off' ? null : c.tracks[+itemId] || null);
@@ -92,5 +99,11 @@
   }
 
   ns.ytVr = ns.ytVr || {};
+  // YouTube Premium's mark: Material Symbols' Diamond, YouTube red when you have Premium, purple
+  // (an upsell, like YouTube's own) when you don't. An icon spec for the shell (symbols.js drawIcon).
+  const PREMIUM_RED = '#ff0033', UPSELL_PURPLE = '#a142f4';
+  function premiumMark() { return { name: 'diamond', color: youtube.hasPremium() ? PREMIUM_RED : UPSELL_PURPLE, filled: true }; }
+
   ns.ytVr.extras = { create };
+  ns.ytVr.premiumMark = premiumMark;
 })(globalThis.__streamxr = globalThis.__streamxr || {});

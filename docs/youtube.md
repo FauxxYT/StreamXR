@@ -36,7 +36,15 @@ backlogs in [features/](features/)):
   Manage list `subscribed` is always true; one channel had only a stub `subscriptionButton`
   and no bell), subscribe / unsubscribe / `setNotifications` (they report ok only when
   YouTube's answer shows the new state). Filter chips: none on desktop for the tested
-  account (the documented ones seem app-only).
+  account (the documented ones seem app-only). **No community posts** in the desktop feed
+  (signed in, 2026-10-17: no post data in `FEsubscriptions` at all). The Manage page
+  (`FEchannels`, seen in the signed-in page's `ytInitialData`, 2026-10-17): the list is split
+  into **titled shelves** (`shelfRenderer` inside the item section: "Purchased" for channels
+  you're a member of, then "Subscribed"), and its **sort dropdown** (Most relevant, New
+  activity, A-Z) is a set of `listItemViewModel`s with `entityKey`
+  `channel_list_page_sort_chip_entity:<name>`, each tap updating a `chipEntity` (the
+  dropdown's label) and sending a browse `continuationCommand` that reloads the list in that
+  order (`sortsOf`, `channelsOn`).
 - `youtube-chat.js` (`ns.youtubeChat`): a live stream's chat ("Live chat" below): `info()`
   (its views), `open(token)` (a view's chat page), `poll(next)`, and the chat items as plain
   messages and changes (add, remove, banner).
@@ -96,7 +104,18 @@ The formats are in `src/streamxr/shared/formats.js`; YouTube's detection is the 
   from `getAvailableQualityData()` (`qualityLabel`, e.g. "1080p60", or "2160s60" for a 360° /
   VR180 video: "s" for spherical) where the player has it
   (`youtube-player.js` `quality().labels`); with Premium it also lists "1080p Premium",
-  skipped in favour of the plain entry. Unverified in the headset (see known-issues.md).
+  kept apart as its own level (0.91.0). Seen signed in with Premium (2026-10-17): the entry
+  has `formatId` "721", `quality` "hd1080", `paygatedQualityDetails.paygatedIndicatorText`
+  "Enhanced bitrate", `isPlayable` true, beside the plain 1080p (`formatId` "399"); it's
+  chosen with `setPlaybackQualityRange(q, q, formatId)` and `getPlaybackQualityLabel()` names
+  the one playing. **Whether you have Premium:** the top bar's logo,
+  `ytInitialData.topbar.desktopTopbarRenderer.logo.topbarLogoRenderer.iconImage.iconType`
+  is `YOUTUBE_PREMIUM_LOGO` (`youtube-player.js` `hasPremium`). **Jump ahead:** the page has
+  no data for it, and the player's `prefetchJumpAhead()` returns undefined and moves nothing.
+  But a script-sent **Ctrl + →** keydown on `#movie_player` (`{ key: 'ArrowRight', code:
+  'ArrowRight', keyCode: 39, ctrlKey: true, bubbles: true }`) does jump while the video plays
+  and YouTube offers Jump ahead (probed on a VR180 video, 2026-10-17: 58 s -> 124 s; paused,
+  nothing happened). `youtube-player.js` `jumpAhead()`.
 
 - Desktop YouTube sends **one eye only** for most 3D videos (checked 2026-10-17 with frames
   from the page's `<video>`): the "Left Right Test in VR 180" (`kle719aQvsc`, 1920×2160) and
@@ -108,7 +127,8 @@ The formats are in `src/streamxr/shared/formats.js`; YouTube's detection is the 
   player to get them ([decisions/0002](decisions/0002-site-player-only.md)).
 - 8K reaches desktop where YouTube offers it, e.g. an 8K 360° video (`tR8ZtyhSDYw`):
   `4320s`, 7680×3840, AV1 (itag 571).
-- Formats: `flat` (cinema screen), `360mono`, `360eac`, `180mono`.
+- Formats: `flat` (cinema screen), `360mono`, `360eac`, `180mono`, `180sbs` (3D side by side,
+  picked by hand: 0.89.0).
 - "MESH" 360° videos use an **equi-angular cubemap**, 3×2: top row left | front | right,
   bottom row down | back | up; down and up rotated 270° clockwise, back 90° (the same as
   ffmpeg's `eac`). Verified against a real frame.

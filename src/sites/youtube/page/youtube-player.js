@@ -55,30 +55,73 @@
   // Video quality. YouTube ids: 'hd2160', 'hd1440', 'hd1080', 'hd720', 'large' (480p),
   // 'medium' (360p), 'small', 'tiny', 'auto'. labels: YouTube's own name for each id where
   // the player gives one (getAvailableQualityData's qualityLabel, e.g. "1080p60" on a 60 fps
-  // video; Premium's extra "1080p Premium" entry is skipped in favour of the plain one).
+  // video; Premium's extra entry is kept apart as `premium`).
+  // premium: YouTube Premium's enhanced-bitrate quality, or null when the video has none:
+  //   { quality (its id, 'hd1080'), label ("1080p Premium"), formatId, playable (false: you
+  //   don't have Premium), on (playing now) }. Seen signed in with Premium (2026-10-17): an
+  //   entry with paygatedQualityDetails and its own formatId ("721") beside the plain
+  //   1080p's ("399"); getPlaybackQualityLabel() names the one playing.
+  // formats: the plain entries' formatIds by id, where the player gives one.
   function quality() {
     try {
       const p = player();
       const levels = (p && p.getAvailableQualityLevels && p.getAvailableQualityLevels()) || [];
       const current = (p && p.getPlaybackQuality && p.getPlaybackQuality()) || null;
-      const labels = {};
+      const labels = {}, formats = {};
+      let premium = null;
       const data = (p && p.getAvailableQualityData && p.getAvailableQualityData()) || [];
       for (const d of data) {
         if (!d || !d.quality || !d.qualityLabel) continue;
-        const premium = !!d.paygatedQualityDetails || /premium/i.test(d.qualityLabel);
-        if (!labels[d.quality] || !premium) labels[d.quality] = premium ? labels[d.quality] || d.qualityLabel : d.qualityLabel;
+        if (d.paygatedQualityDetails || /premium/i.test(d.qualityLabel)) {
+          if (!premium) premium = { quality: d.quality, label: d.qualityLabel, formatId: d.formatId || null, playable: d.isPlayable !== false, on: false };
+          continue;
+        }
+        if (!labels[d.quality]) { labels[d.quality] = d.qualityLabel; if (d.formatId) formats[d.quality] = d.formatId; }
       }
-      return { current, levels, labels };
-    } catch (_) { return { current: null, levels: [], labels: {} }; }
+      if (premium) {
+        const now = (p.getPlaybackQualityLabel && p.getPlaybackQualityLabel()) || '';
+        premium.on = current === premium.quality && now === premium.label;
+      }
+      return { current, levels, labels, formats, premium };
+    } catch (_) { return { current: null, levels: [], labels: {}, formats: {}, premium: null }; }
   }
 
-  // Choose a quality (one of the ids above). YouTube has changed which method works over
-  // time, so both are tried; whichever the player lacks is simply skipped.
+  // Choose a quality (one of the ids above, or 'premium': Premium's enhanced-bitrate one).
+  // Where the player gives a format id it's passed too (it tells the plain 1080p and 1080p
+  // Premium apart). YouTube has changed which method works over time, so both are tried;
+  // whichever the player lacks is simply skipped.
   function setQuality(level) {
     const p = player();
     if (!p) return;
-    try { if (p.setPlaybackQualityRange) p.setPlaybackQualityRange(level, level); } catch (_) { /* older player */ }
-    try { if (p.setPlaybackQuality) p.setPlaybackQuality(level); } catch (_) { /* newer player */ }
+    const q = quality();
+    let id = level, formatId = q.formats[level];
+    if (level === 'premium') {
+      if (!q.premium || !q.premium.playable) return;
+      id = q.premium.quality; formatId = q.premium.formatId;
+    }
+    try { if (p.setPlaybackQualityRange) p.setPlaybackQualityRange(id, id, formatId || undefined); } catch (_) { /* older player */ }
+    if (level !== 'premium') try { if (p.setPlaybackQuality) p.setPlaybackQuality(id); } catch (_) { /* newer player */ }
+  }
+
+  // YouTube Premium's Jump ahead: to the point most viewers skip to. YouTube's desktop
+  // shortcut, Ctrl + →, sent to the player (seen signed in with Premium, 2026-10-17: it jumps
+  // while the video plays and YouTube offers Jump ahead; paused, or where it doesn't, nothing
+  // happens).
+  function jumpAhead() {
+    const p = player();
+    if (!p) return;
+    p.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', code: 'ArrowRight', keyCode: 39, which: 39, ctrlKey: true, bubbles: true }));
+  }
+
+  // Does the signed-in account have YouTube Premium? The page's top-bar logo is YouTube
+  // Premium's (seen signed in with Premium, 2026-10-17: topbarLogoRenderer iconType
+  // 'YOUTUBE_PREMIUM_LOGO'; 'YOUTUBE_LOGO' otherwise).
+  function hasPremium() {
+    try {
+      const logo = window.ytInitialData && window.ytInitialData.topbar && window.ytInitialData.topbar.desktopTopbarRenderer
+        && window.ytInitialData.topbar.desktopTopbarRenderer.logo;
+      return JSON.stringify(logo || {}).includes('YOUTUBE_PREMIUM_LOGO');
+    } catch (_) { return false; }
   }
 
   // Name of the channel that posted the video.
@@ -350,7 +393,7 @@
   }
 
   ns.youtube = {
-    player, video, call, toggle, seek, seekTo, isPaused, currentTime, duration, title, channel, quality, setQuality, info,
+    player, video, call, toggle, seek, seekTo, isPaused, currentTime, duration, title, channel, quality, setQuality, hasPremium, jumpAhead, info,
     speeds, speed, setSpeed, volume, setVolume, setMuted,
     captions, setCaptions, captionLines, audioTracks, setAudioTrack,
     loop, setLoop, autoplay, setAutoplay, playlistPosition, nextVideo, previousVideo, playAt,

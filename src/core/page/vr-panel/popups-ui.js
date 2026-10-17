@@ -10,7 +10,8 @@
 // right above its button.
 //   const menu = ns.vrPopupsUI.createMenu();
 //   menu.draw(m, { hover, pressed })   m: { items: [{ id, text ("1080p" or "1080p\nPremium"),
-//     on (the current one: ticked), disabled, icons (optional: Material Symbols names drawn
+//     on (the current one: ticked), disabled, icons (optional: Material Symbols names, or
+//     { name, color } for one in its own colour (symbols.js drawIcon), drawn
 //     on the row's left, e.g. ['4k', '60fps']; the tick then moves to the right end) }],
 //     note (a grey line above the items), scroll
 //     (a long list scrolls: see drawList), key, width }
@@ -96,7 +97,10 @@
       list = { x: card.x, y: card.y + PAD + noteH, w: listW, h: shownRows * rowH };
       maxScroll = m.scroll ? Math.max(0, items.length * rowH - list.h) : 0;
       scroll = Math.min(maxScroll, Math.max(0, scroll));
-      g.save(); g.beginPath(); g.rect(list.x, list.y, list.w, list.h); g.clip();
+      // Clipped to the rows, plus the card's padding when nothing scrolls (so the hover ring
+      // round the first and last rows, drawn just outside them, isn't cut).
+      const bleed = maxScroll ? 0 : PAD;
+      g.save(); g.beginPath(); g.rect(list.x, list.y - bleed, list.w, list.h + bleed * 2); g.clip();
       items.forEach((it, i) => {
         const r = { x: card.x + PAD, y: list.y + i * rowH - scroll, w: listW - PAD * 2 - (maxScroll ? 12 : 0), h: rowH };
         if (r.y + r.h < list.y || r.y > list.y + list.h) return;          // scrolled out of view
@@ -111,7 +115,7 @@
         const fg = it.on ? P.onSecondaryContainer : P.onSurface;
         g.fillStyle = fg;
         if (it.on) S.draw(g, 'check', lead ? r.x + r.w - 30 : r.x + 32, r.y + r.h / 2, 28, false);
-        (it.icons || []).forEach((name, k) => S.draw(g, name, r.x + ICON_LEFT + ICON_STEP * k + ICON_STEP / 2, r.y + r.h / 2, ICON, false));
+        (it.icons || []).forEach((icon, k) => S.drawIcon(g, icon, r.x + ICON_LEFT + ICON_STEP * k + ICON_STEP / 2, r.y + r.h / 2, ICON, false));
         const lines = String(it.text).split('\n'), textW = r.w - textX - (lead ? 52 : 12);
         g.textAlign = 'left'; g.textBaseline = 'middle';
         g.font = T.font('labelLarge', 24);

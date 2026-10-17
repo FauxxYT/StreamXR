@@ -156,7 +156,7 @@ src/sites/youtube/             YOUTUBE
     provider/
       provider.js              the provider (interface at its top); registers YouTube in sites.js
       panels.js                the panel registry (each panel's zone, style, size, controller)
-      extras.js                the controls panel's Captions and Save buttons (the shell's "extras")
+      extras.js                the controls panel's Captions, Jump ahead and Save buttons (the shell's "extras"; an extra can show its own stacked icons, e.g. the Diamond), premiumMark()
       strings-en.js            the YouTube panels' words in English (strings-<lang>.js: other languages)
       cards.js, badges.js      YouTube items -> generic cards; the ✓ / ♪ badges
       upnext.js, browse.js (Explore and You), search.js, channel.js, description.js, comments-panel.js, settings.js, live-chat.js
@@ -286,11 +286,18 @@ YouTube's Live chat uses all three (`available` while a live stream with a chat 
 bar shrinking and laid out again) and keeps a `stays` panel drawn and updated while the panels
 are hidden.
 
-- `host`: `{ actions, style, perPage, open(), close(), isOpen(), closeMenu(), confirm(d), typeInto(on, opts) }`
+- `host`: `{ actions, style, perPage, open(), close(), isOpen(), closeMenu(), openMenu(control), panel(id), confirm(d), typeInto(on, opts) }`
   (`opts.emojis`: the panel's own emojis, `[{ text, image, label }]`, first on the keyboard's emoji pages);
   `confirm(d)` asks in the shell's dialog (`{ title, text (up to four lines), confirm, cancel
   (null: no cancel button, a dialog that only informs), danger }` -> a Promise
   of true / false); the site's `onControl(id, panel, shell)` gets the same as `shell.confirm`.
+- Menus on side panels: `host.openMenu(control)` (e.g. `'action:bell'`) opens a floating menu
+  above that control, 32 dp in front, like the controls panel's (the style needs `rectOf(id)`;
+  Profile has it). While it's up, `vr-panel.js` asks the controller's `menu(control)` each frame
+  (`{ items: [{ id, text, on, disabled, icons }], note, stay }`, `null` closes it); a choice
+  arrives as `{ type: 'menu', value: item id, menu: control }`. The menu's id is
+  `'p:<panel>|<control>'` and its items `'pi:<index>'` (`panelMenu`). `host.panel(id)` is another
+  panel's controller (the You panel opens a channel in the Channel panel with it).
 - Typing: a panel with a text field calls `host.typeInto(true)` to get the keys (and
   `false` to give them back). One panel types at a time: when another asks, the one that had
   the keys is sent `Escape` (as for a click on nothing) and should stop typing. While it's shown, each key reaches its controller as
@@ -319,7 +326,7 @@ control's id there is `<panel id>|<style id>`.
 | **Info** (`info.js`) | Description, Comments, Live chat | header tabs; each tab one content kind: `text` (rich text, links), `paged` (rows in two columns: chapters), `rows` (scrolling, current row followed: transcript), `thread` (pills, count, rows with children and "show more": comments), `chat` (chat.js: a pinned banner, messages with inline pictures and coloured cards, following the newest or paused with a "jump to newest" button; optionally a message field with Send, reaction buttons and a Support button, an XP pill and a ranked Top fans list: live chat), `message` (optional loading indicator) |
 | **Catalog** (`catalog.js`) | Explore, You, Search | title, source tabs, filter pills (tabs and left-aligned pills slide when they don't fit: kit.js createStrip) or a note or a text field with its button (and a suggestions list dropping down from it), card grid, paging; trims its height to its cards |
 | **Queue** (`queue.js`) | Up Next | title or tabs, paging in the header, 3 x 2 cards, a "current" card |
-| **Profile** (`profile.js`) | Channel | banner, picture, name + badge, stats line, one action button (looks: primary / secondary / danger / busy), tabs (shrinking to fit beside the pills), pills, a search button (searching: a back button and a text field in place of the tabs), card grid, paging, or one featured card, or a scrolling body: a text `page` (paragraphs, then label / value facts), a `feed` of posts (picture, author, text, pictures, a card, a poll with result bars, buttons with icons and counts), or one opened `post` with a back button and its comments (thread.js) |
+| **Profile** (`profile.js`) | Channel | banner, picture, name + badge, stats line, one action button (looks: primary / secondary / danger / busy) and an optional round icon button beside it (the bell), tabs (shrinking to fit beside the pills), pills, a search button (searching: a back button and a text field in place of the tabs), card grid, paging, or one featured card, or a scrolling body: a text `page` (paragraphs, then label / value facts), a `feed` of posts (picture, author, text, pictures, a card, a poll with result bars, buttons with icons and counts), or one opened `post` with a back button and its comments (thread.js) |
 | **Options** (`options.js`) | Settings | tabs (with icons); up to 3 rows (name with its hint under it; at the right: a switch, a slider with a Default button and end captions, a ‹ value › stepper, or a button; faded) or a 4 x 4 choice grid with "More" paging |
 
 Each style file's header lists its model and control ids. Every style returns

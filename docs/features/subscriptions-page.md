@@ -40,15 +40,19 @@ the same shape.
    - VR idea: a Subscribe button on the Channel panel (`channel-page.md`) and on
      Up Next cards. Also lets the controls panel's Subscribe button unsubscribe, which it
      can't do today (YouTube's confirm menu blocks it).
-2. [ ] **Shelves and posts in the feed** (small to medium)
+2. [ ] **Posts in the feed**: deferred (0.90.2, see "Deferred"). The shelves (a Shorts row,
+   "Most relevant") are deferred too, as on Home.
    - Code: `p.shelves` (Shorts row, "Most relevant"), `p.posts`
    - VR idea: as on Home. Posts need the post cards from the channel Posts tab.
-3. [ ] **Manage list: your subscribed channels** (medium)
+3. [x] ~~**Manage list: your subscribed channels**~~ BUILT (v0.90.0, to check signed in: You →
+   Channels, round pictures, a click opens the Channel panel)
    - Code: `channels()` -> [{ id, title, handle, subscribers, thumb, subscribed,
      notifications }]
    - VR idea: a list of channel rows (avatar, name, counts); clicking one opens its Channel
      panel. Needs a scrolling list rather than the card grid.
-4. [ ] **Notification bell per channel** (medium)
+4. [x] ~~**Notification bell per channel**~~ BUILT (v0.90.0, to check signed in: the bell button
+   beside Subscribed on the Channel panel, a floating menu of YouTube's choices; the Channels
+   list shows each setting)
    - Code: `setNotifications(option)` with one of a channel's `notifications.options`
      (All / Personalized / None); `[]` means YouTube offers no bell for that channel.
    - VR idea: a bell button on each Manage row and on the Channel panel, opening a small
@@ -78,3 +82,12 @@ needed for now (Subscribe from the controls panel and the Channel panel works in
 3. **Watch later / Liked videos / your playlists**: their browse ids are in
    `youtube-home.js` (`feed('watchLater')`, `feed('liked')`) but untested signed in;
    saving a video to a playlist needs another request.
+
+## Deferred (the maintainer, 2026-10-17)
+
+- **Shelves in the Subscriptions feed** (a Shorts row, YouTube's "Most relevant"): for the same
+  reason as Home's shelves (`home-page.md`, "Deferred"): Shorts fit VR poorly. `p.shelves` is
+  still read.
+- **Posts in the Subscriptions feed** (0.90.2): desktop's feed doesn't mix community posts in
+  (a probe signed in found no post data in `FEsubscriptions`), so the Posts pill built in
+  0.90.0 was always empty and was taken out. Posts stay on each channel's Posts tab.

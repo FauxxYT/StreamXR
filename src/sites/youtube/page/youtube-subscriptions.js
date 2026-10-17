@@ -126,19 +126,76 @@
     return { current, options };
   }
 
-  // channels() -> pager over the subscribed channels (the "Manage" page, browse id
-  // FEchannels), A-Z as YouTube lists them. p.message is the sign-in note while signed out.
-  function channels() {
+  // The Manage page's sort choices (YouTube's "A-Z" dropdown: Most relevant, New activity,
+  // A-Z): [{ text, selected, token }]. Seen on the signed-in page (2026-10-17): each choice is a
+  // listItemViewModel whose entityKey is 'channel_list_page_sort_chip_entity:<its text>';
+  // tapping it updates a chipEntity (the dropdown's label) and sends a browse continuation
+  // that reloads the list in that order. The chosen one is the chipEntity's text (or a choice
+  // marked isSelected).
+  const SORT_KEY = 'channel_list_page_sort_chip_entity:';
+  function sortsOf(r) {
+    const items = C.findKeyAll(r, 'listItemViewModel').filter(it => String(it.entityKey || '').startsWith(SORT_KEY));
+    const chips = (dig(r, 'frameworkUpdates', 'entityBatchUpdate', 'mutations') || [])
+      .map(m => findKey(m.payload, 'chipEntity')).filter(Boolean);
+    const out = [];
+    for (const it of items) {
+      const text = strOf(it.title) || String(it.entityKey).slice(SORT_KEY.length);
+      if (!text || out.some(x => x.text === text)) continue;
+      const tap = dig(it, 'rendererContext', 'commandContext', 'onTap');
+      // The chipEntity this choice updates, and what that entity says now (the current choice).
+      const key = dig(findKey(tap, 'chipEntity'), 'key');
+      const now = chips.find(c => key && c.key === key);
+      out.push({ text, token: dig(findKey(tap, 'continuationCommand'), 'token') || null,
+        selected: !!(it.isSelected || it.selected || (now && strOf(now.text) === text)) });
+    }
+    return out;
+  }
+
+  // The channels on a Manage page, each with `group`: the title of the shelf it's in (YouTube
+  // splits the list into shelves, e.g. "Purchased" for channels you're a member of, then
+  // "Subscribed"; seen signed in, 2026-10-17), '' outside any, and `aside` (below).
+  function channelsOn(r) {
+    const out = [];
+    const shelves = C.findKeyAll(r, 'shelfRenderer');
+    for (const s of shelves) {
+      const group = strOf(s.title);
+      for (const c of C.findKeyAll(s, 'channelRenderer').map(fromChannel).filter(Boolean)) out.push({ ...c, group });
+    }
+    if (!shelves.length) out.push(...C.findKeyAll(r, 'channelRenderer').map(fromChannel).filter(Boolean).map(c => ({ ...c, group: '' })));
+    // `aside`: the group's title on the channels of every shelf but the last (YouTube's own
+    // list comes after them: "Subscribed"), so they can be told apart; '' on the rest.
+    const last = out.length ? out[out.length - 1].group : '';
+    for (const c of out) c.aside = c.group && c.group !== last ? c.group : '';
+    return out;
+  }
+
+  // channels(sort) -> pager over the subscribed channels (the "Manage" page, browse id
+  // FEchannels). sort: one of the page's sort choices by its text (e.g. 'A-Z'; default: the
+  // page's own order). After the first page p.sorts = [{ text, selected }] lists the real
+  // choices. p.message is the sign-in note while signed out.
+  function channels(sort) {
     const p = D.pager(async token => {
-      const r = await D.innertube('browse', token ? { continuation: token } : { browseId: 'FEchannels' });
-      if (!token) p.message = signInMessage(r);
+      let r;
+      if (token) r = await D.innertube('browse', { continuation: token });
+      else {
+        r = await D.innertube('browse', { browseId: 'FEchannels' });
+        p.message = signInMessage(r);
+        const sorts = sortsOf(r);
+        p.sorts = sorts.map(({ text, selected }) => ({ text, selected }));
+        const s = sort && sorts.find(x => x.token && x.text.toLowerCase() === String(sort).toLowerCase() && !x.selected);
+        if (s) {
+          r = await D.innertube('browse', { continuation: s.token });
+          p.sorts = p.sorts.map(x => ({ text: x.text, selected: x.text === s.text }));
+        }
+      }
       // Everything in this list is subscribed, whatever its button says (some only carry a
       // stub that says false). notifications.options is [] when YouTube offers no bell.
-      const items = C.findKeyAll(r, 'channelRenderer').map(fromChannel).filter(Boolean)
-        .map(c => ({ ...c, subscribed: true }));
-      return { items, token: C.pageToken(r) };
+      const items = channelsOn(r).map(c => ({ ...c, subscribed: true }));
+      // (Its "load more" item can sit at the end of the last of several sections.)
+      const more = C.findKeyAll(r, 'continuationItemRenderer').pop();
+      return { items, token: C.pageToken(r) || (more ? D.continuationOf({ continuationItemRenderer: more }) : null) };
     }, null);
-    p.message = '';
+    p.message = ''; p.sorts = [];
     return p;
   }
 
@@ -186,6 +243,9 @@
   // Which reported states mean each menu label. Seen signed in: All = ALL, Personalized =
   // OCCASIONAL (0.20.5). None wasn't seen yet, so close variants are accepted.
   const BELL_STATES = { all: /^ALL$/, personalized: /PERSONALI[SZ]ED|DEFAULT|OCCASIONAL/, none: /OFF|NONE|NO_NOTIFICATIONS/ };
+  // Does a bell state ('ALL', 'OCCASIONAL' ...) mean the menu choice called `label`? (false
+  // for a label it doesn't know).
+  const bellMatches = (label, state) => { const re = BELL_STATES[String(label).toLowerCase()]; return !!(re && state && re.test(state)); };
 
   // setNotifications(option) -> Promise of { ok, confirmed, state?, error? }: choose a bell
   // setting, where `option` is one of a channel's notifications.options (from channels()).
@@ -204,5 +264,5 @@
     } catch (err) { return { ok: false, confirmed: false, error: String(err && err.message || err) }; }
   }
 
-  ns.youtubeSubscriptions = { feed, channels, subscribe, unsubscribe, setNotifications, fromChannel, checkSignIn, checkAccount, answeredSignedIn, signedIn: D.signedIn };
+  ns.youtubeSubscriptions = { feed, channels, subscribe, unsubscribe, setNotifications, bellMatches, fromChannel, checkSignIn, checkAccount, answeredSignedIn, signedIn: D.signedIn };
 })(globalThis.__streamxr = globalThis.__streamxr || {});

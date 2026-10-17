@@ -2,7 +2,7 @@
 
 One list of what's still open, gathered from the feature backlogs (`docs/features/`) and
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
-Last updated for 0.88.1.
+Last updated for 0.92.0.
 
 ## Top priority: before the first release
 
@@ -80,12 +80,11 @@ Netflix first) once they allow protected video in desktop XR.
    - Test: [SheiKra 8K 360° roller coaster](https://www.youtube.com/watch?v=tR8ZtyhSDYw)
      (cubemap, 8K); for comparison, with no seams:
      [a regular 360° video](https://www.youtube.com/watch?v=Q7UwGaom0XA).
-2. [ ] **3D side-by-side videos** (medium): some VR180 videos reach desktop with both eyes in
+2. [x] **3D side-by-side videos** (0.89.0, works in the headset; the glass per eye fixed in 0.90.1): some VR180 videos reach desktop with both eyes in
    one frame (LEFT | RIGHT), and StreamXR stretches the whole frame over the half sphere. Add a
    side-by-side format to the Format menu that gives each eye its half (`video-sphere.js`
    `uUvXform`, the per-eye hook); picked by hand, since YouTube's data doesn't mark these
-   videos (auto-detecting by comparing the frame's halves could come later). Update the
-   "no 3D formats" notes in `formats.js` and `docs/youtube.md` with it.
+   videos (auto-detecting by comparing the frame's halves could come later).
    - Test: [VR180 Left/Right](https://www.youtube.com/watch?v=ccU0imlNp5Q) (side by side:
      LEFT in the left eye, RIGHT in the right). For comparison, one eye only, which stays flat:
      [Left Right Test in VR 180](https://youtu.be/kle719aQvsc?t=8).
@@ -97,14 +96,16 @@ Netflix first) once they allow protected video in desktop XR.
 
 - [ ] **Movies in Up Next**: the price / rating in place of views and date, a yellow Movie tag
   (`features/video-page.md`).
-- [ ] **Premium features**: the Premium quality levels, Add to queue and the rest, marked with the
-  Diamond icon (purple without Premium, YouTube Red with it) (`features/video-page.md`).
+- [ ] **Premium features** (audited 2026-10-17, `features/video-page.md`): **1080p Premium** in the
+  Quality menu and **Jump ahead**, marked with the Diamond (purple without Premium, YouTube Red
+  with it). 1080p Premium (0.91.0) and Jump ahead (0.92.0) built, to check. **Add to queue** is its own item
+  (not Premium on desktop).
 - [ ] **Explore's "Coming Soon" tabs**: Live, Gaming, Music, Hype, Courses, Podcasts,
   Memberships (readers exist); Shorts, Movies & TV, Learning need more first
   (`features/home-page.md`).
 - [ ] **News**: its own tabs (Top stories, Sports ...) and the Sports feed.
-- [ ] **Subscriptions**: shelves and posts in the feed, the list of your channels, the bell per
-  channel (`features/subscriptions-page.md`).
+- [x] **Subscriptions** (0.90.0, to check signed in): the Channels tab, the bell on the Channel
+  panel, posts in the feed; the feed's shelves deferred (`features/subscriptions-page.md`).
 - [ ] **Live chat**: reading (0.79.1) and reactions (0.80.0) work in the headset; typing, the
   keyboard's emoji pages and Support on desktop built in 0.81.0, Top fans (XP, the list, rank
   pills) in 0.82.0 and chat replays in 0.87.0 (all work in the headset). Other viewers' floating
