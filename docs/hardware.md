@@ -42,6 +42,13 @@ Steam Frame with SteamVR, desktop Chrome). For supporting other hardware, see th
   Vibration switch (Settings → Appearance) is greyed out with a note until a controller offers one, so it
   works by itself if a later Chrome adds it.
 
+## Other headsets (reported by users)
+
+- **Meta Quest 2** (reported by [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack) on Reddit, after 0.88.1): works through SteamVR in desktop Chrome,
+  8K videos included. Not tried by the maintainer, and not reported yet: how its buttons map
+  (Copy details' `controllers` part would show it) and how it connects to the PC (Link,
+  Air Link or another streaming app). Its controllers are drawn as Steam Frame models.
+
 ## Controller models
 
 - `src/core/page/controllers/models.js` is generated from Valve's Steam Frame controller CAD

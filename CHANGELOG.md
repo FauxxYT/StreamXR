@@ -6,13 +6,186 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
-## Unreleased
+## 0.88.1
 
-### Documentation
-- The README's "as soon as it's possible" roadmap and "What you need" table: **native Steam
-  Frame support**, StreamXR running in the Frame's own Chromium browser (no PC) once that
-  browser supports WebXR. Also in `docs/hardware.md` and `docs/whats-left.md`.
-- The README's links to "What about Netflix, MAX and the others?" work again.
+### Changed
+- The Auto-hide tab's new switch is called **"Auto-hide while paused"** (was "Hide while paused"), so
+  it says what it does.
+
+## 0.88.0
+
+### Added
+- **Pull the trigger on empty space to hide everything at once** (suggested by [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack)): the controls panel, the side
+  toolbars, the search bar and the lasers go away without waiting for auto-hide (paused too).
+  A press that closes a menu, a dialog or typing still only does that; the next one hides.
+  Another pull, or pointing at a panel, brings them back. Panels set to stay up (the live
+  chat) stay.
+- **Settings → Auto-hide → "Hide while paused"** (suggested by u/TehSuperFruitSnack; off by default, remembered): while on, the
+  auto-hide waits also run with the video paused, so you can pause and take in a 180° / 360°
+  scene with nothing in the way. The waits themselves are unchanged.
+
+## 0.87.1
+
+### Fixed
+- Opening a video whose chat YouTube's page hasn't loaded yet (e.g. going from a stream without a
+  chat replay to one with) showed "Couldn't load the chat" until you switched tabs. The chat now
+  shows the loading indicator and tries again on its own (every 3 s, up to five times) before
+  giving up.
+
+## 0.87.0
+
+### Added
+- **Chat replays:** on a finished live stream that kept its chat, the Live chat panel plays the
+  recorded chat along with the video (tabs: YouTube's "Top chat replay" / "Live chat replay").
+  Each message appears when the video reaches the moment it was sent, so pausing stops the
+  chat, and jumping back or ahead starts it again at the new place with the last minute of
+  chat shown at once. It opens by itself as the live chat does. No typing, reactions or Top
+  fans in replays, as on YouTube.
+
+## 0.86.0
+
+### Added
+- **Settings → Safe zone → "Recenter resets panels"** (off by default, remembered): while on,
+  recentering also puts the panels you moved back in their places, as before 0.84.0. The global
+  reset turns it off.
+
+### Changed
+- The left D-pad's icon (show / hide the panels) is Material Symbols' **Bottom Panel Close**
+  while the panels are up and **Bottom Panel Open** while they're hidden (was a single "call to
+  action" icon).
+
+## 0.85.0
+
+### Changed
+- **The side panels' move handle is a grab bar** beside each side's toolbar, on the video side:
+  an upright pill with a drag handle, like the keyboard's and the controls panel's bars (so
+  everything you can move is grabbed the same way), with a laser zone wider than it looks.
+  Grip it to move the whole side. It replaces the Move button at the toolbar's end; the
+  toolbars stand a little further out to make room.
+
+## 0.84.2
+
+### Changed
+- **The grip's icon shows a hand** (Material Symbols' Back Hand) instead of recenter whenever the
+  grip would grab rather than recenter: pointing at (or holding) a move bar or the side
+  toolbars' Move handle, the keyboard's bar or resize corners, or the cinema screen's bar and
+  corners.
+
+## 0.84.1
+
+### Changed
+- **The side panels' move handle is on their toolbar** now: a **Move** button (four arrows) at
+  the end of each side's toolbar, after a small divider; pointing at it grows its name like the
+  others, and gripping it moves the whole side (the point you hold follows your hand). It
+  replaces the bar under the panel, which was hard to find.
+
+## 0.84.0
+
+### Changed
+- **Recenter keeps what you moved:** recentering turns the layout to where you're looking and
+  brings your moved panels along, each where you put it relative to you: the controls panel
+  (with the keyboard and Settings) and any side moved by its grab bar. It used to put them all
+  back. Changing the Safe Zone or the panel size keeps them too; only the global reset (right
+  stick held 3 s) puts them back in their places.
+
+## 0.83.1
+
+### Fixed
+- Pointing at the **live chat while the other panels are hidden** (it stays up while you watch):
+  the stick showed its seek icon instead of the scroll icon, and pushing it scrolled the chat
+  *and* jumped the video ±10 s. The stick now belongs to a panel that stays, as to any shown
+  panel: scroll icon, scrolling only.
+
+## 0.83.0
+
+### Added
+- **Move the side panels:** a grab bar under each side's open panel (left and right). Grip it
+  and move: the panel follows your hand and turns to face you, and its whole side comes along
+  (the toolbar, and every other panel on that side opens there too). Recenter, a Safe Zone
+  change or a new panel size puts the sides back. (`vr-panel.js` keeps a move per side;
+  `orbiters-ui.js` `createGrabBar`; `math3d.js` `invertRigid`.)
+
+## 0.82.1
+
+### Fixed
+- **Two text cursors:** clicking the search bar while typing in the live chat (or the other way
+  round) left a cursor in the field you'd left, and a click on nothing then only cleared one.
+  Now the field you leave stops typing as soon as another one starts (the shell sends it
+  Escape), and the keyboard stays up through the switch.
+
+## 0.82.0
+
+### Added
+- **Top fans** in the live chat: your **XP** in a 👑 pill at the right end of the chat's tabs
+  (kept up to date as you chat); clicking it opens the **Top fans** list in the panel: rank,
+  picture, name and XP, the top three with their badges, and your own row at the bottom with
+  YouTube's line about it (refreshed every 30 seconds while open; ‹ goes back to the chat). The
+  top three's **"#1" / "#2" / "#3" pills** now show before their names in the chat.
+
+## 0.81.1
+
+### Fixed
+- The **Support on desktop** dialog cut its message off ("…") before the end: dialogs now
+  show up to four lines of text, the card growing to fit (short ones, like "Unsubscribe?",
+  stay as they were).
+
+## 0.81.0
+
+### Added
+- **Typing in the live chat:** a message field with a **Send** button above the reaction
+  buttons. Clicking the field brings up the VR keyboard; Enter or Send posts the message (it
+  then appears in the chat), Escape or a click on nothing stops typing. YouTube's limit is kept
+  (200 characters, an emoji counting as 10). Where you can't chat, YouTube's reason shows
+  instead of the field.
+- **Emojis on the VR keyboard:** a 😀 key opens pages of emojis (‹ › between pages), with the
+  panel's own first: in the live chat, the channel's member emojis, shown as pictures in the
+  field and sent as emojis.
+- **Support on desktop** (live chat): a button beside the reactions opening a dialog with what
+  the stream offers (Super Chat, gifts, memberships…) and where to pay for it: YouTube's own
+  window, with the $ button under the chat.
+- For the shell: `typeInto(on, { emojis })`, the dialog's text on two lines and `cancel: null`
+  (an information dialog), the Info style's chat `input` and `support`.
+
+## 0.80.0
+
+### Added
+- **Live chat reactions:** the stream's reaction buttons (❤ 😄 🎉) along the bottom of the Live
+  chat panel; clicking one sends it to YouTube (at most one every half second) and lights the
+  button a moment. Shown only when the stream offers reactions (signed in). Other viewers'
+  floating reactions aren't shown yet. (Info style's `chat` content: `reactions`.)
+
+## 0.79.1
+
+### Fixed
+- **Live chat** said "Couldn't load the chat" on both tabs: the watch page's view tokens load an
+  empty chat page. The views' tokens now come from the chat frame beside the stream (the ones
+  YouTube itself uses), or, when the page shows no chat, from the pop-out chat page.
+
+## 0.79.0
+
+### Added
+- **Live chat** (reading): on a live stream, a **Live chat** panel opens on the right (its
+  button, at the top of the right toolbar, shows only on live streams). It **stays up while
+  you watch** when everything else fades. Tabs for YouTube's **Top chat** and **Live chat**
+  views (the one you pick is remembered); new messages every 2 seconds. Messages show the
+  author's picture and name (the owner on a yellow chip, moderators in blue with a wrench,
+  members in green with their badge), custom and standard emojis inline, **Super Chats**,
+  **Super Stickers** and **memberships** as coloured cards, YouTube's welcome notice, and the
+  **pinned message** in a banner at the top. Scrolling back pauses the list ("Chat paused", as on
+  YouTube) and a button shows how many new messages are waiting; it, or scrolling to the end,
+  goes back to the newest. Deleted messages disappear. YouTube's AI "Chat summary" banner is
+  left out. Not yet: chat replays (after a stream), reactions, typing.
+- For other sites' panels (generic registry options, ARCHITECTURE.md): `available` (a side
+  panel offered only some of the time: its toolbar button hides meanwhile), `autoOpen` (opens
+  whenever it becomes available, the panel it replaced coming back after) and `stays` (doesn't
+  fade with the rest); the Info style's `chat` content (`styles/chat.js`).
+
+## 0.78.10
+
+### Changed
+- The **Quality menu** shows each quality's icons on the left (4K, 2K, Full HD, HD, below-HD,
+  plus 60 fps where it applies), the same icons as the Quality button; the tick moves to the
+  right end. (A generic menu option, `icons` on an item, popups-ui.js.)
 
 ## 0.78.9
 
@@ -26,6 +199,10 @@ developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
   **Streaming Status** → your PC → **Advanced** → **Stream VR without game**, then open Chrome.
   Also in the troubleshooting table, the "What you need" table, the question issue form and
   `docs/hardware.md`.
+- The README's "as soon as it's possible" roadmap and "What you need" table: **native Steam
+  Frame support**, StreamXR running in the Frame's own Chromium browser (no PC) once that
+  browser supports WebXR. Also in `docs/hardware.md` and `docs/whats-left.md`.
+- The README's links to "What about Netflix, MAX and the others?" work again.
 
 ## 0.78.8
 

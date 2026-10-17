@@ -288,8 +288,10 @@ your eyes were at the last recenter, each piece turned to face you:
 - **Sizes:** every canvas at `layout.pxPerDegree` (26) px per degree, so text looks as big
   as before; side panels 900 × 1100 px (about 35° × 43°); the grids keep today's card size
   and fill the height (3 × 3).
-- Changing the Safe Zone (or recentering) lays everything out again, which also brings back
-  a controls panel you moved.
+- Changing the Safe Zone (or recentering) lays everything out again. What you moved by a grab
+  bar (the controls panel, a side) keeps its move: a recenter turns and shifts it with the
+  layout, so it stays where it was relative to you (0.84.0; it used to come back). The global
+  reset puts it back.
 - **0.65.0:** toolbars ordered top to bottom: Description, Comments, Channel (left);
   Search, Up Next, Browse (right); Browse's icon is Material Symbols' "browse". The
   toolbars are solid while their side has a panel open (glass when it has none, 0.65.2: the panel's edge

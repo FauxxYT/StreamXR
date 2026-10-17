@@ -37,6 +37,9 @@ backlogs in [features/](features/)):
   and no bell), subscribe / unsubscribe / `setNotifications` (they report ok only when
   YouTube's answer shows the new state). Filter chips: none on desktop for the tested
   account (the documented ones seem app-only).
+- `youtube-chat.js` (`ns.youtubeChat`): a live stream's chat ("Live chat" below): `info()`
+  (its views), `open(token)` (a view's chat page), `poll(next)`, and the chat items as plain
+  messages and changes (add, remove, banner).
 
 The provider (`provider/`) is the only code that calls these modules on the shell's behalf.
 
@@ -152,6 +155,119 @@ Checked on a Lofi Girl stream:
   minus its smallest value for this video. Anything under 12 s behind (`LIVE_SLACK`) counts
   as live (the player says "not at head" 15 s behind right after joining).
 - No storyboard previews on live streams.
+
+## Live chat
+
+Probed signed in on a members' live stream and a busy public one (2026-10-16, console
+snippets); read by `youtube-chat.js` since 0.79.0:
+
+- **The watch page** has a `liveChatRenderer` (in `conversationBar`) naming the views ("Top
+  chat", "Live chat" in `sortFilterSubMenuRenderer.subMenuItems`), but **its tokens don't
+  work**: `/live_chat?continuation=<one of them>` answers 200 with an empty page (~79 KB,
+  `window["ytInitialData"] = <!-- …`, no chat), and `live_chat/get_live_chat` answers
+  **HTTP 400** (probe 6, 2026-10-16). Use the **chat frame's** tokens (its own view selector:
+  different tokens, each loading a full chat page, ~455 KB) or, with no frame on the page, the
+  **pop-out page**'s (`/live_chat?is_popout=1&v=<video id>`: ~452 KB of data, but no
+  `liveChatContinuation`; its view selector is read wherever it is: to confirm on a real page).
+- **The chat page / chat frame** (`#chatframe`, same origin): its `ytInitialData` is shaped like
+  a chat update, `continuationContents.liveChatContinuation`, with `continuations[0]`
+  (`invalidationContinuationData`: the token to poll with), `header` (the view selector
+  again, with its own reload tokens), `ticker`, `actionPanel` (the message box, the emoji picker,
+  the reactions, the send endpoint `sendLiveChatMessageEndpoint`), `emojis` (the channel's
+  custom emojis), `participantsList`, `itemList`. Its `actions` are gone once the frame has
+  shown them (`undefined` when read later). The chat page's HTML writes it as
+  `window["ytInitialData"] = {…};`: fetching `/live_chat?continuation=<a view's reload token>`
+  and reading that (brace matching, then `JSON.parse`) works without any frame, and comes
+  with the recent messages in `actions` (77 on a busy stream). That's how to open the
+  **Live chat** view (every message) whatever view the page's frame shows (Top chat by default).
+- **Polling:** `live_chat/get_live_chat` `{ continuation }` with the invalidation token
+  answers in ~100-200 ms with `actions` and the next `invalidationContinuationData`
+  (`timeoutMs: 10000`). YouTube's own frame doesn't wait that long: it is told about new
+  messages by a push service (`/punctual/v1/chooseServer`, `/punctual/multi-watch/channel`).
+  **Polling every 2 s works** (20 polls in a row on a busy stream: no errors, new messages
+  in each, no duplicates; each poll's token is the previous answer's).
+- **A message:** `addChatItemAction.item.liveChatTextMessageRenderer`: `message.runs`
+  (text and emojis), `authorName.simpleText`, `authorPhoto.thumbnails` (32 and 64 px),
+  `authorExternalChannelId`, `id`, `timestampUsec`, `contextMenuEndpoint` ("Chat actions").
+  The action also has a `clientId`.
+- **Other items seen** (in `addChatItemAction.item`): `liveChatPlaceholderItemRenderer`
+  (only `id` and `timestampUsec`: a message YouTube holds back; none was filled in within
+  40 s, so skip them), `liveChatViewerEngagementMessageRenderer` (YouTube's "Welcome to live
+  chat! Remember to guard your privacy…" notice: `icon`, `message.runs`, a "Learn more"
+  `actionButton` to support.google.com).
+- **Banners:** `addBannerToLiveChatCommand.bannerRenderer.liveChatBannerRenderer` (`contents`,
+  `actionId`, `bannerType`, `bannerProperties` with `isEphemeral` / `autoCollapseDelay`).
+  Seen: `LIVE_CHAT_BANNER_TYPE_CHAT_SUMMARY`, an AI "Chat summary" ("Auto-generated
+  experiment • Quality may vary") with thumbs up / down, gone after 12-30 s. Pinned messages
+  use the same command (not seen yet).
+- Not seen yet: Super Chats / Stickers, memberships, ticker items, deletions, replacements.
+- **Custom emojis** (`liveChatContinuation.emojis`, 132 on that channel): `emojiId`
+  (`<channel id>/<id>`), `shortcuts` (`:_C80:`, `:C80:`), `searchTerms`, `image.thumbnails`
+  (24 and 48 px on yt3.ggpht.com), `isCustomEmoji`.
+- **Reactions** (`reactionControlPanelViewModel.expandedButtons`): ❤ 😄 🎉, each a
+  `reactionControlPanelButtonViewModel` with `emojiId`, `buttonIcon` (Noto emoji PNG on
+  fonts.gstatic.com), `a11yLabel` ("Send ❤") and `onTap.innertubeCommand`: a
+  `feedbackEndpoint` (`feedbackToken`) to `/youtubei/v1/feedback`. They're in the chat page's
+  `actionPanel` (absent when the stream has no reactions, or signed out). Sent by
+  `youtubeChat.react()` as YouTube's web client sends a feedback token: `{ feedbackTokens:
+  [token], isFeedbackTokenUnencrypted: false, shouldMerge: false }`, the answer's
+  `feedbackResponses[].isProcessed` saying whether it was taken (0.80.0; checked from the
+  console on a live stream, 2026-10-16: taken). The set varies by stream (that one offered five,
+  not ❤ 😄 🎉). `emojiId` is written without the
+  emoji selector (❤ = U+2764 alone), which fonts draw as a plain glyph: add U+FE0F.
+- **The message box** (probe 7, 2026-10-16; the chat page's `actionPanel`):
+  `liveChatMessageInputRenderer` with `inputField.liveChatTextInputFieldRenderer`
+  (`placeholder` "Chat...", `maxCharacterLimit`, `emojiCharacterCount`: 10, what an emoji
+  counts for), `sendButton…sendLiveChatMessageEndpoint` (`params`, `clientIdPrefix`, apiUrl
+  `/youtubei/v1/live_chat/send_message`), `pickers` (`emojiPickerRenderer`,
+  `liveChatProductPickerPanelViewModel`), `pickerButtons` (an icon toggle, the reactions),
+  `jewelsGiftsButton`. Where you can't chat, the action panel holds something else with a
+  `message` (not seen yet).
+- **Sending**: `live_chat/send_message` `{ params, clientMessageId, richMessage: { textSegments:
+  [{ text } | { emojiId }] } }` posted a message (checked from the console: the answer's
+  `actions` echo it as an `addChatItemAction`, plus a `runAttestationCommand`). A channel
+  emoji as `{ emojiId }` is how YouTube's own client sends one (not checked yet).
+- **Support** ("$", the product picker): its items are `liveChatProductPickerPanelItemViewModel`s
+  ("Gifts", "Super Chat", "Membership gifting", "Free Member Milestone Chat" on a members'
+  stream). The chat frame's document had no button to click for it (only icon definitions), so
+  StreamXR doesn't open it: its Support button says to use YouTube's own window.
+- **Chat replays** (a finished stream's chat; probe 10, 2026-10-16): the watch page's
+  `liveChatRenderer.isReplay` is true and its views are "Top chat replay" / "Live chat replay".
+  The chat frame is `/live_chat_replay`; its data (shown actions already gone, as for live chat)
+  has `continuations` [`liveChatReplayContinuationData` (`continuation`,
+  `timeUntilLastMessageMsec`), `playerSeekContinuationData` (`continuation`)] and the same view
+  selector (reload tokens: `/live_chat_replay?continuation=<token>` reads, ~295 KB, with the
+  chat). `live_chat/get_live_chat_replay` `{ continuation, currentPlayerState: { playerOffsetMs } }`
+  is a **cursor**: each answer is the next chunk (~45 messages, minutes of chat) as
+  `replayChatItemAction` (`videoOffsetTimeMsec`, the message's time in the video, and its
+  `actions`), whatever position is sent; the **first** token with another position starts
+  again from there (a seek: asked at 10:35, the chunk started at 10:36). So a reader fetches
+  ahead and shows each message when the video reaches its time (`youtube-chat.js`
+  `pollReplay`, `provider/live-chat.js`, 0.87.0). The frame itself made no chat requests while
+  probed (`/youtubei/v1/att/get` only); `playerSeekContinuationData` isn't used yet.
+  With YouTube's chat **hidden** on the page (probe 11), the watch page keeps the replay's
+  `liveChatRenderer` (its `initialDisplayState` still says EXPANDED) and the chat frame element
+  stays, so the chat is still found. There's **no pop-out replay page**:
+  `/live_chat_replay?is_popout=1&v=<id>` answers HTTP 400 (the fallback only works for live chat).
+- **Top fans** (probes 8 and 9, 2026-10-16):
+  - The chat header's `viewerLeaderboardEntryPoint.liveViewerLeaderboardChatEntryPointViewModel`:
+    a `defaultButton` and a `pointsButton` (crown icons, "Top fans"), each tapping a
+    `showEngagementPanelEndpoint` (tag `PAlive_viewer_leaderboard`, `globalConfiguration.params`),
+    plus `pointsEntityKey` / `entryPointStateEntityKey`.
+  - **Your XP** is an entity: `frameworkUpdates.entityBatchUpdate.mutations[]` with that
+    `entityKey` and `payload.liveViewerLeaderboardPointsEntity` (`pointsCompactText` "0 XP",
+    `pointsValue`); it comes in the chat page and, when it changes, in the polls' answers.
+  - **The list**: `get_panel` `{ panelId: 'PAlive_viewer_leaderboard', params }` (with the params
+    alone, `browse` or other guesses: HTTP 400) answers
+    `content.engagementPanelSectionListRenderer` with `content.sectionListRenderer.contents[]`
+    (50 on a busy stream) of `itemSectionRenderer` > `liveLeaderboardItemViewModel`: `rank.content`
+    ("1"), `points.content` ("30 XP"), `avatar.avatarViewModel.image.sources[0].url`,
+    `content.liveLeaderboardItemChannelContentViewModel` (`displayName.content`, `badge`: the
+    rank's button). Its `footer` is **your row** (`rank`, `points`, `avatar`, and
+    `liveLeaderboardItemActionContentViewModel.actionDescription` with a gift button).
+  - **Rank marks on messages**: `liveChatTextMessageRenderer.beforeContentButtons[]` >
+    `buttonViewModel` (`iconName` CROWN_FILLED, `title` "#1", `customBackgroundColor` /
+    `customFontColor`, ARGB; tapping opens the same panel): on the top three's messages.
 
 ## Playlists
 

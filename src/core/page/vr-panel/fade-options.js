@@ -1,6 +1,7 @@
 // The "Auto-hide" settings tab, which belongs to the shell: how long each part of the
 // interface waits, unused, before it hides or fades. One slider each (from 1 s to 30 s, or
-// Never), with a Default button; remembered.
+// Never), with a Default button; and a switch, "Auto-hide while paused": whether those waits also
+// run while the video is paused (off by default: paused, everything stays up). Remembered.
 //   panels:      the controls panel and the open panels (and the lasers with them), while
 //                the video plays (vr-panel.js)
 //   bars:        the side toolbars and their open panels, while the video plays (vr-panel.js)
@@ -10,10 +11,11 @@
 // A site's Options panel includes it as one of its tabs.
 //
 //   ns.vrFadeOptions.seconds(name) -> the wait in seconds (Infinity: never)
+//   ns.vrFadeOptions.hideWhilePaused() -> bool (the switch)
 //   ns.vrFadeOptions.content() -> the Options style's 'rows' content
 //   ns.vrFadeOptions.event(ev) -> true if it was one of this tab's controls
-//     ('slider:fade-<name>', 'default:fade-<name>')
-//   ns.vrFadeOptions.reset() -> back to the defaults (the global reset)
+//     ('slider:fade-<name>', 'default:fade-<name>', 'switch:fade-paused')
+//   ns.vrFadeOptions.reset() -> back to the defaults, the switch off (the global reset)
 (function (ns) {
   'use strict';
 
@@ -30,6 +32,8 @@
     for (const n of NAMES) if (n in saved && (saved[n] === null || STOPS.includes(saved[n]))) times[n] = saved[n];
   }
   const remember = () => ns.storage.setJSON(KEY, times);
+  const PAUSED_KEY = 'hideWhilePaused';      // storage.js name: 'on' while the switch is on
+  const hideWhilePaused = () => ns.storage.get(PAUSED_KEY) === 'on';
 
   const seconds = name => (times[name] === null ? Infinity : times[name] != null ? times[name] : DEFAULTS[name]);
 
@@ -42,11 +46,16 @@
     return {
       kind: 'rows', note: tr('fade.note'),
       rows: NAMES.map(n => ({ label: tr(`fade.${n}`), hint: tr(`fade.${n}Hint`),
-        control: { type: 'slider', id: `fade-${n}`, fraction: fractionOf(times[n]), text: text(times[n]), enabled: true, defaultButton: true } })),
+        control: { type: 'slider', id: `fade-${n}`, fraction: fractionOf(times[n]), text: text(times[n]), enabled: true, defaultButton: true } }))
+        .concat({ label: tr('fade.paused'), hint: tr('fade.pausedHint'), control: { type: 'switch', id: 'fade-paused', on: hideWhilePaused() } }),
     };
   }
 
   function event(ev) {
+    if (ev.type === 'switch' && ev.value === 'fade-paused') {
+      if (hideWhilePaused()) ns.storage.remove(PAUSED_KEY); else ns.storage.set(PAUSED_KEY, 'on');
+      return true;
+    }
     const n = typeof ev.value === 'string' && ev.value.startsWith('fade-') ? ev.value.slice(5) : null;
     if (!NAMES.includes(n)) return false;
     if (ev.type === 'slider') times[n] = stopAt(ev.fraction);
@@ -57,7 +66,7 @@
   }
 
   // Back to the defaults (the global reset); forget the choices.
-  function reset() { Object.assign(times, DEFAULTS); ns.storage.remove(KEY); }
+  function reset() { Object.assign(times, DEFAULTS); ns.storage.remove(KEY); ns.storage.remove(PAUSED_KEY); }
 
-  ns.vrFadeOptions = { seconds, content, event, reset, DEFAULTS };
+  ns.vrFadeOptions = { seconds, hideWhilePaused, content, event, reset, DEFAULTS };
 })(globalThis.__streamxr = globalThis.__streamxr || {});
