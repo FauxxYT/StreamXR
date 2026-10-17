@@ -2,7 +2,7 @@
 
 One list of what's still open, gathered from the feature backlogs (`docs/features/`) and
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
-Last updated for 0.80.0.
+Last updated for 0.82.1.
 
 ## Top priority: before the first release
 
@@ -80,8 +80,10 @@ Netflix first) once they allow protected video in desktop XR.
 - [ ] **News**: its own tabs (Top stories, Sports ...) and the Sports feed.
 - [ ] **Subscriptions**: shelves and posts in the feed, the list of your channels, the bell per
   channel (`features/subscriptions-page.md`).
-- [ ] **Live chat**: reading (0.79.1) and reactions (0.80.0) work in the headset; next: chat replays,
-  typing (`features/video-page.md`).
+- [ ] **Live chat**: reading (0.79.1) and reactions (0.80.0) work in the headset; typing, the
+  keyboard's emoji pages and Support on desktop built in 0.81.0, Top fans (XP, the list, rank
+  pills) in 0.82.0 (works in the headset); next: chat replays
+  (`features/video-page.md`).
 - [ ] **End screen**, **Info cards** (`features/video-page.md`).
 - [ ] **Back button**: set aside (0.73.0); comes back on demand.
 

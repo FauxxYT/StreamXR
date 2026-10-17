@@ -128,7 +128,7 @@
         isOpen: () => isOpen(reg.id),
         closeMenu: () => { menu = null; },
         confirm: d => confirm(d),
-        typeInto: on => typeInto(p, on),
+        typeInto: (on, opts) => typeInto(p, on, opts),
       });
       panels.set(reg.id, p);
     }
@@ -146,12 +146,18 @@
     // (Typing into the top panel's bar needs only the panels shown: the bar is always there.)
     const typingNow = () => !!typing && (typing.zone === 'top' ? visible : shown(typing));
     // A panel asks for the keys (on) or gives them back. Asking also brings up the in-VR
-    // keyboard if it isn't up; giving them back puts it away again if it came up that way.
+    // keyboard if it isn't up; giving them back (with no other panel typing) puts it away again
+    // if it came up that way. A panel asking while another has the keys takes them over, and
+    // the other is sent Escape (as for a click on nothing), so it stops typing too (its caret
+    // goes). opts.emojis: the panel's own emojis for the keyboard's emoji pages (keyboard.js setEmojis).
     let kbAuto = false;                   // the keyboard came up because a panel asked for keys
-    function typeInto(p, on) {
+    function typeInto(p, on, opts = {}) {
+      const before = typing;
       typing = on ? p : (typing === p ? null : typing);
+      if (on && before && before !== p) before.ctrl.event({ type: 'key', value: 'Escape' });   // (its giving back changes nothing now)
+      if (on || !typing) kb.setEmojis(on ? opts.emojis || [] : []);
       if (on && !kbShown) { showKeyboard(true); kbAuto = true; }
-      else if (!on && kbAuto && kbShown) { showKeyboard(false); kbAuto = false; }
+      else if (!on && !typing && kbAuto && kbShown) { showKeyboard(false); kbAuto = false; }
     }
     const isTypingKey = e => !e.ctrlKey && !e.metaKey && !e.altKey && (e.key.length === 1 || TYPING_KEYS.test(e.key));
     function onKey(e) {

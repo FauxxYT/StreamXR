@@ -71,7 +71,14 @@ even where they look like something to "fix".
   **Reading built in 0.79.0** (working since 0.79.1): the chat **opens by itself** when a live
   stream starts, as on YouTube, the panel it replaced coming back when the stream ends
   (confirmed by the maintainer, 2026-10-16); tabs for YouTube's Top chat / Live chat views (the
-  choice remembered).
+  choice remembered). **Typing built in 0.81.0**: a message field and Send above the reactions;
+  the keyboard's 😀 key opens its emoji pages (the channel's own emojis first). **Support on
+  desktop** is a dialog (the maintainer, 2026-10-16): YouTube's "$" screen can't be opened
+  from StreamXR (no button to click in its chat frame), so the button says what the stream
+  offers and to use the $ button under the chat in YouTube's own window. **Top fans (0.82.0,
+  as YouTube's chat does it, to check)**: your XP in a 👑 pill at the right end of the tab
+  row; it opens the ranked list inside the chat panel (‹ back to the chat; your row pinned at
+  the bottom); the top three's rank pills ("#1", in YouTube's colours) before their names.
 - **Every side panel can be moved (planned; the maintainer, 2026-10-16):** the left and
   right panels all get a grab bar, as the keyboard and the controls panel have, not only the
   chat. Moving a panel moves its **whole side**: the toolbar and every panel on that side

@@ -6,10 +6,13 @@
 // The layout comes from keyboard-options.js (the Keyboard settings tab): a chosen style and
 // language, or by default the computer's keyboard layout and the browser's language. The
 // space bar names the language, and the symbols page has a row of its accented letters.
-// Shift (tap: the next letter; tap twice: caps lock), "?123" for a page of symbols, and a
-// key that hides the keyboard.
+// Shift (tap: the next letter; tap twice: caps lock), "?123" for a page of symbols, 😀 for
+// pages of emojis (the ones the panel being typed into hands over first, e.g. a channel's
+// own, drawn as pictures; then a standard set), and a key that hides the keyboard.
 //
 //   const kb = ns.vrKeyboard.create();
+//   kb.setEmojis([{ text, image, label }])   the panel's own emojis (text: what the key types,
+//                                          e.g. ':_wave:'; image: its picture's URL); [] for none
 //   kb.canvas, kb.aspect (height / width), kb.version() (changes when its look changes),
 //   kb.animating() (a key's hover / press is still easing: redraw)
 //   kb.draw({ hover, pressed, target })   hover / pressed: its own control ids; target: what
@@ -34,14 +37,31 @@
   const BAR = { w: 240, h: 30, zone: 500 }, CORNER = { r: 34, hit: 52 };   // the grab bar's pill (zone: its clickable width)
 
   // Physical keys by row (KeyboardEvent.code), with their widths in key units; null = a gap.
-  // Specials: 'Backspace', 'Enter', 'Shift', 'Space', 'Symbols' (?123 / ABC), 'Hide'.
+  // Specials: 'Backspace', 'Enter', 'Shift', 'Space', 'Symbols' (?123 / ABC), 'Emoji' (the
+  // emoji pages), 'Hide'.
+  const BOTTOM = [['Symbols', 2], ['Emoji', 1.5], ['Space', 9], ['Hide', 2.5]];
   const LETTERS = [
     [['Backquote', 1], ...'1234567890'.split('').map(d => [`Digit${d}`, 1]), ['Minus', 1], ['Equal', 1], ['Backspace', 2]],
     [[null, 0.75], ...'QWERTYUIOP'.split('').map(c => [`Key${c}`, 1]), ['BracketLeft', 1], ['BracketRight', 1], ['Backslash', 1], [null, 1.25]],
     [[null, 1], ...'ASDFGHJKL'.split('').map(c => [`Key${c}`, 1]), ['Semicolon', 1], ['Quote', 1], ['Enter', 3]],
     [['Shift', 2.25], ['IntlBackslash', 1], ...'ZXCVBNM'.split('').map(c => [`Key${c}`, 1]), ['Comma', 1], ['Period', 1], ['Slash', 1], ['Shift', 1.75]],
+    BOTTOM,
+  ];
+  // The emoji pages ('emo:<n>' keys, n counting from the page's first): 13 across and 4 down,
+  // Backspace, ‹ (the page before), Enter and › (the page after) at the rows' ends.
+  const EMOJI_COLS = 13, EMOJI_ROWS = 4, PER_EMOJI_PAGE = EMOJI_COLS * EMOJI_ROWS;
+  const EMOJI_ENDS = ['Backspace', 'EmojiPrev', 'Enter', 'EmojiNext'];
+  const emojiRows = count => [
+    ...EMOJI_ENDS.map((end, r) => [...Array.from({ length: EMOJI_COLS }, (_, c) => (r * EMOJI_COLS + c < count ? [`emo:${r * EMOJI_COLS + c}`, 1] : [null, 1])), [end, 2]]),
     [['Symbols', 2.5], ['Space', 10], ['Hide', 2.5]],
   ];
+  // The standard emojis offered after the panel's own (the faces, hands and symbols people use
+  // most in chats).
+  const STANDARD_EMOJIS = ('😀 😃 😄 😁 😆 😅 🤣 😂 🙂 😉 😊 😇 🥰 😍 🤩 😘 😋 😛 😜 🤪 😝 🤗 🤭 🤔 🤐 😐 😑 😶 😏 😒 '
+    + '🙄 😬 😌 😔 😪 😴 😷 🤒 🥵 🥶 😵 🤯 🤠 🥳 😎 🤓 🧐 😕 😟 🙁 😮 😯 😲 😳 🥺 😦 😧 😨 😰 😥 😢 😭 😱 😖 😣 😞 '
+    + '😓 😩 😫 🥱 😤 😡 😠 🤬 😈 💀 💩 🤡 👻 👽 🤖 😺 😹 😻 🙈 🙉 🙊 💯 💢 💥 💫 💦 💨 💬 💤 👋 🤚 ✋ 👌 🤌 ✌️ 🤞 '
+    + '🤟 🤘 🤙 👈 👉 👆 👇 👍 👎 ✊ 👊 👏 🙌 👐 🤲 🙏 💪 🧠 👀 ❤️ 🧡 💛 💚 💙 💜 🖤 🤍 💔 ❣️ 💕 💖 💗 💘 💝 🔥 ✨ ⭐ '
+    + '🌟 🎉 🎊 🎈 🎁 🏆 🥇 🎮 🎧 🎵 🎶 📣 📢 ✅ ❌ ❓ ❗ ⚡ 🌈 ☀️ 🌙 🍕 🍔 🍿 ☕ 🍺 🚀 👑 💎 💰 🕶️ 🫡 🫶').split(' ');
   // The symbols page ('sym:<char>' keys): the digits row stays; then symbols, with the
   // language's currency in the currency spot; and a last row of up to 13: the language's
   // accented letters and the other currencies (keyboard-options.js).
@@ -51,7 +71,7 @@
     [[null, 0.75], ...sym(['!', '@', '#', currency, '%', '^', '&', '*', '(', ')', '_', '+', '|']), [null, 1.25]],
     [[null, 1], ...sym('~ { } < > : ; " \' ? /'.split(' ')), ['Enter', 3]],
     [[null, (UNITS - Math.min(13, last.length)) / 2], ...sym(last.slice(0, 13)), [null, (UNITS - Math.min(13, last.length)) / 2]],
-    [['Symbols', 2.5], ['Space', 10], ['Hide', 2.5]],
+    BOTTOM,
   ];
 
   function create() {
@@ -59,12 +79,24 @@
     canvas.width = W; canvas.height = H;
     const g = canvas.getContext('2d');
     let layout = ns.vrKeyboardOptions.layout();       // { chars, shifted, currency, accents, locale, styleName, languageName, version }
-    let page = 'letters', shift = 'off', lastShiftAt = 0;   // shift: 'off' | 'once' | 'caps'
+    let page = 'letters', shift = 'off', lastShiftAt = 0;   // page: 'letters' | 'symbols' | 'emoji'; shift: 'off' | 'once' | 'caps'
     let ver = 0, regions = [], keys = [];             // keys: this page's [{ n, code, x, y, w, h }]
     const bump = () => { ver++; };
+    // The emojis: the panel's own ({ text, image, label }), then the standard ones; which page.
+    let ownEmojis = [], ownKey = '', emojiPage = 0;
+    const kit = ns.vrKit.createCardKit(g, bump, 240);   // their pictures (a redraw when one arrives)
+    const emojis = () => [...ownEmojis, ...STANDARD_EMOJIS.map(e => ({ text: e, label: e }))];
+    const emojiPages = () => Math.max(1, Math.ceil(emojis().length / PER_EMOJI_PAGE));
+    const emojiAt = n => emojis()[emojiPage * PER_EMOJI_PAGE + n] || null;
+    function setEmojis(list) {
+      const key = (list || []).map(e => e.text).join('\u0001');
+      if (key === ownKey) return;
+      ownKey = key; ownEmojis = (list || []).filter(e => e && e.text); emojiPage = 0; bump();
+    }
 
     // What a key types now (Shift applied), or '' for a key this layout doesn't have.
     function charOf(code) {
+      if (code.startsWith('emo:')) { const e = emojiAt(+code.slice(4)); return e ? e.text : ''; }
       if (code.startsWith('sym:')) return code.slice(4);
       const c = layout.chars[code];
       if (!c) return '';
@@ -80,6 +112,9 @@
       if (code === 'Shift') return '⇧';
       if (code === 'Space') return layout.languageName;
       if (code === 'Symbols') return page === 'letters' ? '?123' : 'ABC';
+      if (code === 'Emoji') return '😀';
+      if (code === 'EmojiPrev' || code === 'EmojiNext') return code;
+      if (code.startsWith('emo:')) { const e = emojiAt(+code.slice(4)); return e ? e.label || e.text : ''; }
       if (code === 'Hide') return ns.i18n.t('kb.hide');
       return charOf(code);
     }
@@ -113,7 +148,10 @@
       g.fillText(`${layout.styleName} · ${layout.languageName}`, SIDE + BODY_W - 28, HEADER_H / 2 + 4);
       // Keys
       const unit = (BODY_W - PAD * 2) / UNITS;
-      (page === 'letters' ? LETTERS : symbols(layout.currency, layout.accents)).forEach((row, r) => {
+      if (emojiPage >= emojiPages()) emojiPage = 0;
+      const rows = page === 'letters' ? LETTERS : page === 'emoji'
+        ? emojiRows(Math.min(PER_EMOJI_PAGE, emojis().length - emojiPage * PER_EMOJI_PAGE)) : symbols(layout.currency, layout.accents);
+      rows.forEach((row, r) => {
         let x = SIDE + PAD;
         const y = HEADER_H + r * ROW_H;
         for (const [code, w] of fitRow(row)) {
@@ -151,10 +189,13 @@
     // Backspace, Shift and Hide are Material Symbols (Shift filled while on, with a bar under
     // it for caps lock); Enter is ↵ and its name. Pointed at: the white ring; pressed:
     // squarer corners and a 0.12 state layer.
-    const ICONS = { Backspace: 'backspace', Shift: 'shift', Hide: 'keyboard_hide' };
+    const ICONS = { Backspace: 'backspace', Shift: 'shift', Hide: 'keyboard_hide', EmojiPrev: 'chevron_left', EmojiNext: 'chevron_right' };
     function drawKey(k, label, state, id) {
       const { h: hv, p: pv } = ns.vrMotion.of(state, id);           // pointed at / pressed, eased (motion.js)
-      const special = !/^(Key|Digit|sym:|Backquote|Minus|Equal|Bracket|Backslash|Semicolon|Quote|Comma|Period|Slash|IntlBackslash|Space)/.test(k.code);
+      const special = !/^(Key|Digit|sym:|emo:|Backquote|Minus|Equal|Bracket|Backslash|Semicolon|Quote|Comma|Period|Slash|IntlBackslash|Space)/.test(k.code);
+      // (an emoji page's ‹ / › with no page that way: faded)
+      const dim = (k.code === 'EmojiPrev' && emojiPage === 0) || (k.code === 'EmojiNext' && emojiPage >= emojiPages() - 1);
+      if (dim) g.globalAlpha = 0.38;
       const lit = k.code === 'Enter' || (k.code === 'Shift' && shift !== 'off');
       const [bg, fg] = lit ? [P.brand, P.onBrand] : special ? [P.secondaryContainer, P.onSecondaryContainer] : [P.surfaceContainerHighest, P.onSurface];
       const rad = Math.max(3, ns.vrMotion.lerp(T.shape.large, T.shape.small, pv));   // squares up as it's pressed, springs back
@@ -170,11 +211,17 @@
         const tw = g.measureText(label).width, x0 = cx - (34 + 10 + tw) / 2;
         ns.vrSymbols.draw(g, 'keyboard_return', x0 + 17, cy, 34, false);
         g.textAlign = 'left'; g.fillText(label, x0 + 44, cy + 2);
+      } else if (k.code.startsWith('emo:') && (emojiAt(+k.code.slice(4)) || {}).image) {
+        const img = kit.image(emojiAt(+k.code.slice(4)).image), s = 48;   // a panel's own emoji: its picture
+        if (img) kit.drawImageContain(img, cx - s / 2, cy - s / 2, s, s);
+        else { g.fillStyle = PA('onSurface', 0.12); roundRect(g, cx - s / 2, cy - s / 2, s, s, 10); g.fill(); }
       } else {
-        g.font = k.code === 'Space' ? T.font('labelLarge', 22) : special ? T.font('labelLarge', 26) : `36px ${FONT}`;
+        g.font = k.code === 'Space' ? T.font('labelLarge', 22) : k.code === 'Emoji' || k.code.startsWith('emo:') ? `40px ${FONT}`
+          : special ? T.font('labelLarge', 26) : `36px ${FONT}`;
         g.fillText(label, cx, cy + 2);
       }
       ns.vrKit.hoverRing(g, k.x, k.y, k.w, k.h, rad, hv);
+      g.globalAlpha = 1;
     }
 
     const keyOf = id => (id && id.startsWith('key:') ? keys[+id.slice(4)] : null);
@@ -185,6 +232,10 @@
       if (!k) return null;
       if (k.code === 'Hide') return { hide: true };
       if (k.code === 'Symbols') { page = page === 'letters' ? 'symbols' : 'letters'; shift = 'off'; bump(); return null; }
+      if (k.code === 'Emoji') { page = 'emoji'; shift = 'off'; bump(); return null; }
+      if (k.code === 'EmojiPrev' || k.code === 'EmojiNext') {
+        emojiPage = Math.max(0, Math.min(emojiPages() - 1, emojiPage + (k.code === 'EmojiNext' ? 1 : -1))); bump(); return null;
+      }
       if (k.code === 'Shift') {
         const now = performance.now();
         shift = shift === 'off' ? (now - lastShiftAt < 400 ? 'caps' : 'once') : shift === 'once' && now - lastShiftAt < 400 ? 'caps' : 'off';
@@ -197,7 +248,7 @@
       return c ? { key: c } : null;
     }
 
-    const repeats = id => { const k = keyOf(id); return !!k && !/^(Shift|Symbols|Hide|Enter)$/.test(k.code); };
+    const repeats = id => { const k = keyOf(id); return !!k && !/^(Shift|Symbols|Emoji|EmojiPrev|EmojiNext|Hide|Enter|emo:)/.test(k.code); };
     const hitTest = (u, v) => {
       const x = u * W, y = v * H;
       for (const r of regions) if (x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) return { id: r.id };
@@ -208,7 +259,7 @@
       return (x >= SIDE && x <= SIDE + BODY_W && y <= BODY_H) || !!hitTest(u, v);
     };
 
-    return { canvas, aspect: H / W, width: W, height: H, draw, hitTest, solidAt, press, repeats, animating: motion.moving, version: () => `${ver}.${ns.vrKeyboardOptions.layout().version}` };   // its own changes, and the layout's
+    return { canvas, aspect: H / W, width: W, height: H, draw, hitTest, solidAt, press, repeats, setEmojis, animating: motion.moving, version: () => `${ver}.${ns.vrKeyboardOptions.layout().version}` };   // its own changes, and the layout's
   }
 
   ns.vrKeyboard = { create };

@@ -8,6 +8,10 @@ permissions, Firefox) are in [ARCHITECTURE.md](../ARCHITECTURE.md#known-limits).
 
 - **Signed-in Home feeds** other than the main one, History, Playlists, Watch later and
   Liked videos (those were verified in 0.35) (`youtube-home.js`).
+- **Live chat typing (0.81.0)**: sending a message was checked from the console (text only);
+  in the headset, check typing, Send / Enter, a channel emoji in a message (sent by its id, as
+  YouTube's client does), and a chat you can't type in (YouTube's reason should show instead
+  of the field: that shape wasn't seen yet).
 - **Live chat (0.79.0)**: written from probes of real chats (text messages, the welcome notice,
   emojis, banners) and, for what didn't show up during the probes, from the shapes YouTube
   is known to send: **Super Chats, Super Stickers, memberships and gifted memberships, the

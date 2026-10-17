@@ -102,11 +102,14 @@ published; what matters from them is in this file and docs/youtube.md).
     buttons along the panel's bottom, sent with `youtubeChat.react()`: 0.80.0, working in the
     headset; other viewers' floating reactions not shown); 3. **typing** with the existing VR keyboard, which
     gains an **emoji layer** (standard emojis plus the set the panel hands it: the channel's
-    member emojis), and a **"Support on desktop"** button (paying stays out of VR).
+    member emojis), and a **"Support on desktop"** button (paying stays out of VR): built in
+    0.81.0, to check (a message field with Send; the keyboard's 😀 pages; Support opens a dialog
+    pointing to YouTube's own window). Then **Top fans** (0.82.0, to check): your XP in a 👑
+    pill at the right of the chat's tabs, opening the ranked list in the panel (your row at
+    the bottom), and the top three's "#1" / "#2" / "#3" pills in the chat.
   - Then **every side panel movable** (left and right): a grab bar on each, as the keyboard
     and the controls panel have. Moving one moves its whole side (toolbar and panels);
     Recenter or a Safe Zone change puts it back. No resizing.
-  - Sending messages needs the VR keyboard (see Search), so it comes later.
 - [x] ~~**Search**~~ DONE (v0.42.0: a "Search" chevron between Channel and Browse, Catalog
   style with a search field; v0.43.0: the in-VR keyboard, right controller's A)
   - ~~Code: `youtubeContent.search(query)`~~ (ads and the Shorts shelf are skipped)

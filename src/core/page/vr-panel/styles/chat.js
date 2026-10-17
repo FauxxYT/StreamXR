@@ -13,8 +13,12 @@
 //     what's inside `view` ({ y, h })
 //   chat.bannerHeight(banner, width), chat.drawBanner(banner, x, y, width)   the pinned
 //     message's box (0 tall for none)
+//   chat.drawInline(runs, x, midY, maxW, color) -> px drawn   runs on one line (a message
+//     being typed), its end kept in view when it's longer than maxW
+//   chat.drawRank(rank, x, midY) -> px wide   a rank pill ({ title: "#1", bg, fg } specs)
 //   item: { id, kind ('text' | 'card' | 'notice'), author, avatar, nameColor (spec), nameFill
-//     (spec: a chip behind the name), badges: [{ icon (symbols.js), color (spec) } | { image }], runs:
+//     (spec: a chip behind the name), rank (a pill first: { title, bg, fg }, e.g. a top fan's
+//     "#1"), badges: [{ icon (symbols.js), color (spec) } | { image }], runs:
 //     [{ text } | { image, label }], card (kind 'card'): { color, onColor (specs), title
 //     (e.g. an amount), header (a line under it), sticker (a picture URL) } }
 //   banner: { header, item }
@@ -42,6 +46,7 @@
         lines[lines.length - 1].push({ ...piece, x, w }); x += w;
       };
       if (withName) {
+        if (it.rank && it.rank.title) put({ rank: it.rank }, rankWidth(it.rank) + 6);
         for (const b of it.badges || []) put({ badge: b }, R.badge + 6);
         if (it.author) {
           g.font = `500 ${R.size}px ${FONT}`;
@@ -94,6 +99,7 @@
       g.textAlign = 'left'; g.textBaseline = 'middle';
       const mid = y + R.line / 2;
       for (const p of line) {
+        if (p.rank) { drawRank(p.rank, x + p.x, mid); continue; }
         if (p.badge) {
           const b = p.badge;
           if (b.image) { const img = kit.image(b.image); if (img) kit.drawImageContain(img, x + p.x, mid - R.badge / 2, R.badge, R.badge); }
@@ -184,7 +190,36 @@
       return bl.h;
     }
 
-    return { layout, draw, bannerHeight, drawBanner };
+    // A rank pill: its title, bold, in its colours (the tertiary colour pair when it has none).
+    const RANK_FONT = `700 16px ${FONT}`, RANK_H = 24;
+    function rankWidth(rank) { g.font = RANK_FONT; return Math.ceil(g.measureText(rank.title).width) + 16; }
+    function drawRank(rank, x, midY) {
+      const w = rankWidth(rank);
+      g.fillStyle = spec(rank.bg) || P.tertiaryContainer; roundRect(g, x, midY - RANK_H / 2, w, RANK_H, RANK_H / 2); g.fill();
+      g.fillStyle = spec(rank.fg) || P.onTertiaryContainer; g.font = RANK_FONT; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText(rank.title, x + w / 2, midY + 1);
+      g.textAlign = 'left';
+      return w;
+    }
+
+    function drawInline(runs, x, midY, maxW, color) {
+      g.font = `${R.size}px ${FONT}`; g.textAlign = 'left'; g.textBaseline = 'middle';
+      const pieces = (runs || []).map(r => (r.image ? { image: r.image, w: R.emoji + 4 } : { text: r.text, w: g.measureText(r.text).width }));
+      const total = pieces.reduce((s, p) => s + p.w, 0);
+      g.save(); g.beginPath(); g.rect(x, midY - R.line, maxW, R.line * 2); g.clip();
+      let px = x - Math.max(0, total - maxW);                // (longer than the room: its end shows)
+      for (const p of pieces) {
+        if (p.image) {
+          const img = kit.image(p.image);
+          if (img) kit.drawImageContain(img, px, midY - R.emoji / 2, R.emoji, R.emoji);
+        } else { g.fillStyle = color; g.fillText(p.text, px, midY + 1); }
+        px += p.w;
+      }
+      g.restore();
+      return Math.min(total, maxW);
+    }
+
+    return { layout, draw, bannerHeight, drawBanner, drawInline, drawRank };
   }
 
   ns.vrStyleChat = { create };

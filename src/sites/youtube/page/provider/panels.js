@@ -20,7 +20,8 @@
 //   maxScroll(), shownScroll() ...), perPage (cards / rows per page), open(), close(),
 //   isOpen() (this panel), closeMenu() (the controls panel's open menu), confirm(d) (ask
 //   in the shell's dialog: d = { title, text, confirm, cancel, danger } -> Promise of bool),
-//   typeInto(on) (ask
+//   typeInto(on, opts) (opts.emojis: [{ text, image, label }], the panel's own emojis for the
+//   keyboard's emoji pages; ask
 //   for the keys, or give them back (asking brings up the in-VR keyboard): while on and
 //   shown, each key arrives as an event
 //   { type: 'key', value: a character | 'Backspace' | 'Enter' | 'Escape' }) }.

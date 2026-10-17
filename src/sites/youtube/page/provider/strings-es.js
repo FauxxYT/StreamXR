@@ -120,6 +120,18 @@
     'yt.chat.newest': 'Ir a lo más reciente',
     'yt.chat.newestCount': { one: '{n} mensaje nuevo', other: '{n} mensajes nuevos' },
     'yt.chat.newMember': 'Nuevo miembro',
+    'yt.chat.placeholder': 'Chatea…',
+    'yt.chat.send': 'Enviar',
+    'yt.chat.sendFailed': 'No enviado',
+    'yt.chat.support': 'Apoyar en el escritorio',
+    'yt.chat.supportTitle': 'Apoyar en el escritorio',
+    'yt.chat.supportText': 'Los pagos se hacen en la ventana de YouTube: quítate el visor y usa el botón $ bajo el chat.',
+    'yt.chat.supportTextWith': '{offers}: en la ventana de YouTube. Quítate el visor y usa el botón $ bajo el chat.',
+    'yt.chat.supportOk': 'Entendido',
+    'yt.chat.topFans': 'Fans destacados',
+    'yt.chat.you': 'Tú',
+    'yt.chat.fansEmpty': 'Todavía no hay fans destacados.',
+    'yt.chat.fansError': 'No se pudieron cargar los fans destacados.',
 
     // Channel panel.
     'yt.channel.videos': 'Vídeos',

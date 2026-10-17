@@ -11,11 +11,22 @@
 //   await ns.youtubeChat.views(opts) -> [{ title, selected, token }]   the views with the
 //     tokens that load them (from the chat frame, else the pop-out page; kept a minute per
 //     video); opts.skipFrame: ask the pop-out page (for checking it)
-//   await ns.youtubeChat.open(token) -> { items, next, reactions }   a view's chat page;
-//     reactions: the reaction buttons (❤ 😄 🎉 ...; [] when the stream has none, or signed
-//     out): [{ emoji (the character), label ("Send ❤"), token (what sends it) }]
-//   await ns.youtubeChat.poll(next) -> { items, next }     what's new since `next`
+//   await ns.youtubeChat.open(token) -> { items, next, reactions, input, emojis, support, leaderboard }
+//     a view's chat page; reactions: the reaction buttons (❤ 😄 🎉 ...; [] when the stream has
+//     none, or signed out): [{ emoji (the character), label ("Send ❤"), token (what sends it) }];
+//     input: the message box, { placeholder, max (characters), emojiCost (characters an emoji
+//     counts for), params, prefix } or { restricted: why you can't chat }, or null (signed
+//     out); emojis: the channel's own [{ id, shortcut (':_wave:'), image, label }]; support:
+//     what its "$" menu offers ("Super Chat", "Gifts" ...); leaderboard: the Top fans button,
+//     { params (loads the list), pointsKey, xp (your XP: "120 XP", or null) }, or null
+//   await ns.youtubeChat.poll(next, pointsKey) -> { items, next, xp }   what's new since `next`
+//     (xp: your XP when YouTube sent a new value, else undefined)
+//   await ns.youtubeChat.topFans(params) -> { fans: [fan], you: fan | null }   the Top fans
+//     list (fan: { rank ("1"), name, avatar, points ("30 XP"), badge, note (your row: YouTube's
+//     line under it) }; badge: { title ("#1"), bg, fg } | null)
 //   await ns.youtubeChat.react(reaction) -> true | false   send one (YouTube's feedback request)
+//   await ns.youtubeChat.send(input, segments) -> true | false   post a message: segments
+//     [{ text } | { emojiId }] (a channel emoji by its id)
 //     items: changes in order, each one of
 //       { op: 'add', msg }        a new message (see below)
 //       { op: 'remove', id }      a message taken down (deleted, or replaced by a removal)
@@ -25,7 +36,8 @@
 //     next: { token, timeoutMs } to poll with, or null when the chat has ended.
 //   msg: { id, kind ('text' | 'paid' | 'sticker' | 'member' | 'notice'), author, avatar,
 //     channelId, role ('owner' | 'moderator' | 'member' | null), verified, badge (a member
-//     badge's image URL or ''), runs: [{ text } | { emoji: { url, label } }], time (ms),
+//     badge's image URL or ''), rank (a Top fan's mark before the name: { title ("#1"), bg, fg }
+//     or null), runs: [{ text } | { emoji: { url, label } }], time (ms),
 //     amount ('$5.00', paid and sticker), header (a membership's line, e.g. "Member for 6
 //     months"), sticker (its image URL), colors ({ header, body, text } '#rrggbb', paid and
 //     sticker) }
@@ -107,9 +119,77 @@
   // Load a view's chat page: its recent messages (and pinned message), the token to poll with
   // and the reaction buttons.
   async function open(token) {
-    const lcc = chatIn(await page(`/live_chat?continuation=${encodeURIComponent(token)}`));
+    const data = await page(`/live_chat?continuation=${encodeURIComponent(token)}`), lcc = chatIn(data);
     if (!lcc) throw new Error('live_chat: no chat data in the page');
-    return { items: changes(lcc.actions), next: nextOf(lcc), reactions: reactionsIn(lcc) };
+    return { items: changes(lcc.actions), next: nextOf(lcc), reactions: reactionsIn(lcc), input: inputIn(lcc), emojis: emojisIn(lcc), support: supportIn(lcc),
+      leaderboard: leaderboardIn(lcc, data) };
+  }
+
+  // ---------------------------------------------------------------- Top fans
+  // The Top fans button in the chat's header (liveViewerLeaderboardChatEntryPointViewModel):
+  // the params that load its list, and your XP (an entity YouTube sends under its key).
+  function leaderboardIn(lcc, data) {
+    const entry = findKey(lcc && lcc.header, 'liveViewerLeaderboardChatEntryPointViewModel');
+    const params = entry && dig(findKey(entry, 'showEngagementPanelEndpoint'), 'globalConfiguration', 'params');
+    if (!params) return null;
+    return { params, pointsKey: entry.pointsEntityKey || '', xp: xpIn(data, entry.pointsEntityKey) || null };
+  }
+  // Your XP in a response's entity updates ("120 XP"), or undefined when it has none.
+  function xpIn(resp, key) {
+    const m = (dig(resp, 'frameworkUpdates', 'entityBatchUpdate', 'mutations') || [])
+      .find(x => x && x.payload && x.payload.liveViewerLeaderboardPointsEntity && (!key || x.entityKey === key));
+    return m ? m.payload.liveViewerLeaderboardPointsEntity.pointsCompactText || '' : undefined;
+  }
+  // A Top fan's mark (a crown button titled "#1" in YouTube's colours), or null.
+  function rankOf(buttons) {
+    const b = (buttons || []).map(x => x && x.buttonViewModel).find(x => x && x.title);
+    return b ? { title: b.title, bg: hex(b.customBackgroundColor), fg: hex(b.customFontColor) } : null;
+  }
+  // One row of the list (liveLeaderboardItemViewModel).
+  function fanOf(vm) {
+    if (!vm) return null;
+    const who = dig(vm, 'content', 'liveLeaderboardItemChannelContentViewModel') || {};
+    return { rank: dig(vm, 'rank', 'content') || '', points: dig(vm, 'points', 'content') || '', name: dig(who, 'displayName', 'content') || '',
+      avatar: dig(vm, 'avatar', 'avatarViewModel', 'image', 'sources', 0, 'url') || '', badge: rankOf([who.badge]),
+      note: dig(vm, 'content', 'liveLeaderboardItemActionContentViewModel', 'actionDescription', 'content') || '' };
+  }
+  // The list, as YouTube's Top fans panel loads it.
+  async function topFans(params) {
+    const r = await D.innertube('get_panel', { panelId: 'PAlive_viewer_leaderboard', params });
+    const panel = dig(r, 'content', 'engagementPanelSectionListRenderer') || {};
+    const rows = (dig(panel, 'content', 'sectionListRenderer', 'contents') || []).map(s => fanOf(findKey(s, 'liveLeaderboardItemViewModel'))).filter(Boolean);
+    return { fans: rows, you: fanOf(dig(panel, 'footer', 'liveLeaderboardItemViewModel')) };
+  }
+
+  // The message box (liveChatMessageInputRenderer: its field and send endpoint), or why you
+  // can't chat (whatever else the action panel holds: members only, sign in ...), or null.
+  function inputIn(lcc) {
+    const panel = lcc && lcc.actionPanel;
+    if (!panel) return null;
+    const box = panel.liveChatMessageInputRenderer;
+    const send = box && findKey(box.sendButton, 'sendLiveChatMessageEndpoint');
+    if (!box || !send || !send.params) return { restricted: strOf(findKey(panel, 'message')) || strOf(findKey(panel, 'text')) || '' };
+    const field = findKey(box, 'liveChatTextInputFieldRenderer') || {};
+    return { placeholder: strOf(field.placeholder), max: +field.maxCharacterLimit || 200, emojiCost: +field.emojiCharacterCount || 1,
+      params: send.params, prefix: send.clientIdPrefix || '' };
+  }
+  // The channel's own emojis (its members' ones): their ids, first shortcut and picture.
+  function emojisIn(lcc) {
+    return ((lcc && lcc.emojis) || []).filter(e => e.isCustomEmoji && e.emojiId && e.shortcuts && e.shortcuts[0])
+      .map(e => ({ id: e.emojiId, shortcut: e.shortcuts[0], image: thumb(e.image), label: e.shortcuts[0] }));
+  }
+  // What the "$" menu (the product picker) offers: its items' titles.
+  function supportIn(lcc) {
+    const picker = findKey(lcc && lcc.actionPanel, 'liveChatProductPickerPanelViewModel');
+    return ((picker && picker.items) || []).map(it => strOf(findKey(it, 'title') || findKey(it, 'text'))).filter(Boolean);
+  }
+
+  // Post a message; true when YouTube took it (its answer echoes it back as a chat item).
+  let sent = 0;
+  async function send(input, segments) {
+    const r = await D.innertube('live_chat/send_message', { params: input.params, clientMessageId: `${input.prefix}${Date.now()}${sent++}`,
+      richMessage: { textSegments: segments } });
+    return !!(r && !r.errors && (r.actions || []).some(a => a.addChatItemAction));
   }
 
   // The reaction buttons in a chat's message box (reactionControlPanelViewModel's
@@ -130,10 +210,10 @@
   }
 
   // What's new since the last poll.
-  async function poll(next) {
+  async function poll(next, pointsKey) {
     const r = await D.innertube('live_chat/get_live_chat', { continuation: next.token });
     const lcc = dig(r, 'continuationContents', 'liveChatContinuation');
-    return { items: changes(lcc && lcc.actions), next: nextOf(lcc) };
+    return { items: changes(lcc && lcc.actions), next: nextOf(lcc), xp: xpIn(r, pointsKey) };
   }
 
   // ---------------------------------------------------------------- reading items
@@ -178,7 +258,7 @@
     const base = { id: r.id || '', time: usec(r.timestampUsec) };
     switch (key) {
       case 'liveChatTextMessageRenderer':
-        return { ...base, kind: 'text', ...authorOf(r), runs: runsOf(r.message) };
+        return { ...base, kind: 'text', ...authorOf(r), rank: rankOf(r.beforeContentButtons), runs: runsOf(r.message) };
       case 'liveChatPaidMessageRenderer':
         return { ...base, kind: 'paid', ...authorOf(r), runs: runsOf(r.message), amount: strOf(r.purchaseAmountText),
           colors: { header: hex(r.headerBackgroundColor), body: hex(r.bodyBackgroundColor), text: hex(r.bodyTextColor) || hex(r.headerTextColor) } };
@@ -232,5 +312,5 @@
     return out;
   }
 
-  ns.youtubeChat = { info, views, open, poll, react, changes };
+  ns.youtubeChat = { info, views, open, poll, react, send, topFans, changes };
 })(globalThis.__streamxr = globalThis.__streamxr || {});

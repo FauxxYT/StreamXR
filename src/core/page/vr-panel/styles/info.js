@@ -13,7 +13,8 @@
 //   'chat':    a live chat (chat.js): a pinned message in a banner, then the messages oldest
 //              first, following the newest (scrolled to the bottom) while `follow`; when not,
 //              a "jump to newest" button over the bottom of the list; optionally a row of
-//              reaction buttons (an emoji each) along the panel's bottom.
+//              reaction buttons (an emoji each) along the panel's bottom, with a Support
+//              button at its right end, and a message field with its Send button above it.
 //   'message': a grey message in the middle (optionally under the loading spinner).
 // Knows nothing about any site.
 //
@@ -34,12 +35,18 @@
 //                     children: null | { open, items: [comments], loading, more } }],
 //         loading, done, error }
 //       { kind: 'chat', banner: null | { header, item }, items: [item] (chat.js; keep each
-//         item object while it's shown: its layout is kept by id), follow, labels: { newest, empty },
-//         reactions: [{ id, emoji (a character), on (just sent: shown selected) }] }
+//         item object while it's shown: its layout is kept by id), follow, labels: { newest, empty,
+//         send, support }, reactions: [{ id, emoji (a character), on (just sent: shown selected) }],
+//         support (show the Support button), input: null | { runs (what's typed: [{ text } |
+//         { image, label }]), placeholder, focused, canSend, note (a line instead of the field:
+//         why you can't chat), error (shown in the field's corner) }, xp: null | { label }
+//         (a 👑 pill at the right of the tab row), fans: null | { title, loading, error, empty,
+//         rows: [fan], you: fan | null } (a ranked list instead of the messages, with a back
+//         button; fan: { rank, name, avatar, points, badge ({ title, bg, fg } | null), note }) }
 //       { kind: 'message', text, spinner } }
 //   Control ids: 'tab:<id>', 'page:prev', 'page:next', 'row:<index>' (paged / rows),
 //   'link:<index in links>', 'pill:<id>', 'time:<seconds>', 'children:<thread>',
-//   'more:<thread>', 'newest', 'react:<id>' (chat), 'text' (anywhere else in a scrolling area: a trigger
+//   'more:<thread>', 'newest', 'react:<id>', 'field', 'send', 'support', 'fans', 'fansBack' (chat), 'text' (anywhere else in a scrolling area: a trigger
 //   drag can start there), plus the footer slot's own ids.
 //   Scrolling: scrollAt(u, v), maxScroll(), shownScroll() (after clamping / following),
 //   pxPerV. Also hitTest(u, v) -> { id } | null, has(id), imagesReady(), perPage.
@@ -294,13 +301,21 @@
     const chat = ns.vrStyleChat.create(g, chatKit);
     const NEWEST = { h: 52, pad: 28 };                     // the "jump to newest" button
     const REACT = { size: 64, gap: 16, bar: 92 };          // the reaction buttons; the row's height
+    const INPUT = { h: 64, gap: 12, sendW: 132, btnH: 56 };   // the message field's row
 
-    // The reaction buttons, centred in the row along the panel's bottom: round tonal buttons
-    // (filled while `on`) with the emoji drawn by the font.
-    function drawReactions(list, ui) {
-      const total = list.length * REACT.size + (list.length - 1) * REACT.gap;
-      let x = W / 2 - total / 2;
+    // The bottom row: the reaction buttons (round tonal buttons, filled while `on`, the emoji
+    // drawn by the font) centred in it, and the Support button at its right end.
+    function drawBottomRow(list, labels, support, ui) {
       const y = H - REACT.bar + (REACT.bar - REACT.size) / 2 - 6;
+      let right = W - PAD;
+      if (support) {
+        g.font = T.font('labelLarge', 22);
+        const w = g.measureText(labels.support || '').width + 28 + 8 + 48;
+        ns.vrKit.button(g, regions, 'support', right - w, y + (REACT.size - INPUT.btnH) / 2, w, INPUT.btnH, { icon: 'card_membership', label: labels.support, kind: 'tonal' }, ui);
+        right -= w + REACT.gap;
+      }
+      const total = list.length * REACT.size + Math.max(0, list.length - 1) * REACT.gap;
+      let x = Math.max(PAD, (PAD + right) / 2 - total / 2);
       for (const r of list) {
         ns.vrKit.button(g, regions, `react:${r.id}`, x, y, REACT.size, REACT.size, { kind: r.on ? 'filled' : 'tonal' }, ui);
         g.font = `34px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = P.onSurface;
@@ -309,13 +324,113 @@
       }
     }
 
+    // The message row at y: a field (what's typed, with emoji pictures; the placeholder when
+    // empty; outlined in the primary colour with a caret while typing) and the Send button; or,
+    // when you can't chat, the note saying why.
+    function drawInput(inp, labels, y, ui) {
+      if (inp.note) {
+        g.fillStyle = P.onSurfaceVariant; g.font = `20px ${FONT}`; g.textAlign = 'left'; g.textBaseline = 'middle';
+        ns.vrKit.wrap(g, inp.note, W - PAD * 2, 2).forEach((line, i, all) => g.fillText(line, PAD, y + INPUT.h / 2 + (i - (all.length - 1) / 2) * 26));
+        return;
+      }
+      const fw = W - PAD * 2 - INPUT.sendW - INPUT.gap, r = INPUT.h / 2;
+      regions.push({ id: 'field', x: PAD, y, w: fw, h: INPUT.h });
+      g.fillStyle = P.surfaceContainerHighest; roundRect(g, PAD, y, fw, INPUT.h, r); g.fill();
+      ns.vrKit.hoverArea(g, 'field', ui, PAD, y, fw, INPUT.h, r);
+      if (inp.focused) { g.strokeStyle = P.primary; g.lineWidth = 3; roundRect(g, PAD + 1.5, y + 1.5, fw - 3, INPUT.h - 3, r - 1.5); g.stroke(); }
+      const tx = PAD + 24, room = fw - 48 - (inp.error ? 140 : 0), mid = y + INPUT.h / 2;
+      let end = tx;
+      if ((inp.runs || []).length) end = tx + chat.drawInline(inp.runs, tx, mid, room, P.onSurface);
+      else if (!inp.focused) {
+        g.fillStyle = P.onSurfaceVariant; g.font = `21px ${FONT}`; g.textAlign = 'left'; g.textBaseline = 'middle';
+        g.fillText(inp.placeholder || '', tx, mid + 1);
+      }
+      if (inp.focused) { g.fillStyle = P.primary; g.fillRect(end + 2, mid - 14, 3, 28); }
+      if (inp.error) {
+        g.fillStyle = P.error; g.font = `18px ${FONT}`; g.textAlign = 'right'; g.textBaseline = 'middle';
+        g.fillText(inp.error, PAD + fw - 24, mid + 1);
+      }
+      ns.vrKit.button(g, regions, 'send', W - PAD - INPUT.sendW, y + (INPUT.h - INPUT.btnH) / 2, INPUT.sendW, INPUT.btnH,
+        { label: labels.send, kind: 'filled', enabled: !!inp.canSend }, ui);
+    }
+
+    // The XP pill at the right end of the tab row (its width: xpWidth, also used to keep the
+    // tabs clear of it).
+    const XP = { h: 48, y: 18 };
+    const xpLabel = xp => `👑 ${xp.label}`;
+    function xpWidth(c) {
+      if (!c || c.kind !== 'chat' || !c.xp) return 0;
+      g.font = T.font('labelLarge', 22); return Math.ceil(g.measureText(xpLabel(c.xp)).width) + 40;
+    }
+
+    // Top fans: a back button and the title, the ranked rows scrolling (rank or its badge, picture,
+    // name, XP), and your own row pinned under them with YouTube's line about it.
+    const FAN = { h: 64, avatar: 40, rankW: 70, head: 64 };
+    function drawFanRow(f, x, y, w, you) {
+      const mid = y + FAN.h / 2;
+      if (f.badge) chat.drawRank(f.badge, x + 4, mid);
+      else { g.fillStyle = P.onSurfaceVariant; g.font = `500 20px ${FONT}`; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(f.rank || '–', x + 8, mid + 1); }
+      kit.avatar(f.avatar, f.name, x + FAN.rankW, mid - FAN.avatar / 2, FAN.avatar);
+      g.font = `500 21px ${FONT}`; g.textAlign = 'right'; g.textBaseline = 'middle'; g.fillStyle = you ? P.primary : P.onSurface;
+      g.fillText(f.points || '', x + w - 8, mid + 1);
+      const pw = g.measureText(f.points || '').width, nx = x + FAN.rankW + FAN.avatar + 14;
+      g.textAlign = 'left'; g.font = `${you ? 500 : 400} 21px ${FONT}`; g.fillStyle = P.onSurface;
+      const room = x + w - 8 - pw - 16 - nx;
+      let name = f.name || '';
+      while (name.length > 1 && g.measureText(name).width > room) name = name.slice(0, -2) + '…';
+      g.fillText(name, nx, mid + 1);
+    }
+    function drawFans(fans, labels, m, ui) {
+      const top = TOP;
+      ns.vrKit.button(g, regions, 'fansBack', PAD - 6, top + 4, 52, 52, { icon: 'arrow_back' }, ui);
+      g.fillStyle = P.onSurface; g.font = `500 24px ${FONT}`; g.textAlign = 'left'; g.textBaseline = 'middle';
+      g.fillText(fans.title || '', PAD + 60, top + 30);
+      // Your row at the bottom: a divider, the row, then YouTube's line (up to two lines).
+      let bottom = H - 20;
+      if (fans.you) {
+        g.font = `18px ${FONT}`;
+        const note = fans.you.note ? ns.vrKit.wrap(g, fans.you.note, W - PAD * 2, 2) : [];
+        const youH = FAN.h + note.length * 24 + (note.length ? 8 : 0);
+        bottom = H - 20 - youH;
+        g.fillStyle = P.outlineVariant; g.fillRect(PAD, bottom - 6, W - PAD * 2, 2);
+        drawFanRow(fans.you, PAD, bottom, W - PAD * 2, true);
+        g.fillStyle = P.onSurfaceVariant; g.font = `18px ${FONT}`; g.textAlign = 'left'; g.textBaseline = 'top';
+        note.forEach((line, i) => g.fillText(line, PAD, bottom + FAN.h + i * 24));
+        bottom -= 14;
+      }
+      const view = { x: VIEW.x, y: top + FAN.head, w: VIEW.w, h: bottom - top - FAN.head };
+      const rows = fans.rows || [];
+      if (!rows.length) {
+        const cy = view.y + view.h / 2;
+        if (fans.loading) ns.vrGlyphs.spinner(g, W / 2, cy - 20, 26, m.now || 0, false);
+        g.fillStyle = P.onSurfaceVariant; g.font = `22px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+        g.fillText(fans.loading ? '' : fans.error || fans.empty || '', W / 2, cy + 20);
+        return;
+      }
+      beginScroll(m, rows.length * FAN.h + 8, null, view);
+      g.save(); g.beginPath(); g.rect(view.x - 8, view.y, view.w + 16, view.h); g.clip();
+      rows.forEach((f, i) => {
+        const y = view.y - scrollPx + i * FAN.h;
+        if (y + FAN.h >= view.y && y <= view.y + view.h) drawFanRow(f, view.x, y, view.w, false);
+      });
+      g.restore();
+      endScroll();
+    }
+
     function drawChat(c, m, ui) {
-      const reactions = c.reactions || [];
-      if (reactions.length) drawReactions(reactions, ui);
+      const reactions = c.reactions || [], labels = c.labels || {};
+      if (c.xp) {                                            // your XP, opening Top fans
+        const w = xpWidth(c);
+        ns.vrKit.button(g, regions, 'fans', W - PAD - w, XP.y, w, XP.h, { label: xpLabel(c.xp), kind: c.fans ? 'filled' : 'tonal' }, ui);
+      }
+      if (c.fans) { drawFans(c.fans, labels, m, ui); return; }
+      let bottom = H - 20;                                   // where the list ends: above the bottom rows
+      if (reactions.length || c.support) { drawBottomRow(reactions, labels, !!c.support, ui); bottom = H - REACT.bar; }
+      if (c.input) { drawInput(c.input, labels, bottom - INPUT.h - 6, ui); bottom -= INPUT.h + 18; }
       const bannerH = chat.bannerHeight(c.banner, VIEW.w);
       if (bannerH) chat.drawBanner(c.banner, VIEW.x, TOP, VIEW.w);
       const top = TOP + (bannerH ? bannerH + 10 : 0);
-      const view = { x: VIEW.x, y: top, w: VIEW.w, h: H - top - (reactions.length ? REACT.bar : 20) };
+      const view = { x: VIEW.x, y: top, w: VIEW.w, h: bottom - top };
       if (!(c.items || []).length) { message((c.labels || {}).empty || ''); return; }
       const lay = chat.layout(c.items, view.w);
       beginScroll(m, lay.height + 8, c.follow ? lay.height : null, view);
@@ -365,7 +480,9 @@
       // The tabs end before the page count and arrows when the content is paged.
       const pc = m.content && m.content.kind === 'paged' && m.content.pageCount > 1 ? m.content : null;
       g.font = `22px ${FONT}`;
-      headerTabs(g, m.tabs, m.tab, ui, regions, PAD, { maxX: pc ? ARROWS.prev.x - 32 - g.measureText(`${pc.page + 1} / ${pc.pageCount}`).width : W - PAD });
+      const xpW = xpWidth(m.content);                      // (a chat's XP pill at the right of the tabs)
+      g.font = `22px ${FONT}`;
+      headerTabs(g, m.tabs, m.tab, ui, regions, PAD, { maxX: pc ? ARROWS.prev.x - 32 - g.measureText(`${pc.page + 1} / ${pc.pageCount}`).width : W - PAD - (xpW ? xpW + 16 : 0) });
       const c = m.content || { kind: 'message', text: '' };
       if (c.kind === 'paged') drawPaged(c, ui);
       else if (c.kind === 'text') drawText(c, m, ui);

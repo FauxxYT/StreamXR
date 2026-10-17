@@ -130,6 +130,18 @@
     'yt.chat.newest': 'Jump to newest',
     'yt.chat.newestCount': { one: '{n} new message', other: '{n} new messages' },
     'yt.chat.newMember': 'New member',
+    'yt.chat.placeholder': 'Chat…',
+    'yt.chat.send': 'Send',
+    'yt.chat.sendFailed': 'Not sent',
+    'yt.chat.support': 'Support on desktop',
+    'yt.chat.supportTitle': 'Support on desktop',
+    'yt.chat.supportText': 'Paying happens in YouTube’s own window: take off your headset and use the $ button under the chat.',
+    'yt.chat.supportTextWith': '{offers}: in YouTube’s own window. Take off your headset and use the $ button under the chat.',
+    'yt.chat.supportOk': 'Got it',
+    'yt.chat.topFans': 'Top fans',
+    'yt.chat.you': 'You',
+    'yt.chat.fansEmpty': 'No top fans yet.',
+    'yt.chat.fansError': 'Couldn’t load the top fans.',
 
     // Channel panel.
     'yt.channel.videos': 'Videos',

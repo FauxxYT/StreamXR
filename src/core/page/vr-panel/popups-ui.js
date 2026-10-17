@@ -24,8 +24,9 @@
 // The dialog: a title, an optional line of text and two buttons (cancel, confirm) in an M3
 // dialog card; the scrim (the dim layer behind it) is drawn by vr-panel.js.
 //   const dlg = ns.vrPopupsUI.createDialog();
-//   dlg.draw(d, { hover, pressed })   d: { title, text, cancel, confirm, danger (the confirm
-//     button in the error colour) }; ids 'dialog:cancel', 'dialog:confirm'
+//   dlg.draw(d, { hover, pressed })   d: { title, text (up to four lines: the card grows to fit), cancel (null: no
+//     cancel button, for a dialog that only informs), confirm, danger (the confirm button in
+//     the error colour) }; ids 'dialog:cancel', 'dialog:confirm'
 //   dlg.hitTest(u, v) -> { id } | null; dlg.solidAt(u, v) (on the card); dlg.moving()
 (function (ns) {
   'use strict';
@@ -172,7 +173,9 @@
   }
 
   function createDialog() {
-    const W = 720, H = 220, PAD = 32, BTN_H = 56;           // the title, a line of text, the buttons
+    const W = 720, PAD = 32, BTN_H = 56, LINE = 30, MAX_LINES = 4;   // the title, up to four lines of text, the buttons
+    const TEXT_TOP = PAD + 50;                               // where the text starts in the card
+    const H = TEXT_TOP + MAX_LINES * LINE + 20 + BTN_H + PAD;   // room for the tallest card
     const canvas = document.createElement('canvas');
     canvas.width = W; canvas.height = H;
     const g = canvas.getContext('2d');
@@ -181,21 +184,27 @@
 
     // An M3 dialog: the panels' glass background, extra-large corners; the title (headline), the
     // text, then the buttons at the bottom right: cancel (tonal) and confirm (filled, or
-    // the error colour for something that can't be undone).
+    // the error colour for something that can't be undone). The card is as tall as its text
+    // needs, centred in the canvas (the rest see-through).
     function draw(d, ui) {
       ui = motion.step(ui);
       regions = [];
       g.clearRect(0, 0, W, H);
-      g.fillStyle = T.panelFill(); roundRect(g, 0, 0, W, H, T.shape.extraLarge); g.fill();   // the panels' glass (or solid)
+      g.font = T.font('bodyMedium', 22);
+      const lines = d.text ? ns.vrKit.wrap(g, d.text, W - PAD * 2, MAX_LINES) : [];
+      const cardH = (lines.length ? TEXT_TOP + lines.length * LINE : TEXT_TOP - 10) + 20 + BTN_H + PAD;
+      const y0 = Math.round((H - cardH) / 2);
+      g.fillStyle = T.panelFill(); roundRect(g, 0, y0, W, cardH, T.shape.extraLarge); g.fill();   // the panels' glass (or solid)
       g.fillStyle = P.onSurface; g.textAlign = 'left'; g.textBaseline = 'top';
-      g.fillText(fitFont(g, d.title || '', W - PAD * 2, 32, '500 '), PAD, PAD);
-      if (d.text) { g.fillStyle = P.onSurfaceVariant; g.fillText(fitFont(g, d.text, W - PAD * 2, 22), PAD, PAD + 50); }
+      g.fillText(fitFont(g, d.title || '', W - PAD * 2, 32, '500 '), PAD, y0 + PAD);
+      g.fillStyle = P.onSurfaceVariant; g.font = T.font('bodyMedium', 22);
+      lines.forEach((line, i) => g.fillText(line, PAD, y0 + TEXT_TOP + i * LINE));
       g.font = T.font('labelLarge', 22);
       const bw = t => Math.max(140, g.measureText(t).width + 56);
       const cw = bw(d.confirm || ''), kw = bw(d.cancel || '');
-      const by = H - PAD - BTN_H;
+      const by = y0 + cardH - PAD - BTN_H;
       button(g, regions, 'dialog:confirm', W - PAD - cw, by, cw, BTN_H, { label: d.confirm, kind: d.danger ? 'danger' : 'filled' }, ui);
-      button(g, regions, 'dialog:cancel', W - PAD - cw - 16 - kw, by, kw, BTN_H, { label: d.cancel, kind: 'tonal' }, ui);
+      if (d.cancel != null) button(g, regions, 'dialog:cancel', W - PAD - cw - 16 - kw, by, kw, BTN_H, { label: d.cancel, kind: 'tonal' }, ui);
     }
     function hitTest(u, v) { const x = u * W, y = v * H; const r = regions.find(q => inside(q, x, y)); return r ? { id: r.id } : null; }
     return { canvas, aspect: H / W, draw, hitTest, solidAt: () => true, moving: motion.moving };

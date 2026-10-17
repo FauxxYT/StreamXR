@@ -215,6 +215,41 @@ snippets); read by `youtube-chat.js` since 0.79.0:
   console on a live stream, 2026-10-16: taken). The set varies by stream (that one offered five,
   not ❤ 😄 🎉). `emojiId` is written without the
   emoji selector (❤ = U+2764 alone), which fonts draw as a plain glyph: add U+FE0F.
+- **The message box** (probe 7, 2026-10-16; the chat page's `actionPanel`):
+  `liveChatMessageInputRenderer` with `inputField.liveChatTextInputFieldRenderer`
+  (`placeholder` "Chat...", `maxCharacterLimit`, `emojiCharacterCount`: 10, what an emoji
+  counts for), `sendButton…sendLiveChatMessageEndpoint` (`params`, `clientIdPrefix`, apiUrl
+  `/youtubei/v1/live_chat/send_message`), `pickers` (`emojiPickerRenderer`,
+  `liveChatProductPickerPanelViewModel`), `pickerButtons` (an icon toggle, the reactions),
+  `jewelsGiftsButton`. Where you can't chat, the action panel holds something else with a
+  `message` (not seen yet).
+- **Sending**: `live_chat/send_message` `{ params, clientMessageId, richMessage: { textSegments:
+  [{ text } | { emojiId }] } }` posted a message (checked from the console: the answer's
+  `actions` echo it as an `addChatItemAction`, plus a `runAttestationCommand`). A channel
+  emoji as `{ emojiId }` is how YouTube's own client sends one (not checked yet).
+- **Support** ("$", the product picker): its items are `liveChatProductPickerPanelItemViewModel`s
+  ("Gifts", "Super Chat", "Membership gifting", "Free Member Milestone Chat" on a members'
+  stream). The chat frame's document had no button to click for it (only icon definitions), so
+  StreamXR doesn't open it: its Support button says to use YouTube's own window.
+- **Top fans** (probes 8 and 9, 2026-10-16):
+  - The chat header's `viewerLeaderboardEntryPoint.liveViewerLeaderboardChatEntryPointViewModel`:
+    a `defaultButton` and a `pointsButton` (crown icons, "Top fans"), each tapping a
+    `showEngagementPanelEndpoint` (tag `PAlive_viewer_leaderboard`, `globalConfiguration.params`),
+    plus `pointsEntityKey` / `entryPointStateEntityKey`.
+  - **Your XP** is an entity: `frameworkUpdates.entityBatchUpdate.mutations[]` with that
+    `entityKey` and `payload.liveViewerLeaderboardPointsEntity` (`pointsCompactText` "0 XP",
+    `pointsValue`); it comes in the chat page and, when it changes, in the polls' answers.
+  - **The list**: `get_panel` `{ panelId: 'PAlive_viewer_leaderboard', params }` (with the params
+    alone, `browse` or other guesses: HTTP 400) answers
+    `content.engagementPanelSectionListRenderer` with `content.sectionListRenderer.contents[]`
+    (50 on a busy stream) of `itemSectionRenderer` > `liveLeaderboardItemViewModel`: `rank.content`
+    ("1"), `points.content` ("30 XP"), `avatar.avatarViewModel.image.sources[0].url`,
+    `content.liveLeaderboardItemChannelContentViewModel` (`displayName.content`, `badge`: the
+    rank's button). Its `footer` is **your row** (`rank`, `points`, `avatar`, and
+    `liveLeaderboardItemActionContentViewModel.actionDescription` with a gift button).
+  - **Rank marks on messages**: `liveChatTextMessageRenderer.beforeContentButtons[]` >
+    `buttonViewModel` (`iconName` CROWN_FILLED, `title` "#1", `customBackgroundColor` /
+    `customFontColor`, ARGB; tapping opens the same panel): on the top three's messages.
 
 ## Playlists
 

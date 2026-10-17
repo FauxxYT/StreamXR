@@ -6,6 +6,47 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.82.1
+
+### Fixed
+- **Two text cursors:** clicking the search bar while typing in the live chat (or the other way
+  round) left a cursor in the field you'd left, and a click on nothing then only cleared one.
+  Now the field you leave stops typing as soon as another one starts (the shell sends it
+  Escape), and the keyboard stays up through the switch.
+
+## 0.82.0
+
+### Added
+- **Top fans** in the live chat: your **XP** in a 👑 pill at the right end of the chat's tabs
+  (kept up to date as you chat); clicking it opens the **Top fans** list in the panel: rank,
+  picture, name and XP, the top three with their badges, and your own row at the bottom with
+  YouTube's line about it (refreshed every 30 seconds while open; ‹ goes back to the chat). The
+  top three's **"#1" / "#2" / "#3" pills** now show before their names in the chat.
+
+## 0.81.1
+
+### Fixed
+- The **Support on desktop** dialog cut its message off ("…") before the end: dialogs now
+  show up to four lines of text, the card growing to fit (short ones, like "Unsubscribe?",
+  stay as they were).
+
+## 0.81.0
+
+### Added
+- **Typing in the live chat:** a message field with a **Send** button above the reaction
+  buttons. Clicking the field brings up the VR keyboard; Enter or Send posts the message (it
+  then appears in the chat), Escape or a click on nothing stops typing. YouTube's limit is kept
+  (200 characters, an emoji counting as 10). Where you can't chat, YouTube's reason shows
+  instead of the field.
+- **Emojis on the VR keyboard:** a 😀 key opens pages of emojis (‹ › between pages), with the
+  panel's own first: in the live chat, the channel's member emojis, shown as pictures in the
+  field and sent as emojis.
+- **Support on desktop** (live chat): a button beside the reactions opening a dialog with what
+  the stream offers (Super Chat, gifts, memberships…) and where to pay for it: YouTube's own
+  window, with the $ button under the chat.
+- For the shell: `typeInto(on, { emojis })`, the dialog's text on two lines and `cancel: null`
+  (an information dialog), the Info style's chat `input` and `support`.
+
 ## 0.80.0
 
 ### Added
