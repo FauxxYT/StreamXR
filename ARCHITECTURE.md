@@ -104,13 +104,14 @@ src/core/                      THE CORE (shell, part 1): the VR interface, site-
         kit.js                 generic card, images, badge registry, the M3 tabs (drawTabs, headerTabs), the M3 button, the hover ring, regionAt (hit tests; small controls reach out to 56 dp), createStrip (a row that slides sideways when the laser nears its end)
         grid.js                tabs, pills, text field, card grid, paging (Catalog + Profile)
         thread.js              a threaded comment list (Info's Comments, Profile's opened post)
+        chat.js                a live chat list (Info's 'chat' content): rows with inline pictures, cards, a pinned banner
         info.js / catalog.js / queue.js / profile.js / options.js
-      orbiters-ui.js           the side toolbars (upright M3E floating toolbars on the Safe Zone line), the pill (Settings) and the search bar
+      orbiters-ui.js           the side toolbars (upright M3E floating toolbars on the Safe Zone line), the pill (Settings) and the search bar; a side toolbar has a grab bar on its video side (moves its whole side)
       popups-ui.js             the controls panel's floating menus and the dialog (raised in front: Android XR's popup and dialog levels)
       motion.js                hover / press easing (M3E springs): one tracker per panel canvas; the opening springs (panels without bounce)
       laser-options.js         the Laser settings tab: steadiness (the shell's own)
       appearance-options.js    the Appearance settings tab: the colour theme, the glass look on / off and its tint, the panel size, vibration on / off (the shell's own)
-      fade-options.js          the Auto-hide settings tab: how long the controls panel, toolbars, search bar, controllers and lasers wait before hiding / fading
+      fade-options.js          the Auto-hide settings tab: how long the controls panel, toolbars, search bar, controllers and lasers wait before hiding / fading, and the "Auto-hide while paused" switch
       safe-zone.js             the Safe Zone: where the layout goes, as shares of the headset's field of view (measured from the eyes' projections); its outline
       safe-zone-options.js     the Safe zone settings tab: width, height, centre (the shell's own)
       keyboard-options.js      the Keyboard settings tab: style and language (or yours), and the layout keyboard.js draws
@@ -151,13 +152,14 @@ src/sites/youtube/             YOUTUBE
     youtube-channel.js         any channel by id: header, tabs (sortable), playlists, shows ...
     youtube-home.js            Home feed + topic chips, Explore feeds, menu, search suggestions
     youtube-subscriptions.js   Subscriptions feed, Manage list, Subscribe/Unsubscribe, the bell
+    youtube-chat.js            a live stream's chat: its views, the chat page, polling, items -> plain messages
     provider/
       provider.js              the provider (interface at its top); registers YouTube in sites.js
       panels.js                the panel registry (each panel's zone, style, size, controller)
       extras.js                the controls panel's Captions and Save buttons (the shell's "extras")
       strings-en.js            the YouTube panels' words in English (strings-<lang>.js: other languages)
       cards.js, badges.js      YouTube items -> generic cards; the ✓ / ♪ badges
-      upnext.js, browse.js (Explore and You), search.js, channel.js, description.js, comments-panel.js, settings.js
+      upnext.js, browse.js (Explore and You), search.js, channel.js, description.js, comments-panel.js, settings.js, live-chat.js
                                one controller per panel (comments.js: the comment threads, used by
                                the Comments panel and a Channel post)
   ui/
@@ -271,15 +273,29 @@ A site lists its panels (YouTube: `provider/panels.js`, which documents the inte
   size: 'wide' | 'tall' | 'standard',     // vr-panel/config.js `sizes`
   overrides: { slots: { ... } },          // optional: the style's slots
   default: true,                          // optional: open the first time (on its side)
+  available: st => bool,                  // optional (side panels): offered only while true
+                                          //   (asked every frame; its toolbar button hides meanwhile)
+  autoOpen: true,                         // optional: opens whenever it becomes available (not
+                                          //   remembered); the panel it replaced comes back after
+  stays: true,                            // optional: doesn't fade with the rest while you watch
   create(host) -> controller }
 ```
 
-- `host`: `{ actions, style, perPage, open(), close(), isOpen(), closeMenu(), confirm(d), typeInto(on) }`;
-  `confirm(d)` asks in the shell's dialog (`{ title, text, confirm, cancel, danger }` -> a Promise
+YouTube's Live chat uses all three (`available` while a live stream with a chat plays):
+`vr-panel.js` `refreshAvailable` hides its toolbar button (`orbiters-ui.js` `setHidden`, the
+bar shrinking and laid out again) and keeps a `stays` panel drawn and updated while the panels
+are hidden.
+
+- `host`: `{ actions, style, perPage, open(), close(), isOpen(), closeMenu(), confirm(d), typeInto(on, opts) }`
+  (`opts.emojis`: the panel's own emojis, `[{ text, image, label }]`, first on the keyboard's emoji pages);
+  `confirm(d)` asks in the shell's dialog (`{ title, text (up to four lines), confirm, cancel
+  (null: no cancel button, a dialog that only informs), danger }` -> a Promise
   of true / false); the site's `onControl(id, panel, shell)` gets the same as `shell.confirm`.
 - Typing: a panel with a text field calls `host.typeInto(true)` to get the keys (and
-  `false` to give them back). While it's shown, each key reaches its controller as
-  `{ type: 'key', value }`: a character, `Backspace`, `Enter` or `Escape`. The keys come
+  `false` to give them back). One panel types at a time: when another asks, the one that had
+  the keys is sent `Escape` (as for a click on nothing) and should stop typing. While it's shown, each key reaches its controller as
+  `{ type: 'key', value }`: a character (or an emoji, or a panel emoji's `text`, from the
+  keyboard's 😀 pages), `Backspace`, `Enter` or `Escape`. The keys come
   from the in-VR keyboard (`vr-panel/keyboard.js`; the `keyboard` binding swaps it with
   the controls panel in `vr-panel.js`: it hangs from the controls panel's top edge, sharing
   its pose) and from the computer's
@@ -300,7 +316,7 @@ control's id there is `<panel id>|<style id>`.
 
 | Style | YouTube panel | Draws |
 |---|---|---|
-| **Info** (`info.js`) | Description | header tabs; each tab one content kind: `text` (rich text, links), `paged` (rows in two columns: chapters), `rows` (scrolling, current row followed: transcript), `thread` (pills, count, rows with children and "show more": comments), `message` (optional loading indicator) |
+| **Info** (`info.js`) | Description, Comments, Live chat | header tabs; each tab one content kind: `text` (rich text, links), `paged` (rows in two columns: chapters), `rows` (scrolling, current row followed: transcript), `thread` (pills, count, rows with children and "show more": comments), `chat` (chat.js: a pinned banner, messages with inline pictures and coloured cards, following the newest or paused with a "jump to newest" button; optionally a message field with Send, reaction buttons and a Support button, an XP pill and a ranked Top fans list: live chat), `message` (optional loading indicator) |
 | **Catalog** (`catalog.js`) | Explore, You, Search | title, source tabs, filter pills (tabs and left-aligned pills slide when they don't fit: kit.js createStrip) or a note or a text field with its button (and a suggestions list dropping down from it), card grid, paging; trims its height to its cards |
 | **Queue** (`queue.js`) | Up Next | title or tabs, paging in the header, 3 x 2 cards, a "current" card |
 | **Profile** (`profile.js`) | Channel | banner, picture, name + badge, stats line, one action button (looks: primary / secondary / danger / busy), tabs (shrinking to fit beside the pills), pills, a search button (searching: a back button and a text field in place of the tabs), card grid, paging, or one featured card, or a scrolling body: a text `page` (paragraphs, then label / value facts), a `feed` of posts (picture, author, text, pictures, a card, a poll with result bars, buttons with icons and counts), or one opened `post` with a back button and its comments (thread.js) |
@@ -312,7 +328,7 @@ Info and Profile add `scrollAt`, `maxScroll`, `shownScroll`, `pxPerV`, Options a
 
 **Standard events:** a style's control ids are `<type>:<value>` and reach the controller
 as `{ type, value, fraction? }`. Types: `tab`, `pill`, `item`, `page`, `action`,
-`featured`, `post`, `vote`, `back`, `link`, `row`, `time`, `children`, `more`, `switch`, `slider`, `default`,
+`featured`, `post`, `vote`, `back`, `link`, `row`, `time`, `children`, `more`, `newest`, `react`, `send`, `support`, `fans`, `fansBack`, `switch`, `slider`, `default`,
 `choice`, `prev`, `next`, `button`, `field`, `clear`, `submit`, `suggest`, plus `scroll` (from dragging or the stick), `key` (typing), a slot's own ids, and the names a provider gives a post's buttons (YouTube: `postlike`, `postdislike`, `postcomments`).
 
 **The generic card** (`kit.js`), used by every card grid and the hover card:

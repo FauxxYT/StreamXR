@@ -90,13 +90,15 @@
   const cardHeight = (thumbH, lines = 2) => thumbH + 60 + 25 * lines;
 
   // Images and cards drawing on the 2D context `g`. onImageLoaded(): called when an image
-  // finishes loading, so the caller redraws. Returns { image(url), imagesReady(),
+  // finishes loading, so the caller redraws; limit: how many images to keep (default 160).
+  // Returns { image(url), imagesReady(),
   // drawImageCover(img, x, y, w, h), drawImageContain(img, x, y, w, h), avatar(url, name, x, y, s),
   // drawCard(card, x, y, box, ui, regions, id) }.
-  function createCardKit(g, onImageLoaded) {
+  function createCardKit(g, onImageLoaded, limit = 160) {
     // Images (thumbnails, avatars, banners): loaded with CORS so the canvas stays usable as
     // a WebGL texture. Returns the image once loaded, else null (and starts loading it). If
-    // the image server refuses, callers draw a plain placeholder.
+    // the image server refuses, callers draw a plain placeholder. At most `limit` are kept
+    // (the oldest go first): enough for everything one panel shows at once.
     const images = new Map();               // url -> { img, ok }
     function image(url) {
       if (!url) return null;
@@ -108,7 +110,7 @@
         t.img.onerror = () => { t.ok = false; };
         t.img.src = url;
         images.set(url, t);
-        if (images.size > 160) images.delete(images.keys().next().value);   // keep the cache small
+        if (images.size > limit) images.delete(images.keys().next().value);   // keep the cache small
       }
       return t.ok ? t.img : null;
     }

@@ -4,17 +4,46 @@ experience: 360° and VR180 videos wrap around you, regular videos play on a gia
 screen, and you can browse, search, subscribe, like, save and read comments without ever
 taking your headset off. 🎬✨
 
-**Works with:**<br> 🖥️ Windows · 🌐 Chrome · 🎮 SteamVR · 🥽 Valve Steam Frame · ([full requirements](#-what-you-need))<br> 
+**Works with:**<br> 🖥️ Windows · 🌐 Chrome · 🎮 SteamVR · 🥽 Valve Steam Frame · 🥽 Meta Quest 2 (reported by [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack)) · ([full requirements](#-what-you-need))<br> 
 **Jump to:** [Get started](#-get-started-in-a-minute) ·
 [Quick troubleshooting](#-quick-troubleshooting) · [Controls](#-controls) ·
-[Your privacy](#-your-privacy) · [Roadmap](#-roadmap) · [How you can help](#-how-you-can-help)
+[Your privacy](#-your-privacy) · [What's new](#-whats-new-in-v0881) · [Roadmap](#-roadmap) · [How you can help](#-how-you-can-help)
 
-> **Early access** (version 0.78). Free and open source, forever. It already works every day; it's
+> **Early access** (version 0.88). Free and open source, forever. It already works every day; it's
 > still growing fast, and your feedback shapes what comes next.
 >
 > StreamXR is vibe coded by one guy (me!), and the only headset I've got is the Steam Frame.
 > Bug fixes, updates and support for more headsets and sites are coming, so please be
 > patient with me. 😭🙏
+
+## ✨ What's new in v0.88.1
+
+The latest release, in short (every version's details are in the [changelog](CHANGELOG.md)):
+
+- 💬 **Live chat:** on a live stream, the chat opens on the right and stays up while you watch.
+  Read it with emojis, badges, Super Chats and the pinned message, tap the stream's
+  reactions (❤ 😄 🎉), and type messages on the VR keyboard, which now has emoji pages
+  (with your channel's member emojis). A **Support on desktop** button points you to YouTube's
+  window for Super Chats and memberships.
+- 🏆 **Top fans:** your **XP** in the chat, the ranked list of the stream's top fans, and
+  the top three's #1 / #2 / #3 pills.
+- ⏪ **Chat replays:** on a finished stream that kept its chat, the chat plays along with the
+  video. It pauses when you pause and follows when you jump back or ahead.
+- ✋ **Move the side panels:** grip the grab bar beside either side's toolbar and put that side
+  where you like. Recentering keeps it there, unless you turn on Settings → Safe zone →
+  **Recenter resets panels**.
+- 👆 **Hide everything in one pull** (suggested by [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack)): pull the trigger on empty space and the panels, toolbars
+  and search bar go away at once. Pull again to bring them back.
+- ⏸️ **Settings → Auto-hide → Auto-hide while paused** (suggested by u/TehSuperFruitSnack too): pause and soak in a 180° / 360° scene
+  with nothing in the way (off by default).
+- 🎚️ **Quality menu icons:** each quality shows its 4K / Full HD / HD (and 60 fps) icons, as the
+  Quality button does.
+- 🖐️ **Clearer controller icons:** the grip shows a hand when it will grab something, and the
+  left D-pad shows a panel icon for show / hide.
+- 🥽 **Meta Quest 2 reported working:** [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack) watches through SteamVR on a Quest 2, 8K videos included. Thank you! Other headsets: [tell me how yours does](#-adding-a-headset).
+- 🩹 **Fixes:** the chat now tries again on its own when YouTube's page hasn't loaded it yet;
+  typing in the chat and the search bar no longer shows two text cursors; long dialog
+  messages are no longer cut off.
 
 ## 💡 Why I made this
 
@@ -113,6 +142,11 @@ glassy toolbars on each side:
 - ➡️ **What to watch:** **Up Next**, **Explore** (your Home feed with all its topic chips,
   "Immersive videos" included, plus News) and **You** (Subscriptions, Your channel,
   History, Playlists, Watch later, Liked videos).
+- 💬 **Live chat** on live streams (and **chat replays** on finished ones, playing along with the
+  video): it opens by itself and stays up while you watch. Read it with emojis, badges, Super
+  Chats and the pinned message; send reactions and type messages on the VR keyboard (with your
+  channel's member emojis); see your **XP** and the **Top fans**. Every side can be moved
+  by the grab bar beside its toolbar.
 
 ### 🎨 Make it yours (Settings)
 - Looks: **YouTube** or **Material 3** colors, **glass** panels with an adjustable tint, the
@@ -177,7 +211,7 @@ The full design story is in [docs/Materials-Redesign.md](docs/Materials-Redesign
 |---|---|---|
 | 🖥️ **Computer** | **Windows 10 / 11** | Tested on Windows 11. macOS and Linux aren't supported (Chrome's WebXR needs Windows + SteamVR). |
 | 🌐 **Browser** | **Google Chrome** | Tested. Other Chromium browsers (Edge, Brave) should work but haven't been tried. Firefox can't yet: desktop Firefox has no WebXR (a 🦊 Firefox version will come once it does). |
-| 🥽 **Headset** | **Valve Steam Frame** | Tested and tuned for it, controller models and all, streamed from your PC. (Running in the Frame's own browser, no PC needed, comes once it supports WebXR: see the [roadmap](#-roadmap).) Other SteamVR headsets may well play video, but they're untested and their buttons may be mapped differently ([help add yours](#-adding-a-headset)). |
+| 🥽 **Headset** | **Valve Steam Frame**<br>**Meta Quest 2** (reported by [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack)) | **Steam Frame:** tested and tuned for it, controller models and all, streamed from your PC. (Running in the Frame's own browser, no PC needed, comes once it supports WebXR: see the [roadmap](#-roadmap).)<br>**Quest 2:** reported working through SteamVR, 8K videos included. Its controllers show as Steam Frame models.<br>Other SteamVR headsets may well work too; their buttons may be mapped differently ([help add yours](#-adding-a-headset)). |
 | 🎮 **VR software** | **SteamVR** | Running **before** you open Chrome, and set as your OpenXR runtime. On the Steam Frame, stream it with **Stream VR without game** ([how](#-get-started-in-a-minute)). |
 | 📺 **Site** | **YouTube** | Signed in or out. With YouTube Premium, even better (no ads). |
 | 🧩 **Optional** | **Skip Helper** | A tiny second extension that lets you skip ads from inside VR ([why it's separate](#-skipping-ads)). |
@@ -227,11 +261,11 @@ Still stuck? See [Something not working?](#-something-not-working) for how to re
 
 | Input | Does |
 |---|---|
-| Trigger | click the panels with the laser; hold on the seek bar to scrub; drag a scrolling area; brings the panels (and lasers) back when they're hidden |
+| Trigger | click the panels with the laser; hold on the seek bar to scrub; drag a scrolling area; on empty space, hides the panels, toolbars and search bar at once (another pull brings them back, with the lasers) |
 | A (right) | play / pause |
 | B (right) | swap the controls panel for the keyboard (same place), and back: click its keys with the laser to type into a text box (Search); the bar under it moves it (and the controls panel with it), its bottom corners resize it |
 | Left D-pad | show / hide the panels |
-| Grip | recenter, or grab: the bar under the panel moves it; on the cinema screen the corner arcs resize it and the bar under it moves it (remembered) |
+| Grip | recenter, or grab (its icon turns into a hand when it will grab): the bar under the panel moves it (the bar beside a side's toolbar moves that whole side; recentering keeps what you moved, unless you turn on Settings → Safe zone → "Recenter resets panels", and holding the right stick for 3 s puts it all back); on the cinema screen the corner arcs resize it and the bar under it moves it (remembered) |
 | Stick left / right | ±10 s. On a panel with page arrows: previous / next page (the stick's icon changes to ◀▯▶) |
 | Stick up / down | on a scrolling area (Description, Transcript, Comments, a long menu): scroll (icon ▲≡▼) |
 | Right stick click, held 3 s | reset all settings to their defaults and recenter (the stick's icon counts down 3-2-1 with a ring; let go to cancel) |
@@ -286,7 +320,8 @@ what bugs you most):
 - **No controller vibration.** Chrome doesn't give the Steam Frame controllers a way to
   vibrate yet, so Settings → Appearance → Vibration is greyed out.
 - **Only Steam Frame controller models.** Other controllers are drawn as Steam Frame
-  controllers, and other headsets are untested. **Got 3D models of your controllers?** 🧊
+  controllers. Besides the Steam Frame, only the Quest 2 has been reported working (by
+  u/TehSuperFruitSnack); other headsets are untested. **Got 3D models of your controllers?** 🧊
   Share them in a **Headset / controller compatibility** issue (with where they came from and
   their license) and I'll integrate them once I start accepting pull requests. They need a
   license that lets them be shared and changed in a free project, with credit (for example
@@ -433,6 +468,17 @@ You don't have to write code to make StreamXR better:
 
 - 🐞 **Report bugs:** on GitHub, go to **Issues → New issue**, pick the form that fits, and paste
   the **Copy details** report from the VR button's popup.
+- 🧪 **Help test the live chat:** these parts are built from what YouTube is known to send, but I
+  haven't caught them on a real stream yet. If you see one in VR, tell me whether it looked
+  right (a **Bug report** if it didn't, or a comment on the **Live chat: help test** issue if it did):
+  - 💰 **Super Chats** and **Super Stickers** (colored cards with the amount)
+  - 🎉 **New members** and **gifted memberships** (green cards)
+  - 🛡️ The **channel owner's** name on a yellow chip, and **moderators** in blue with a wrench
+  - 🗑️ A **deleted message** disappearing, and a **pinned message** in the banner at the top
+  - 😺 **Your channel's member emojis** inside a message you send
+  - 🚫 A chat you **can't type in** (members only, slow mode...): YouTube's reason should show
+    instead of the message field
+  - 📺 An **ad** during a chat replay: the chat should carry on where it was
 - 🥽 **Try it on your headset:** if you have a headset other than the Steam Frame, tell me
   what works and what doesn't. The **Details** report (press every controller button first)
   is often all I need to support it ([how](#-adding-a-headset)).
@@ -500,8 +546,9 @@ order by `manifest.json` (one vendored library, Google's Material Color Utilitie
 
 ## 🥽 Adding a headset
 
-The extension is built and tested on the Steam Frame only, because that's the only headset I
-have. Help for other headsets is very welcome; this section is the map. Open an
+The extension is built and tested on the Steam Frame, because that's the only headset I
+have; [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack) has reported the **Meta Quest 2** working through SteamVR too. Help for other
+headsets is very welcome; this section is the map. Open an
 issue before writing code (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 
 **What actually differs between headsets.** Almost nothing in the video side: WebXR hands

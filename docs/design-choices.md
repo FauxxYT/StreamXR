@@ -57,6 +57,50 @@ even where they look like something to "fix".
   covers the text.
 - The Previous / Next hover card sits 32 dp (about 4.7 cm) in front of and 2 cm above its
   button, in the controls panel's tilt.
+- **Live Chat (planned; the maintainer, 2026-10-16):** a **right-side panel**, where YouTube
+  and Twitch put chat, opened from a Chat button on the right toolbar that shows **only on
+  live streams** (and chat replays). Like the other side panels it shares the right zone (one
+  open at a time), but it **doesn't fade**: its toolbar still fades, the chat stays up while
+  you watch. Built in phases: **reading** first (messages, badges, Super Chats / Stickers,
+  memberships, the pinned message, member emojis), then **reactions** (a row of reaction
+  buttons on the panel), then **typing** with the existing VR keyboard (no second keyboard),
+  which gains an **emoji layer** (standard emojis and the channel's member emojis).
+  Paying (Super Chat, memberships) stays out of VR: a **"Support on desktop"** button opens
+  YouTube's own screen in the browser window. YouTube's AI **"Chat summary"** banner is left
+  out; pinned messages and the welcome notice are shown (the maintainer, 2026-10-16).
+  **Reading built in 0.79.0** (working since 0.79.1): the chat **opens by itself** when a live
+  stream starts, as on YouTube, the panel it replaced coming back when the stream ends
+  (confirmed by the maintainer, 2026-10-16); tabs for YouTube's Top chat / Live chat views (the
+  choice remembered). **Typing built in 0.81.0**: a message field and Send above the reactions;
+  the keyboard's 😀 key opens its emoji pages (the channel's own emojis first). **Support on
+  desktop** is a dialog (the maintainer, 2026-10-16): YouTube's "$" screen can't be opened
+  from StreamXR (no button to click in its chat frame), so the button says what the stream
+  offers and to use the $ button under the chat in YouTube's own window. **Top fans (0.82.0,
+  as YouTube's chat does it, to check)**: your XP in a 👑 pill at the right end of the tab
+  row; it opens the ranked list inside the chat panel (‹ back to the chat; your row pinned at
+  the bottom); the top three's rank pills ("#1", in YouTube's colours) before their names.
+  **While only the chat stays up** (everything else faded), a laser shows while it points at
+  the chat and hides again when it leaves it, so you can tell exactly when you're on the chat
+  (the maintainer, 2026-10-17: keep it so).
+- **Every side panel can be moved (the maintainer, 2026-10-16; built in 0.83.0):** the left and
+  right panels all can, not only the chat. Moving a panel moves its **whole side**: the toolbar
+  and every panel on that side follow (they open where you put them). Moving only; no
+  resizing (the Panel size setting scales everything). **The handle is a grab bar beside the
+  side's toolbar, on its video side** (the maintainer, 2026-10-16; 0.85.0): an upright pill
+  with a drag handle, the same as the keyboard's and the controls panel's bars, so everything
+  movable is grabbed the same way (a button there, tried in 0.84.1, invited a trigger click
+  though it only works with the grip; a bar under the panel, 0.83.0, was hard to find). Its
+  laser zone is wider than the pill. It works with the grip (whose icon turns into a hand
+  there): the point you hold follows your hand and the side turns to face you; the toolbar
+  stands a little further out to make room for it.
+- **Recenter keeps what you moved (the maintainer, 2026-10-16; 0.84.0; replaces "Recenter or a
+  Safe Zone change puts it back"):** recentering turns the layout to where you're looking and
+  brings your moved panels along, each where you put it relative to you (the controls panel,
+  with the keyboard and Settings; each moved side). A Safe Zone or panel size change keeps them
+  too. Only the global reset (the right stick held for 3 s) puts them back in their places.
+  **A setting for the other way (the maintainer, 2026-10-16; 0.86.0):** Settings → Safe zone →
+  "Recenter resets panels" (off by default, remembered; the global reset turns it off):
+  while on, recentering also puts the moved panels back.
 
 ## Look
 
@@ -159,8 +203,10 @@ even where they look like something to "fix".
   morphing shape on a dark disc, Material 3 Expressive; 0.56.0) shows in the same spot.
 - **Controller icons (0.69.0):** Material 3 Expressive round tonal icon buttons (the colour
   theme's button colour: white in YouTube, pink in Material 3) with Material Symbols:
-  play_pause (A), keyboard (B; keyboard_hide while the keyboard is up), ads_click (trigger), call_to_action (left D-pad: the
-  panels), recenter (grip), replay_10 + forward_10 (stick; swap_vert while it scrolls,
+  play_pause (A), keyboard (B; keyboard_hide while the keyboard is up), ads_click (trigger),
+  bottom_panel_close / bottom_panel_open (left D-pad: hide the panels while they're up, show them
+  while they're hidden; call_to_action until 0.86.0), recenter (grip; back_hand while it would
+  grab a move bar or handle, 0.84.2), replay_10 + forward_10 (stick; swap_vert while it scrolls,
   menu_book while it turns pages). A held button's countdown: an M3E circular progress
   ring in the theme's red round the same button, the seconds left, then a tick.
 - **The trigger wakes everything (0.69.0):** with the panels hidden (auto-hide or the left
@@ -177,6 +223,13 @@ even where they look like something to "fix".
   panels since 0.78.4), the search
   bar (3 s), the controllers and the lasers (3.5 s each, when held still). Each from 1 s to
   30 s or Never, with a Default button; remembered; the global reset puts them back.
+- **A trigger pull on empty space hides everything (0.88.0, the maintainer, 2026-10-17, from a
+  user's request):** the controls panel, the side toolbars, the search bar and the lasers go at
+  once, paused or not (a press that lets go of a menu, a dialog or typing does only that).
+  Panels that stay up (the live chat) stay. A pull or pointing at a panel brings them back.
+- **"Auto-hide while paused" is a switch (0.88.0, the maintainer, 2026-10-17):** Settings → Auto-hide,
+  off by default (paused, everything stays up, as before); on, the auto-hide waits run while
+  paused too, to take in a scene. The default waits stay as they are.
 - Live streams count as "live" until you're 12 s behind, so a short pause stays red.
 - Unsubscribing asks first, in a dialog (0.67.0): "Unsubscribe from <channel>?" with Cancel
   and Unsubscribe (dark red), on the panels' glass (0.67.1); it floats in front of everything (56 dp) with the rest dimmed

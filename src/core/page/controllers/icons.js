@@ -15,8 +15,10 @@
   const ICONS = {
     playpause: ['play_pause'],
     recenter: ['recenter'],
+    grab: ['back_hand'],                    // the grip while it grabs (a move bar or handle, a resize corner) instead of recentering
     pointer: ['ads_click'],                 // the trigger: point and click with the laser
-    panel: ['call_to_action'],              // show / hide the panels (a panel with its bottom bar)
+    panel: ['bottom_panel_close'],          // hide the panels (they're up)
+    panelopen: ['bottom_panel_open'],       // show the panels again (they're hidden)
     seek: ['replay_10', 'forward_10'],      // the stick's left / right: back / forward 10 s
     scroll: ['swap_vert'],                  // the stick scrolls the text you point at
     keyboard: ['keyboard'],

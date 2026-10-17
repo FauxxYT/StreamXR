@@ -8,6 +8,19 @@ permissions, Firefox) are in [ARCHITECTURE.md](../ARCHITECTURE.md#known-limits).
 
 - **Signed-in Home feeds** other than the main one, History, Playlists, Watch later and
   Liked videos (those were verified in 0.35) (`youtube-home.js`).
+- **Live chat typing (0.81.0)**: sending a message was checked from the console (text only);
+  in the headset, check typing, Send / Enter, a channel emoji in a message (sent by its id, as
+  YouTube's client does), and a chat you can't type in (YouTube's reason should show instead
+  of the field: that shape wasn't seen yet).
+- **Live chat (0.79.0)**: written from probes of real chats (text messages, the welcome notice,
+  emojis, banners) and, for what didn't show up during the probes, from the shapes YouTube
+  is known to send: **Super Chats, Super Stickers, memberships and gifted memberships, the
+  owner / moderator / member badges, deletions, pinned messages** (`youtube-chat.js`). Check
+  them on a busy stream. (The README's "How you can help" asks users to report them.)
+- **Chat replays (0.87.0)**: work in the headset (plays along, pauses, seeks). Untried: an ad
+  during a replay (its time could count as a seek and reload the chat). With YouTube's chat
+  hidden the replay is still found (probe 11); if its chat frame were ever missing, there's no
+  pop-out replay page to fall back on (HTTP 400), so it would end in "Couldn't load the chat".
 
 ## Known quirks
 

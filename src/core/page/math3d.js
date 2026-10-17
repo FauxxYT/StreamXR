@@ -45,6 +45,19 @@
   const aroundPivot = (pivot, rot) =>
     multiply(translation(pivot[0], pivot[1], pivot[2]), multiply(rot, translation(-pivot[0], -pivot[1], -pivot[2])));
 
+  // The inverse of a pose made only of a rotation and a translation (no scaling): the rotation
+  // turned back (transposed), and the translation undone in that turned-back frame.
+  function invertRigid(m) {
+    const o = identity(), tx = m[12], ty = m[13], tz = m[14];
+    o[0] = m[0]; o[1] = m[4]; o[2] = m[8];
+    o[4] = m[1]; o[5] = m[5]; o[6] = m[9];
+    o[8] = m[2]; o[9] = m[6]; o[10] = m[10];
+    o[12] = -(m[0] * tx + m[1] * ty + m[2] * tz);
+    o[13] = -(m[4] * tx + m[5] * ty + m[6] * tz);
+    o[14] = -(m[8] * tx + m[9] * ty + m[10] * tz);
+    return o;
+  }
+
   // Position p as seen after matrix m (rotation + translation).
   const transformPoint = (m, p) => [
     m[0] * p[0] + m[4] * p[1] + m[8] * p[2] + m[12],
@@ -76,7 +89,7 @@
   }
 
   ns.math3d = {
-    DEG, identity, multiply, translation, axisAngle, rotationY, aroundPivot,
+    DEG, identity, multiply, translation, axisAngle, rotationY, aroundPivot, invertRigid,
     transformPoint, transformDir, cross, dot, length, normalize, yawOf,
   };
 })(globalThis.__streamxr = globalThis.__streamxr || {});
