@@ -102,6 +102,8 @@
     'safezone.taller': 'Taller',
     'safezone.lower': 'Lower',
     'safezone.higher': 'Higher',
+    'safezone.recenter': 'Recenter resets panels',
+    'safezone.recenterHint': 'Recentering also puts the panels you moved back in their places',
     'keyboard.note': 'The VR keyboard (A button). Default: your computer’s keyboard and language.',
     'keyboard.style': 'Style',
     'keyboard.language': 'Language',

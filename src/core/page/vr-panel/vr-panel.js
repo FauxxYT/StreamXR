@@ -249,7 +249,8 @@
     for (const side of ['left', 'right']) {
       const list = [...panels.values()].filter(p => p.zone === side);
       if (!list.length) continue;
-      const tb = ns.vrOrbitersUI.createToolbar(list.map(itemOf), side);
+      // (with a grab bar on its video side, 'sgrab:<side>': gripping it moves the whole side, moveSide)
+      const tb = ns.vrOrbitersUI.createToolbar(list.map(itemOf), side, { handle: { id: `sgrab:${side}` } });
       orbiters[side] = { ui: tb, pass: ns.vrPanelPass.createPanelPass(gl, vaos, tb.canvas), size: metres(tb.canvas), key: '' };
     }
     const popupPanel = [...panels.values()].find(p => p.zone === 'controls') || null;
@@ -323,7 +324,7 @@
         if (!o) continue;
         const hidden = {};
         for (const p of panels.values()) if (p.zone === side && !availableNow(p)) hidden[`toggle:${p.reg.id}`] = true;
-        if (o.ui.setHidden(hidden)) { laidOut = -1; o.key = ''; }   // the bar's length changed: lay it out again
+        if (o.ui.setHidden(hidden)) { laidOut = -1; o.key = ''; }   // the bar's length changed: lay it out again (a moved side stays moved)
       }
     }
 
@@ -392,6 +393,7 @@
     let textDrag = null;              // { hand, p, v, scroll, moved, last, at, vel } while a trigger drags a scrolling area
     let fling = null;                 // { p, pos, vel (px/s) } while a let-go drag keeps scrolling (stepFling)
     let grab = null;                  // { hand, local } while moving the panel by its grab bar
+    let sideGrab = null;              // { hand, side, local, at } while moving a side by its toolbar's handle (moveSide)
     let menu = null;                  // null | 'quality' | 'speed' | 'format' | 'volume' | 'x:<id>' (a site button's)
     let extrasNow = null;             // the site's own buttons, from the latest state (st.extras)
     let menuDrag = null;              // { hand, v, scroll, moved } while a trigger drags a scrolling menu
@@ -428,14 +430,23 @@
     const sides = { left: null, right: null };         // per side: { bar (the toolbar's pose), barYaw }
     let laidOut = -1;                                  // the zone version they were laid out for
     let searchBarModel = M.identity();                 // the search bar's pose (with a top panel)
+    // What you moved by a grab bar: the move (a rotation and translation) applied on top of
+    // the laid-out pose, for the controls panel (with the keyboard, the pill and its popup) and
+    // for each side (its toolbar and every panel on it together). Laying out again keeps them;
+    // a recenter carries them along (place); only the global reset drops them (resetSettings).
+    const sideMove = { left: null, right: null };
+    let controlsMove = null, laidControls = M.identity();   // the controls panel's move; its laid-out pose
+    const moved = (side, m) => (sideMove[side] ? M.multiply(sideMove[side], m) : m);
     function relayout() {
       const Z = ns.vrSafeZone, z = Z.angles(), eye = Z.anchor.pos;
-      faceToward(Z.point(0, z.bottom - GAP - halfDeg(size[1]), D), eye);
+      laidControls = facing(Z.point(0, z.bottom - GAP - halfDeg(size[1]), D), eye);
+      model = controlsMove ? M.multiply(controlsMove, laidControls) : laidControls;
       for (const side of ['left', 'right']) {
         const o = orbiters[side];
         if (!o) continue;
         const sgn = side === 'left' ? -1 : 1, edge = side === 'left' ? z.left : z.right;
-        const barYaw = edge + sgn * (GAP / 2 + halfDeg(o.ui.barWidth * MPX));
+        // (out by the grab bar's room too: it stands between the zone's edge and the toolbar)
+        const barYaw = edge + sgn * (GAP / 2 + halfDeg(o.ui.barWidth * MPX) + 2 * halfDeg((o.ui.handleRoom || 0) * MPX));
         // The toolbar's canvas, moved so its bar (not the canvas's centre) is at barYaw.
         const shift = M.translation(-(o.ui.barCentre.x - o.ui.canvas.width / 2) * MPX, (o.ui.barCentre.y - o.ui.canvas.height / 2) * MPX, 0);
         sides[side] = { bar: M.multiply(facing(Z.point(barYaw, z.mid, D - dp(16)), eye), shift), barYaw, pitch: z.mid };
@@ -482,25 +493,45 @@
     const pillButtonH = () => orbiters.pill.ui.buttonHeight * MPX;
     const pillModel = () => M.multiply(model, M.translation(0, size[1] / 2 - dp(12) + pillButtonH() / 2, dp(16)));
     const popupModel = p => M.multiply(model, M.translation(0, size[1] / 2 - dp(12) + pillButtonH() + dp(8) + p.size[1] / 2, dp(32)));
-    // Where a panel is: on its side, or the popup.
-    const panelModel = p => (p.zone === 'controls' ? popupModel(p) : p.pose);
-    // Where an orbiter is: a side's toolbar, the pill or the search bar.
-    const orbiterModel = name => (name === 'pill' ? pillModel() : name === 'bar' ? searchBarModel : sides[name].bar);
+    // Where a panel is: on its side (as moved), or the popup.
+    const panelModel = p => (p.zone === 'controls' ? popupModel(p) : p.zone === 'left' || p.zone === 'right' ? moved(p.zone, p.pose) : p.pose);
+    // Where an orbiter is: a side's toolbar (as moved), the pill or the search bar.
+    const orbiterModel = name => (name === 'pill' ? pillModel() : name === 'bar' ? searchBarModel : moved(name, sides[name].bar));
+    // Move a side by its toolbar's handle: the point grabbed (on the handle) follows the hand
+    // and the side turns to face you there; its toolbar and every panel on it come along.
+    // (g.local: the grabbed point in the hand's space; g.at: the same point in the toolbar's
+    // laid-out space, so the side turns about it.)
+    function moveSide(g, point, head) {
+      const s = sides[g.side];
+      if (!s) return;
+      const held = M.multiply(facing(point, head), M.translation(-g.at[0], -g.at[1], -g.at[2]));   // where the toolbar goes
+      sideMove[g.side] = M.multiply(held, M.invertRigid(s.bar));
+    }
 
     // Lay everything out in front of you: on entering VR and whenever you recenter. `yaw`
-    // is the direction you're facing; the Safe Zone is measured from here.
+    // is the direction you're facing; the Safe Zone is measured from here. What you moved
+    // (the controls panel, the sides) comes along: its move is turned and shifted as the
+    // recenter turned and shifted the layout, so it stays where it was relative to you. (With
+    // Settings → Safe zone → "Recenter resets panels" on, the moves are dropped instead.)
+    const anchorFrame = () => { const a = ns.vrSafeZone.anchor; return M.multiply(M.translation(a.pos[0], a.pos[1], a.pos[2]), M.rotationY(a.yaw)); };
     function place(head, yaw) {
+      const before = anchorFrame();
       ns.vrSafeZone.setAnchor(head, yaw);
+      const turn = M.multiply(anchorFrame(), M.invertRigid(before));   // the old anchor's frame -> the new one's
+      const drop = ns.vrSafeZoneOptions && ns.vrSafeZoneOptions.recenterResets();
+      const carry = mv => (mv && !drop ? M.multiply(turn, M.multiply(mv, M.invertRigid(turn))) : null);
+      sideMove.left = carry(sideMove.left); sideMove.right = carry(sideMove.right); controlsMove = carry(controlsMove);
       relayout();
       lastActivity = performance.now();                         // don't auto-hide right after placing
     }
 
     // The global reset: the keyboard back to its default size (forgetting yours), any move
-    // or resize dropped, and the panels shown. Their place comes from the recenter that
-    // follows (the controls panel has no remembered place: the layout puts it back).
+    // or resize dropped (the controls panel and the sides back in the layout's places), and
+    // the panels shown. Their place comes from the recenter that follows.
     function resetSettings() {
       kbScale = kbCfg.scale; ns.storage.remove(KB_SCALE_KEY);
-      kbGrab = null; grab = null; menu = null;
+      kbGrab = null; grab = null; sideGrab = null; menu = null;
+      controlsMove = null; sideMove.left = sideMove.right = null;
       visible = true;
       lastActivity = performance.now();
     }
@@ -510,24 +541,27 @@
     function toggleVisible() {
       if (kbShown) { showKeyboard(false); return; }
       visible = !visible;
-      if (!visible) { menu = null; grab = null; }
+      if (!visible) { menu = null; grab = null; sideGrab = null; }
       lastActivity = performance.now();
     }
 
     // Grip belongs to us (not recenter) while that hand points at or holds something grabbable.
+    const isSideGrab = id => !!id && id.startsWith('sgrab:');
     const claimsGrip = hand => {
       const h = hands.get(hand);
-      return !!(grab && grab.hand === hand) || !!(targetGrab && targetGrab.hand === hand) || !!(kbGrab && kbGrab.hand === hand) ||
-        !!(h && ((visible && h.hover === 'grab') || h.targetHit || (kbShown && isKbHandle(h.hover))));
+      return !!(grab && grab.hand === hand) || !!(sideGrab && sideGrab.hand === hand) || !!(targetGrab && targetGrab.hand === hand) || !!(kbGrab && kbGrab.hand === hand) ||
+        !!(h && ((visible && (h.hover === 'grab' || isSideGrab(h.hover))) || h.targetHit || (kbShown && isKbHandle(h.hover))));
     };
 
     // The stick belongs to us (scrolling, not ±10 s) while that hand points at a scrolling
-    // area; iconSwaps() tells the controller models to show the scroll icon there.
-    const stickScrolls = hand => { const h = hands.get(hand); return !!(visible && h && (h.scrollPanel || h.menuScroll)); };
+    // area; iconSwaps() tells the controller models to show the scroll icon there. (A panel
+    // that stays while the rest is hidden, e.g. a live chat, counts then too.)
+    const reachable = p => !!p && (visible || !!p.reg.stays);
+    const stickScrolls = hand => { const h = hands.get(hand); return !!(h && (reachable(h.scrollPanel) || (visible && h.menuScroll))); };
     // Likewise its left / right turns pages while it points at a panel showing page arrows
     // (h.pagePanel, set in update). stickPage(hand, dir) presses that panel's previous
     // (dir < 0) / next arrow if it's enabled; true if the stick was ours.
-    const stickPages = hand => { const h = hands.get(hand); return !!(visible && h && h.pagePanel); };
+    const stickPages = hand => { const h = hands.get(hand); return !!(h && reachable(h.pagePanel)); };
     function stickPage(hand, dir) {
       if (!stickPages(hand)) return false;
       const p = hands.get(hand).pagePanel, id = dir < 0 ? 'page:prev' : 'page:next';
@@ -541,6 +575,10 @@
         else if (stickPages(hand)) out[hand] = { seek: 'page' };
         // the keyboard button shows it puts the keyboard away while it's up
         if (kbShown) out[hand] = { ...(out[hand] || {}), keyboard: 'keyboardhide' };
+        // the grip shows a hand while it would grab (or is holding) something instead of recentering
+        if (claimsGrip(hand)) out[hand] = { ...(out[hand] || {}), recenter: 'grab' };
+        // the panels button: "close" while they're up, "open" while they're hidden
+        if (!visible) out[hand] = { ...(out[hand] || {}), panel: 'panelopen' };
       }
       return out;
     }
@@ -734,6 +772,7 @@
           if (menuDrag && menuDrag.hand === hand) menuDrag = null;
           if (textDrag && textDrag.hand === hand) textDrag = null;
           if (grab && grab.hand === hand) grab = null;
+          if (sideGrab && sideGrab.hand === hand) sideGrab = null;
           if (targetGrab && targetGrab.hand === hand) { targetGrab.target.grabEnd(headPos); targetGrab = null; }
           if (h.smoother) h.smoother.reset();        // tracking lost: start afresh, don't glide from the old pose
           continue;
@@ -748,8 +787,14 @@
 
         // Moving the panel: it keeps its offset from the controller and turns to face you.
         if (grab && grab.hand === hand) {
-          if (grip) faceToward(M.transformPoint(m, grab.local), headPos);
+          if (grip) { faceToward(M.transformPoint(m, grab.local), headPos); controlsMove = M.multiply(model, M.invertRigid(laidControls)); }
           else { grab = null; buzz(src, 0.3, 15); }
+          lastActivity = now;
+        }
+        // Moving a side by its grab bar: the same, for the side's open panel and everything on it.
+        if (sideGrab && sideGrab.hand === hand) {
+          if (grip) moveSide(sideGrab, M.transformPoint(m, sideGrab.local), headPos);
+          else { sideGrab = null; buzz(src, 0.3, 15); }
           lastActivity = now;
         }
         // Dragging another target (e.g. resizing or moving the cinema screen).
@@ -864,6 +909,13 @@
         } else if (grip && !h.grip && hover === 'grab' && !grab) {
           grab = { hand, local: toLocal(m, [model[12], model[13], model[14]]) };
           buzz(src, 0.5, 25);
+        } else if (grip && !h.grip && isSideGrab(hover) && !sideGrab && surface && surface.startsWith('orbit:')) {
+          // A side's move handle (on its toolbar): the point grabbed held where it is relative to the hand.
+          const side = hover.slice(6), point = [origin[0] + dir[0] * hit.t, origin[1] + dir[1] * hit.t, origin[2] + dir[2] * hit.t];
+          if (sides[side]) {
+            sideGrab = { hand, side, local: toLocal(m, point), at: M.transformPoint(M.invertRigid(orbiterModel(side)), point) };
+            buzz(src, 0.5, 25);
+          }
         } else if (grip && !h.grip && isKbHandle(hover) && !kbGrab) {
           const id = hover.slice(3);
           if (id === 'grab') grab = { hand, local: toLocal(m, [model[12], model[13], model[14]]) };   // moves the shared place
@@ -998,7 +1050,7 @@
       // side toolbars with their open panels, the search bar. Pointing at anything (where a
       // faded one is, too) brings them back.
       const F = ns.vrFadeOptions, unused = now - lastActivity;
-      const idle = !st.paused && !scrub && !setDrag && !pressed && !grab && !menu && !dialog && !canSkip && !typingNow() && !kbShown;
+      const idle = !st.paused && !scrub && !setDrag && !pressed && !grab && !sideGrab && !menu && !dialog && !canSkip && !typingNow() && !kbShown;
       if (visible && idle && unused > F.seconds('panels') * 1000) visible = false;
       barsAwake = !(idle && unused > F.seconds('bars') * 1000);
       searchAwake = !(idle && unused > F.seconds('search') * 1000);
@@ -1114,12 +1166,13 @@
         for (const id of panels.keys()) openItems[`toggle:${id}`] = isOpen(id);
         for (const [name, o] of Object.entries(orbiters)) {
           const barUi = name === 'bar' ? { hover: localOf(hover, topPanel), pressed: localOf(pressed && pressed.id, topPanel) } : null;
-          const oKey = [name === 'bar' ? JSON.stringify([topPanel.bar, barUi, topPanel.topOpen]) : JSON.stringify(openItems), hover, pressed && pressed.id,
+          const held = sideGrab && sideGrab.side === name ? `sgrab:${name}` : null;   // a side's handle while held
+          const oKey = [name === 'bar' ? JSON.stringify([topPanel.bar, barUi, topPanel.topOpen]) : JSON.stringify(openItems), hover, pressed && pressed.id, held,
             ns.i18n.version(), ns.vrTokens.glass.version, o.ui.moving() ? now : ''].join('|');
           if (oKey === o.key) continue;
           if (name === 'pill') o.ui.draw({ open: isOpen(popupPanel.reg.id), hover, pressed: pressed && pressed.id });
           else if (name === 'bar') o.ui.draw(topPanel.bar || {}, barUi, topPanel.topOpen, now);
-          else o.ui.draw({ open: openItems, hover, pressed: pressed && pressed.id, now });
+          else o.ui.draw({ open: openItems, hover, pressed: pressed && pressed.id, held, now });
           o.pass.upload();
           o.key = oKey;
         }

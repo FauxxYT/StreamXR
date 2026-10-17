@@ -113,6 +113,11 @@ glassy toolbars on each side:
 - ➡️ **What to watch:** **Up Next**, **Explore** (your Home feed with all its topic chips,
   "Immersive videos" included, plus News) and **You** (Subscriptions, Your channel,
   History, Playlists, Watch later, Liked videos).
+- 💬 **Live chat** on live streams (and **chat replays** on finished ones, playing along with the
+  video): it opens by itself and stays up while you watch. Read it with emojis, badges, Super
+  Chats and the pinned message; send reactions and type messages on the VR keyboard (with your
+  channel's member emojis); see your **XP** and the **Top fans**. Every side can be moved
+  by the grab bar beside its toolbar.
 
 ### 🎨 Make it yours (Settings)
 - Looks: **YouTube** or **Material 3** colors, **glass** panels with an adjustable tint, the
@@ -231,7 +236,7 @@ Still stuck? See [Something not working?](#-something-not-working) for how to re
 | A (right) | play / pause |
 | B (right) | swap the controls panel for the keyboard (same place), and back: click its keys with the laser to type into a text box (Search); the bar under it moves it (and the controls panel with it), its bottom corners resize it |
 | Left D-pad | show / hide the panels |
-| Grip | recenter, or grab: the bar under the panel moves it; on the cinema screen the corner arcs resize it and the bar under it moves it (remembered) |
+| Grip | recenter, or grab (its icon turns into a hand when it will grab): the bar under the panel moves it (the bar beside a side's toolbar moves that whole side; recentering keeps what you moved, unless you turn on Settings → Safe zone → "Recenter resets panels", and holding the right stick for 3 s puts it all back); on the cinema screen the corner arcs resize it and the bar under it moves it (remembered) |
 | Stick left / right | ±10 s. On a panel with page arrows: previous / next page (the stick's icon changes to ◀▯▶) |
 | Stick up / down | on a scrolling area (Description, Transcript, Comments, a long menu): scroll (icon ▲≡▼) |
 | Right stick click, held 3 s | reset all settings to their defaults and recenter (the stick's icon counts down 3-2-1 with a ring; let go to cancel) |
@@ -433,6 +438,17 @@ You don't have to write code to make StreamXR better:
 
 - 🐞 **Report bugs:** on GitHub, go to **Issues → New issue**, pick the form that fits, and paste
   the **Copy details** report from the VR button's popup.
+- 🧪 **Help test the live chat:** these parts are built from what YouTube is known to send, but I
+  haven't caught them on a real stream yet. If you see one in VR, tell me whether it looked
+  right (a **Bug report** if it didn't, or a comment on the **Live chat: help test** issue if it did):
+  - 💰 **Super Chats** and **Super Stickers** (colored cards with the amount)
+  - 🎉 **New members** and **gifted memberships** (green cards)
+  - 🛡️ The **channel owner's** name on a yellow chip, and **moderators** in blue with a wrench
+  - 🗑️ A **deleted message** disappearing, and a **pinned message** in the banner at the top
+  - 😺 **Your channel's member emojis** inside a message you send
+  - 🚫 A chat you **can't type in** (members only, slow mode...): YouTube's reason should show
+    instead of the message field
+  - 📺 An **ad** during a chat replay: the chat should carry on where it was
 - 🥽 **Try it on your headset:** if you have a headset other than the Steam Frame, tell me
   what works and what doesn't. The **Details** report (press every controller button first)
   is often all I need to support it ([how](#-adding-a-headset)).

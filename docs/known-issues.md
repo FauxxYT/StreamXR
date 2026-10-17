@@ -16,8 +16,11 @@ permissions, Firefox) are in [ARCHITECTURE.md](../ARCHITECTURE.md#known-limits).
   emojis, banners) and, for what didn't show up during the probes, from the shapes YouTube
   is known to send: **Super Chats, Super Stickers, memberships and gifted memberships, the
   owner / moderator / member badges, deletions, pinned messages** (`youtube-chat.js`). Check
-  them on a busy stream. While everything else is hidden, the chat stays up but the lasers are
-  hidden with the rest. Chat replays (after a stream) aren't read yet.
+  them on a busy stream. (The README's "How you can help" asks users to report them.)
+- **Chat replays (0.87.0)**: work in the headset (plays along, pauses, seeks). Untried: an ad
+  during a replay (its time could count as a seek and reload the chat). With YouTube's chat
+  hidden the replay is still found (probe 11); if its chat frame were ever missing, there's no
+  pop-out replay page to fall back on (HTTP 400), so it would end in "Couldn't load the chat".
 
 ## Known quirks
 

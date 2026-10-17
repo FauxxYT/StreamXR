@@ -106,7 +106,7 @@ src/core/                      THE CORE (shell, part 1): the VR interface, site-
         thread.js              a threaded comment list (Info's Comments, Profile's opened post)
         chat.js                a live chat list (Info's 'chat' content): rows with inline pictures, cards, a pinned banner
         info.js / catalog.js / queue.js / profile.js / options.js
-      orbiters-ui.js           the side toolbars (upright M3E floating toolbars on the Safe Zone line), the pill (Settings) and the search bar
+      orbiters-ui.js           the side toolbars (upright M3E floating toolbars on the Safe Zone line), the pill (Settings) and the search bar; a side toolbar has a grab bar on its video side (moves its whole side)
       popups-ui.js             the controls panel's floating menus and the dialog (raised in front: Android XR's popup and dialog levels)
       motion.js                hover / press easing (M3E springs): one tracker per panel canvas; the opening springs (panels without bounce)
       laser-options.js         the Laser settings tab: steadiness (the shell's own)

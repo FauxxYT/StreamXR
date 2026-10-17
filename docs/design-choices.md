@@ -79,12 +79,28 @@ even where they look like something to "fix".
   as YouTube's chat does it, to check)**: your XP in a 👑 pill at the right end of the tab
   row; it opens the ranked list inside the chat panel (‹ back to the chat; your row pinned at
   the bottom); the top three's rank pills ("#1", in YouTube's colours) before their names.
-- **Every side panel can be moved (planned; the maintainer, 2026-10-16):** the left and
-  right panels all get a grab bar, as the keyboard and the controls panel have, not only the
-  chat. Moving a panel moves its **whole side**: the toolbar and every panel on that side
-  follow (they open where you put them). **Recenter or a Safe Zone change puts it back**, as
-  for a moved controls panel. Moving only; no resizing (the Panel size setting scales
-  everything).
+  **While only the chat stays up** (everything else faded), a laser shows while it points at
+  the chat and hides again when it leaves it, so you can tell exactly when you're on the chat
+  (the maintainer, 2026-10-17: keep it so).
+- **Every side panel can be moved (the maintainer, 2026-10-16; built in 0.83.0):** the left and
+  right panels all can, not only the chat. Moving a panel moves its **whole side**: the toolbar
+  and every panel on that side follow (they open where you put them). Moving only; no
+  resizing (the Panel size setting scales everything). **The handle is a grab bar beside the
+  side's toolbar, on its video side** (the maintainer, 2026-10-16; 0.85.0): an upright pill
+  with a drag handle, the same as the keyboard's and the controls panel's bars, so everything
+  movable is grabbed the same way (a button there, tried in 0.84.1, invited a trigger click
+  though it only works with the grip; a bar under the panel, 0.83.0, was hard to find). Its
+  laser zone is wider than the pill. It works with the grip (whose icon turns into a hand
+  there): the point you hold follows your hand and the side turns to face you; the toolbar
+  stands a little further out to make room for it.
+- **Recenter keeps what you moved (the maintainer, 2026-10-16; 0.84.0; replaces "Recenter or a
+  Safe Zone change puts it back"):** recentering turns the layout to where you're looking and
+  brings your moved panels along, each where you put it relative to you (the controls panel,
+  with the keyboard and Settings; each moved side). A Safe Zone or panel size change keeps them
+  too. Only the global reset (the right stick held for 3 s) puts them back in their places.
+  **A setting for the other way (the maintainer, 2026-10-16; 0.86.0):** Settings → Safe zone →
+  "Recenter resets panels" (off by default, remembered; the global reset turns it off):
+  while on, recentering also puts the moved panels back.
 
 ## Look
 
@@ -187,8 +203,10 @@ even where they look like something to "fix".
   morphing shape on a dark disc, Material 3 Expressive; 0.56.0) shows in the same spot.
 - **Controller icons (0.69.0):** Material 3 Expressive round tonal icon buttons (the colour
   theme's button colour: white in YouTube, pink in Material 3) with Material Symbols:
-  play_pause (A), keyboard (B; keyboard_hide while the keyboard is up), ads_click (trigger), call_to_action (left D-pad: the
-  panels), recenter (grip), replay_10 + forward_10 (stick; swap_vert while it scrolls,
+  play_pause (A), keyboard (B; keyboard_hide while the keyboard is up), ads_click (trigger),
+  bottom_panel_close / bottom_panel_open (left D-pad: hide the panels while they're up, show them
+  while they're hidden; call_to_action until 0.86.0), recenter (grip; back_hand while it would
+  grab a move bar or handle, 0.84.2), replay_10 + forward_10 (stick; swap_vert while it scrolls,
   menu_book while it turns pages). A held button's countdown: an M3E circular progress
   ring in the theme's red round the same button, the seconds left, then a tick.
 - **The trigger wakes everything (0.69.0):** with the panels hidden (auto-hide or the left

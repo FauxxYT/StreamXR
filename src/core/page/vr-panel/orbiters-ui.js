@@ -8,16 +8,20 @@
 // back when the laser leaves it. Everything outside the bar and the grown pills is see-through
 // (solidAt), so the laser reaches the panel behind.
 //
-//   const tb = ns.vrOrbitersUI.createToolbar(items, grows);   items: [{ id, label, icon }]
+//   const tb = ns.vrOrbitersUI.createToolbar(items, grows, opts);   items: [{ id, label, icon }]
 //     (the id is also the control id; label: text or a function giving it; icon: a
 //     Material Symbols name, symbols.js); grows: 'left' or 'right', the side the names
-//     grow towards (away from the video)
-//   tb.draw({ open: { <item id>: bool }, hover, pressed, now (ms) })
+//     grow towards (away from the video); opts.handle: { id }, a grab bar beside the bar on the
+//     video side (an upright pill with a drag handle, as the keyboard's bar, lying down there;
+//     the handle in the brand colour while `held`, the white ring while pointed at; its
+//     clickable zone wider than the pill)
+//   tb.draw({ open: { <item id>: bool }, hover, pressed, held (the handle's id while it's held), now (ms) })
 //   tb.setHidden({ <item id>: true })   items left out (the bar shrinks to the rest, from its
 //     top; the canvas keeps room for them all); returns whether that changed anything
 //   tb.hitTest(u, v) -> { id } | null; tb.solidAt(u, v); tb.moving() (keep redrawing)
 //   tb.barCentre: the bar's centre in canvas pixels { x, y } (kept up to date by setHidden),
-//     tb.barWidth (px) (the bar isn't centred in the canvas: the room for the names is on one side)
+//     tb.barWidth (px) (the bar isn't centred in the canvas: the room for the names is on one
+//     side), tb.handleRoom (px: the room the grab bar takes beside the bar, on the video side)
 //
 // The pill: one M3 tonal button (icon + name), filled while its panel is open; e.g. Settings
 // on the controls panel's top edge.
@@ -50,14 +54,22 @@
     return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(',')})`;
   }
 
-  function createToolbar(items, grows) {
+  function createToolbar(panelItems, grows, opts = {}) {
     const BAR_W = 104, PAD = 8, GAP = 6, ITEM = BAR_W - PAD * 2;   // the bar's width; an item is ITEM px square
     const ICON = 40, LABEL_GAP = 14, END = 30;                       // a grown pill: icon, gap, room after the name
     const ROOM = 300, MARGIN = 10;                                   // the most a name can grow; room for the ring
+    // The grab bar: an upright pill GRAB.w wide (at most GRAB.maxH tall, GRAB.inset shorter than
+    // the bar), GRAB.gap from the bar on the video side; its clickable zone GRAB.reach wider on
+    // each side and above / below.
+    const GRAB = { w: 30, gap: 10, maxH: 240, inset: 48, reach: 14 };
+    const handle = opts.handle || null;
+    const HANDLE_ROOM = handle ? GRAB.gap + GRAB.w + GRAB.reach : 0;
+    const items = panelItems;
     const heightFor = n => PAD * 2 + n * ITEM + Math.max(0, n - 1) * GAP;   // the bar with n items
-    const TW = MARGIN * 2 + BAR_W + ROOM, TH = MARGIN * 2 + heightFor(items.length);
+    const TW = MARGIN * 2 + BAR_W + ROOM + HANDLE_ROOM, TH = MARGIN * 2 + heightFor(items.length);
     const left = grows === 'left';
-    const barX = left ? TW - MARGIN - BAR_W : MARGIN, barY = MARGIN;
+    // (the names grow away from the video; the grab bar is on the video side)
+    const barX = left ? TW - MARGIN - HANDLE_ROOM - BAR_W : MARGIN + HANDLE_ROOM, barY = MARGIN;
     let shownItems = items, BAR_H = heightFor(items.length), hiddenKey = '';
     const barCentre = { x: barX + BAR_W / 2, y: barY + BAR_H / 2 };
     function setHidden(hidden = {}) {
@@ -68,6 +80,12 @@
       BAR_H = heightFor(shownItems.length);
       barCentre.y = barY + BAR_H / 2;
       return true;
+    }
+    // Where the grab bar is now (it follows the bar's height): { x, y, w, h }, or null.
+    function grabRect() {
+      if (!handle) return null;
+      const h = Math.max(60, Math.min(GRAB.maxH, BAR_H - GRAB.inset));
+      return { x: left ? barX + BAR_W + GRAB.gap : barX - GRAB.gap - GRAB.w, y: barY + (BAR_H - h) / 2, w: GRAB.w, h };
     }
     const canvas = document.createElement('canvas');
     canvas.width = TW; canvas.height = TH;
@@ -96,6 +114,15 @@
 
       g.clearRect(0, 0, TW, TH);
       bodies = [];
+      // The grab bar (as the keyboard's, upright): the panels' background, a drag handle (the
+      // brand colour while held), the white ring while pointed at or held.
+      const gr = grabRect();
+      if (gr) {
+        const hot = state.hover === handle.id, heldNow = state.held === handle.id;
+        g.fillStyle = T.panelFill(); roundRect(g, gr.x, gr.y, gr.w, gr.h, gr.w / 2); g.fill();
+        g.fillStyle = heldNow ? P.brand : P.onSurfaceVariant; roundRect(g, gr.x + gr.w / 2 - 2.5, gr.y + gr.h / 2 - 32, 5, 64, 2.5); g.fill();
+        if (hot || heldNow) hoverRing(g, gr.x, gr.y, gr.w, gr.h, gr.w / 2);
+      }
       if (!shownItems.length) return;
       // The bar: the panels' glass tint while its side has no panel open; solid while one is
       // (it stands over that panel's edge, which mustn't show through), fading as it opens / closes.
@@ -141,9 +168,10 @@
 
     // Which item is at (u, v) (0..1 from the top-left), as last drawn? Anywhere on the bar
     // counts (the nearest item, so the laser doesn't leave the toolbar between items), and
-    // so does a grown pill. -> { id } or null.
+    // so does a grown pill, and the grab bar (with room around it). -> { id } or null.
     function hitTest(u, v) {
-      const px = u * TW, py = v * TH;
+      const px = u * TW, py = v * TH, gr = grabRect();
+      if (gr && px >= gr.x - GRAB.reach && px <= gr.x + gr.w + GRAB.reach && py >= gr.y - GRAB.reach && py <= gr.y + gr.h + GRAB.reach) return { id: handle.id };
       for (const b of bodies) if (b.e > 0.3 && px >= b.x && px <= b.x + b.w && py >= b.y && py <= b.y + ITEM) return { id: b.id };
       if (!bodies.length || px < barX || px > barX + BAR_W || py < barY || py > barY + BAR_H) return null;
       let best = null, bestD = Infinity;
@@ -154,7 +182,7 @@
     const solidAt = (u, v) => !!hitTest(u, v);
     // Still animating? (A name growing or shrinking, or a selection fading.)
     const moving = () => items.some(it => grow.get(it.id) !== growGoal.get(it.id) || sel.get(it.id) !== selGoal.get(it.id));
-    return { canvas, aspect: TH / TW, draw, setHidden, hitTest, solidAt, moving, barCentre, barWidth: BAR_W };
+    return { canvas, aspect: TH / TW, draw, setHidden, hitTest, solidAt, moving, barCentre, barWidth: BAR_W, handleRoom: HANDLE_ROOM };
   }
 
   function createPill(item) {

@@ -93,6 +93,8 @@
     'safezone.taller': 'Más alta',
     'safezone.lower': 'Más abajo',
     'safezone.higher': 'Más arriba',
+    'safezone.recenter': 'Recentrar restablece los paneles',
+    'safezone.recenterHint': 'Al recentrar, los paneles que moviste también vuelven a su sitio',
     'keyboard.note': 'El teclado de VR (botón A). Predeterminado: el teclado y el idioma de tu ordenador.',
     'keyboard.style': 'Distribución',
     'keyboard.language': 'Idioma',

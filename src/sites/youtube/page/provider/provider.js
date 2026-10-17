@@ -224,9 +224,10 @@
     // second). The seek bar then covers the rewindable part (time 0 = its start, duration =
     // its length) and the time shows the LIVE label (`liveLabel`).
     const liveNow = cached(() => { const l = youtube.live(); return l.isLive ? l : null; }, 250, null);
-    // Its chat's views (youtube-chat.js info(); re-read every second), or null: none, or a
-    // replay (replays follow the video's time: not read yet).
-    const liveChat = cached(() => { const c = ns.youtubeChat.info(); return c && !c.replay ? c : null; }, 1000, null);
+    // The video's chat (youtube-chat.js info(): { replay, views }; re-read every second), or
+    // null: a live stream's live chat, or a finished stream's chat replay (state(): liveChat).
+    const liveChat = cached(() => ns.youtubeChat.info(), 1000, null);
+    const chatFor = l => { const c = liveChat(); return c && (c.replay ? !l : !!l) ? c : null; };
     const LIVE_SLACK = 12;          // seconds behind the live moment that still count as live
     // How far behind live: the larger of (a) the gap to the rewindable end and (b) the
     // broadcast delay (now - ingestion) beyond its smallest value seen for this video (the
@@ -365,7 +366,7 @@
         recommendations: page.recommendations(),
         playback: { loop: youtube.loop(), autoplay: !!youtube.autoplay() }, audio: audioTracks(),
         extras: extras.state({ ad: ad() }),
-        liveChat: l ? liveChat() : null,                             // a live stream's chat (live-chat.js; not replays yet)
+        liveChat: chatFor(l),                                        // a live stream's chat, or a finished one's chat replay (live-chat.js)
       };
       // No video playing (VR started from the Home page...): what the panels show instead of
       // the last video's leftovers (YouTube may keep its old player around): a line saying how

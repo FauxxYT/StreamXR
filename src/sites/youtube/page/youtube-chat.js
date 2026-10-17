@@ -4,14 +4,19 @@
 // view's token; a view's chat page (/live_chat?continuation=<that token>) carries the recent
 // messages and the token to poll with, and live_chat/get_live_chat answers each poll with
 // what's new and the next token. (The watch page's own view tokens load an empty chat page.)
+// A finished stream's chat replay works the same way on /live_chat_replay pages, but its
+// requests (live_chat/get_live_chat_replay) are a cursor through the recorded chat: each gives
+// the next chunk of messages, each stamped with its time in the video (`at`, ms), and the first
+// token with another position starts again there (a seek).
 // Turns YouTube's chat items into plain messages; knows nothing about VR.
 //
 //   ns.youtubeChat.info() -> null | { replay, views: [{ title, selected }] }
-//     the watch page's chat (null when the video has none)
+//     the watch page's chat (null when the video has none; replay: a finished stream's)
 //   await ns.youtubeChat.views(opts) -> [{ title, selected, token }]   the views with the
 //     tokens that load them (from the chat frame, else the pop-out page; kept a minute per
-//     video); opts.skipFrame: ask the pop-out page (for checking it)
-//   await ns.youtubeChat.open(token) -> { items, next, reactions, input, emojis, support, leaderboard }
+//     video); opts.skipFrame: ask the pop-out page (for checking it); opts.replay: a replay's
+//   await ns.youtubeChat.open(token, replay) -> { items, next, reactions, input, emojis, support, leaderboard }
+//     (replay: a chat replay's page, its `next` the start of the recorded chat)
 //     a view's chat page; reactions: the reaction buttons (❤ 😄 🎉 ...; [] when the stream has
 //     none, or signed out): [{ emoji (the character), label ("Send ❤"), token (what sends it) }];
 //     input: the message box, { placeholder, max (characters), emojiCost (characters an emoji
@@ -21,13 +26,15 @@
 //     { params (loads the list), pointsKey, xp (your XP: "120 XP", or null) }, or null
 //   await ns.youtubeChat.poll(next, pointsKey) -> { items, next, xp }   what's new since `next`
 //     (xp: your XP when YouTube sent a new value, else undefined)
+//   await ns.youtubeChat.pollReplay(next, atMs) -> { items, next }   a replay's next chunk
+//     (with the first token: the chunk from atMs on); its items carry `at`
 //   await ns.youtubeChat.topFans(params) -> { fans: [fan], you: fan | null }   the Top fans
 //     list (fan: { rank ("1"), name, avatar, points ("30 XP"), badge, note (your row: YouTube's
 //     line under it) }; badge: { title ("#1"), bg, fg } | null)
 //   await ns.youtubeChat.react(reaction) -> true | false   send one (YouTube's feedback request)
 //   await ns.youtubeChat.send(input, segments) -> true | false   post a message: segments
 //     [{ text } | { emojiId }] (a channel emoji by its id)
-//     items: changes in order, each one of
+//     items: changes in order (in a replay, each with `at`: its time in the video, ms), each one of
 //       { op: 'add', msg }        a new message (see below)
 //       { op: 'remove', id }      a message taken down (deleted, or replaced by a removal)
 //       { op: 'removeAuthor', channelId }   every message by someone (banned / timed out)
@@ -78,7 +85,7 @@
         list = viewsIn(chatIn(f && f.contentWindow && f.contentWindow.ytInitialData));
       } catch (_) { /* no frame, or not readable */ }
     }
-    if (!list.length) list = viewsIn(chatIn(await page(`/live_chat?is_popout=1&v=${encodeURIComponent(video)}`)));
+    if (!list.length) list = viewsIn(chatIn(await page(`/live_chat${opts.replay ? '_replay' : ''}?is_popout=1&v=${encodeURIComponent(video)}`)));
     if (!list.length) throw new Error('live_chat: no chat views found');
     if (!opts.skipFrame) viewCache = { video, at: Date.now(), list };
     return list;
@@ -102,11 +109,15 @@
     return null;
   }
 
-  // The poll token in a chat update: { token, timeoutMs } or null (the chat ended).
+  // The poll token in a chat update: { token, timeoutMs } or null (the chat ended). In a
+  // replay, the cursor's token (liveChatReplayContinuationData), with `seek` too when YouTube
+  // gives a playerSeekContinuationData.
   function nextOf(lcc) {
-    const c = (lcc && lcc.continuations || [])[0] || {};
-    const d = c.invalidationContinuationData || c.timedContinuationData || c.reloadContinuationData || null;
-    return d && d.continuation ? { token: d.continuation, timeoutMs: +d.timeoutMs || 10000 } : null;
+    const list = (lcc && lcc.continuations) || [], c = list[0] || {};
+    const d = c.invalidationContinuationData || c.timedContinuationData || c.liveChatReplayContinuationData || c.reloadContinuationData || null;
+    if (!d || !d.continuation) return null;
+    const seek = list.map(x => x.playerSeekContinuationData).find(Boolean);
+    return { token: d.continuation, timeoutMs: +d.timeoutMs || 10000, ...(seek && seek.continuation ? { seek: seek.continuation } : {}) };
   }
 
   // A chat page's data (its ytInitialData), or null.
@@ -118,8 +129,8 @@
 
   // Load a view's chat page: its recent messages (and pinned message), the token to poll with
   // and the reaction buttons.
-  async function open(token) {
-    const data = await page(`/live_chat?continuation=${encodeURIComponent(token)}`), lcc = chatIn(data);
+  async function open(token, replay) {
+    const data = await page(`/live_chat${replay ? '_replay' : ''}?continuation=${encodeURIComponent(token)}`), lcc = chatIn(data);
     if (!lcc) throw new Error('live_chat: no chat data in the page');
     return { items: changes(lcc.actions), next: nextOf(lcc), reactions: reactionsIn(lcc), input: inputIn(lcc), emojis: emojisIn(lcc), support: supportIn(lcc),
       leaderboard: leaderboardIn(lcc, data) };
@@ -216,6 +227,15 @@
     return { items: changes(lcc && lcc.actions), next: nextOf(lcc), xp: xpIn(r, pointsKey) };
   }
 
+  // A replay's next chunk, the player at atMs (with the replay's first token: the chunk from
+  // there on). Its changes carry `at`.
+  async function pollReplay(next, atMs) {
+    const r = await D.innertube('live_chat/get_live_chat_replay', { continuation: next.token,
+      currentPlayerState: { playerOffsetMs: String(Math.max(0, Math.round(atMs || 0))) } });
+    const lcc = dig(r, 'continuationContents', 'liveChatContinuation');
+    return { items: changes(lcc && lcc.actions), next: nextOf(lcc) };
+  }
+
   // ---------------------------------------------------------------- reading items
   // ARGB number -> '#rrggbb' ('' for none).
   const hex = n => (typeof n === 'number' ? `#${((n >>> 0) & 0xffffff).toString(16).padStart(6, '0')}` : '');
@@ -286,7 +306,11 @@
   function changes(actions) {
     const out = [];
     for (const a of actions || []) {
-      if (a.replayChatItemAction) { out.push(...changes(a.replayChatItemAction.actions)); continue; }
+      if (a.replayChatItemAction) {                          // a replay's: stamped with its time in the video
+        const at = +a.replayChatItemAction.videoOffsetTimeMsec || 0;
+        for (const ch of changes(a.replayChatItemAction.actions)) out.push({ ...ch, at });
+        continue;
+      }
       if (a.addChatItemAction) {
         const msg = messageOf(a.addChatItemAction.item);
         if (msg && msg.id) out.push({ op: 'add', msg });
@@ -312,5 +336,5 @@
     return out;
   }
 
-  ns.youtubeChat = { info, views, open, poll, react, send, topFans, changes };
+  ns.youtubeChat = { info, views, open, poll, pollReplay, react, send, topFans, changes };
 })(globalThis.__streamxr = globalThis.__streamxr || {});

@@ -231,6 +231,24 @@ snippets); read by `youtube-chat.js` since 0.79.0:
   ("Gifts", "Super Chat", "Membership gifting", "Free Member Milestone Chat" on a members'
   stream). The chat frame's document had no button to click for it (only icon definitions), so
   StreamXR doesn't open it: its Support button says to use YouTube's own window.
+- **Chat replays** (a finished stream's chat; probe 10, 2026-10-16): the watch page's
+  `liveChatRenderer.isReplay` is true and its views are "Top chat replay" / "Live chat replay".
+  The chat frame is `/live_chat_replay`; its data (shown actions already gone, as for live chat)
+  has `continuations` [`liveChatReplayContinuationData` (`continuation`,
+  `timeUntilLastMessageMsec`), `playerSeekContinuationData` (`continuation`)] and the same view
+  selector (reload tokens: `/live_chat_replay?continuation=<token>` reads, ~295 KB, with the
+  chat). `live_chat/get_live_chat_replay` `{ continuation, currentPlayerState: { playerOffsetMs } }`
+  is a **cursor**: each answer is the next chunk (~45 messages, minutes of chat) as
+  `replayChatItemAction` (`videoOffsetTimeMsec`, the message's time in the video, and its
+  `actions`), whatever position is sent; the **first** token with another position starts
+  again from there (a seek: asked at 10:35, the chunk started at 10:36). So a reader fetches
+  ahead and shows each message when the video reaches its time (`youtube-chat.js`
+  `pollReplay`, `provider/live-chat.js`, 0.87.0). The frame itself made no chat requests while
+  probed (`/youtubei/v1/att/get` only); `playerSeekContinuationData` isn't used yet.
+  With YouTube's chat **hidden** on the page (probe 11), the watch page keeps the replay's
+  `liveChatRenderer` (its `initialDisplayState` still says EXPANDED) and the chat frame element
+  stays, so the chat is still found. There's **no pop-out replay page**:
+  `/live_chat_replay?is_popout=1&v=<id>` answers HTTP 400 (the fallback only works for live chat).
 - **Top fans** (probes 8 and 9, 2026-10-16):
   - The chat header's `viewerLeaderboardEntryPoint.liveViewerLeaderboardChatEntryPointViewModel`:
     a `defaultButton` and a `pointsButton` (crown icons, "Top fans"), each tapping a

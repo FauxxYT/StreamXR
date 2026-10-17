@@ -6,6 +6,87 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.87.1
+
+### Fixed
+- Opening a video whose chat YouTube's page hasn't loaded yet (e.g. going from a stream without a
+  chat replay to one with) showed "Couldn't load the chat" until you switched tabs. The chat now
+  shows the loading indicator and tries again on its own (every 3 s, up to five times) before
+  giving up.
+
+## 0.87.0
+
+### Added
+- **Chat replays:** on a finished live stream that kept its chat, the Live chat panel plays the
+  recorded chat along with the video (tabs: YouTube's "Top chat replay" / "Live chat replay").
+  Each message appears when the video reaches the moment it was sent, so pausing stops the
+  chat, and jumping back or ahead starts it again at the new place with the last minute of
+  chat shown at once. It opens by itself as the live chat does. No typing, reactions or Top
+  fans in replays, as on YouTube.
+
+## 0.86.0
+
+### Added
+- **Settings → Safe zone → "Recenter resets panels"** (off by default, remembered): while on,
+  recentering also puts the panels you moved back in their places, as before 0.84.0. The global
+  reset turns it off.
+
+### Changed
+- The left D-pad's icon (show / hide the panels) is Material Symbols' **Bottom Panel Close**
+  while the panels are up and **Bottom Panel Open** while they're hidden (was a single "call to
+  action" icon).
+
+## 0.85.0
+
+### Changed
+- **The side panels' move handle is a grab bar** beside each side's toolbar, on the video side:
+  an upright pill with a drag handle, like the keyboard's and the controls panel's bars (so
+  everything you can move is grabbed the same way), with a laser zone wider than it looks.
+  Grip it to move the whole side. It replaces the Move button at the toolbar's end; the
+  toolbars stand a little further out to make room.
+
+## 0.84.2
+
+### Changed
+- **The grip's icon shows a hand** (Material Symbols' Back Hand) instead of recenter whenever the
+  grip would grab rather than recenter: pointing at (or holding) a move bar or the side
+  toolbars' Move handle, the keyboard's bar or resize corners, or the cinema screen's bar and
+  corners.
+
+## 0.84.1
+
+### Changed
+- **The side panels' move handle is on their toolbar** now: a **Move** button (four arrows) at
+  the end of each side's toolbar, after a small divider; pointing at it grows its name like the
+  others, and gripping it moves the whole side (the point you hold follows your hand). It
+  replaces the bar under the panel, which was hard to find.
+
+## 0.84.0
+
+### Changed
+- **Recenter keeps what you moved:** recentering turns the layout to where you're looking and
+  brings your moved panels along, each where you put it relative to you: the controls panel
+  (with the keyboard and Settings) and any side moved by its grab bar. It used to put them all
+  back. Changing the Safe Zone or the panel size keeps them too; only the global reset (right
+  stick held 3 s) puts them back in their places.
+
+## 0.83.1
+
+### Fixed
+- Pointing at the **live chat while the other panels are hidden** (it stays up while you watch):
+  the stick showed its seek icon instead of the scroll icon, and pushing it scrolled the chat
+  *and* jumped the video ±10 s. The stick now belongs to a panel that stays, as to any shown
+  panel: scroll icon, scrolling only.
+
+## 0.83.0
+
+### Added
+- **Move the side panels:** a grab bar under each side's open panel (left and right). Grip it
+  and move: the panel follows your hand and turns to face you, and its whole side comes along
+  (the toolbar, and every other panel on that side opens there too). Recenter, a Safe Zone
+  change or a new panel size puts the sides back. (`vr-panel.js` keeps a move per side;
+  `orbiters-ui.js` `createGrabBar`; `math3d.js` `invertRigid`.)
+
 ## 0.82.1
 
 ### Fixed

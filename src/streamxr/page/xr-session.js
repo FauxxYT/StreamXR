@@ -241,6 +241,7 @@
         ns.vrKeyboardOptions.reset();
         ns.vrAppearanceOptions.reset();
         ns.vrSafeZone.reset();
+        ns.vrSafeZoneOptions.reset();
         ns.vrFadeOptions.reset();
         ns.i18n.setChoice('auto');
         ns.storage.remove('passthrough');                  // the popup's checkbox (next session)

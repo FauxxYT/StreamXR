@@ -88,8 +88,9 @@ published; what matters from them is in this file and docs/youtube.md).
   working in the headset since 0.79.1 (checked by the maintainer).
   - Code: `youtube-chat.js` (the views, the chat page, polling every 2 s; docs/youtube.md,
     "Live chat") and `provider/live-chat.js` (the panel; Info style's `chat` content). A
-    finished stream's chat replay (`live_chat/get_live_chat_replay`, to confirm; each message
-    tagged with its video time) isn't read yet: the panel is offered on live streams only.
+    finished stream's **chat replay** plays along with the video since 0.87.0 (to check):
+    fetched ahead with `live_chat/get_live_chat_replay`, each message shown at its time in the
+    video, following pauses and seeks.
   - Messages: text with emoji images, author with badges (moderator, member, verified),
     Super Chats / Stickers (coloured, with the amount), membership messages.
   - Decided (design-choices.md, 2026-10-16): a **right-side panel** from a Chat button on the
@@ -100,16 +101,17 @@ published; what matters from them is in this file and docs/youtube.md).
   - Phases: 1. **reading** (messages, badges, Super Chats / Stickers, memberships, the pinned
     message as a banner, member emojis inline: 0.79.0); 2. **reactions** (a row of reaction
     buttons along the panel's bottom, sent with `youtubeChat.react()`: 0.80.0, working in the
-    headset; other viewers' floating reactions not shown); 3. **typing** with the existing VR keyboard, which
+    headset; other viewers' floating reactions deferred, see "Deferred"); 3. **typing** with the existing VR keyboard, which
     gains an **emoji layer** (standard emojis plus the set the panel hands it: the channel's
     member emojis), and a **"Support on desktop"** button (paying stays out of VR): built in
     0.81.0, to check (a message field with Send; the keyboard's 😀 pages; Support opens a dialog
     pointing to YouTube's own window). Then **Top fans** (0.82.0, to check): your XP in a 👑
     pill at the right of the chat's tabs, opening the ranked list in the panel (your row at
     the bottom), and the top three's "#1" / "#2" / "#3" pills in the chat.
-  - Then **every side panel movable** (left and right): a grab bar on each, as the keyboard
-    and the controls panel have. Moving one moves its whole side (toolbar and panels);
-    Recenter or a Safe Zone change puts it back. No resizing.
+  - Then **every side panel movable** (left and right): a grab bar beside each side's toolbar,
+    on the video side (0.85.0; a bar under the panel in 0.83.0, a toolbar button in 0.84.1). Moving one moves its whole side (toolbar and panels);
+    No resizing. Built in 0.83.0 (works in the headset); since 0.84.0 a recenter keeps the moves
+    (only the global reset puts them back).
 - [x] ~~**Search**~~ DONE (v0.42.0: a "Search" chevron between Channel and Browse, Catalog
   style with a search field; v0.43.0: the in-VR keyboard, right controller's A)
   - ~~Code: `youtubeContent.search(query)`~~ (ads and the Shorts shelf are skipped)
@@ -120,3 +122,14 @@ published; what matters from them is in this file and docs/youtube.md).
 - **Technical info**: `youtube.statsForNerds()` (codecs, resolution, bandwidth, buffer),
   `youtube.videoData()`, `youtube.loadedFraction()`. These could go in the VR Details panel.
 - **YouTube's own 360° view angle**: `youtube.sphericalView()`, `youtube.setSphericalView()`
+
+## Deferred
+
+Left out for now by the maintainer; each can come back if there is demand for it.
+
+- **Other viewers' floating reactions in the live chat** (medium; the maintainer, 2026-10-17)
+  - What: the emojis that float up over YouTube's chat when viewers press the reaction
+    buttons.
+  - Why: they arrive as `emojiFountainDataEntity` entity updates (seen once, in probe 9)
+    whose shape is unknown, and there's no stream known to send many of them to build
+    and test against. Sending your own reactions works (0.80.0).

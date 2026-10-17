@@ -15,8 +15,13 @@
 // desktop. Top fans: your XP in a 👑 pill at the right of the tabs (kept up to date by the
 // polls); it opens the ranked list in the panel (refreshed every FANS_REFRESH_MS while open; a
 // back button returns to the chat), and the top three have their "#1" pills in the chat.
+// A finished stream's chat replay plays along with the video instead: its recorded messages
+// are fetched ahead (REPLAY_AHEAD_MS) and each shows when the video reaches its time, so a
+// pause stops the chat; a jump back, or ahead past SEEK_AHEAD_MS, starts it again at the new
+// place (with the last REPLAY_BACKFILL_MS of chat at once). No typing, reactions or Top fans
+// there, as on YouTube.
 // A panel controller: see panels.js.
-//   frame.st used: liveChat (youtubeChat.info(): { views } | null).
+//   frame.st used: liveChat (youtubeChat.info(): { replay, views } | null), time (a replay's place).
 (function (ns) {
   'use strict';
 
@@ -24,11 +29,16 @@
   const RETRY_MS = 5000;            // after a failed request
   const MAX_TRIES = 3;              // failed requests in a row before giving up (a tab click retries)
   const RESTART_MS = 30000;         // closed longer than this: start afresh when reopened
+  const START_TRIES = 5, START_RETRY_MS = 3000;   // a chat that won't load yet (e.g. YouTube's chat frame still
+                                                  // loading for a new video): tried again this often, the spinner showing
   const MAX_ITEMS = 150;            // messages kept while following (more while paused, up to MAX_PAUSED)
   const MAX_PAUSED = 600;
   const REACT_GAP_MS = 500;         // the shortest time between two reactions sent
   const REACT_LIT_MS = 700;         // how long a sent reaction's button stays lit
   const FANS_REFRESH_MS = 30000;    // how often the open Top fans list is loaded again
+  const REPLAY_AHEAD_MS = 30000;    // a replay: fetch more while less than this is waiting ahead of the video
+  const REPLAY_BACKFILL_MS = 60000; // a replay: on starting or a jump, the chat from this long before shows at once
+  const SEEK_BACK_MS = 1500, SEEK_AHEAD_MS = 5000;   // the video jumping back / ahead more than this is a seek
   const VIEW_KEY = 'chatView';      // storage.js name: the chosen view's position (0: Top chat, 1: Live chat)
   const tr = (key, vars) => ns.i18n.t(key, vars);   // words in the interface language (strings-en.js)
 
@@ -59,10 +69,12 @@
   function create(host) {
     let view = null;                // the chosen view's position in st.liveChat.views
     { const v = parseInt(ns.storage.get(VIEW_KEY), 10); if (v >= 0) view = v; }
-    // The chat being followed: { video, view (its position), items, ids, banner, next, status
-    // ('loading' | 'live' | 'ended' | 'error'), busy (a request out), due (ms: next poll),
-    // tries, version (changes with what's shown), and youtube-chat.js open()'s reactions,
-    // input, emojis, support }
+    // The chat being followed: { video, view (its position), replay, items, ids, banner, next,
+    // status ('loading' | 'live' | 'ended' | 'error'), busy (a request out), due (ms: next
+    // poll), tries, version (changes with what's shown), and youtube-chat.js open()'s reactions,
+    // input, emojis, support; a replay also: first (its start: the token a seek asks with),
+    // queue (fetched changes waiting for their time, `at` ms), queueEnd (the last `at` fetched),
+    // needSeek (fetch from the video's place with `first`), lastT (the video's last place, ms) }
     let chat = null, lastOpen = 0;
     let lastReact = 0, lit = {};      // when the last reaction was sent; when each button was (ms)
     let draft = '', typing = false, sending = false, sendError = '';   // the message being typed
@@ -79,27 +91,32 @@
       return i >= 0 ? i : 0;
     }
 
-    // Start following view `index` (titled `title`): find the token that loads it
-    // (youtube-chat.js views(): the same title, else the same position), then load it.
-    function start(index, title) {
-      const c = chat = { video: ns.youtubeData.currentVideoId(), view: index, items: [], ids: new Set(), banner: null, next: null,
-        status: 'loading', busy: true, due: 0, tries: 0, version: 0, reactions: [], input: null, emojis: [], support: [], leaderboard: null, xp: null };
+    // Start following view `index` (titled `title`; a replay's or not): find the token that
+    // loads it (youtube-chat.js views(): the same title, else the same position), then load it.
+    // (attempt: how many starts failed before this one: see START_TRIES)
+    function start(index, title, replay, attempt = 0) {
+      const c = chat = { video: ns.youtubeData.currentVideoId(), view: index, title, attempt, retryAt: 0, replay: !!replay, items: [], ids: new Set(), banner: null, next: null,
+        status: 'loading', busy: true, due: 0, tries: 0, version: 0, reactions: [], input: null, emojis: [], support: [], leaderboard: null, xp: null,
+        first: null, queue: [], queueEnd: -1, needSeek: false, lastT: null };
       follow = true; frozen = null; unseen = 0; scroll = 0;
       stopTyping(); draft = ''; sendError = '';           // (another chat: a new message)
       fans = null; fansScroll = 0;
-      ns.youtubeChat.views().then(list => {
+      ns.youtubeChat.views({ replay: c.replay }).then(list => {
         const v = (title && list.find(x => x.title === title)) || list[index] || list[0];
-        return ns.youtubeChat.open(v.token);
+        return ns.youtubeChat.open(v.token, c.replay);
       }).then(r => {
         if (chat !== c) return;
-        apply(c, r.items); c.next = r.next; c.status = r.next ? 'live' : 'ended';
+        c.next = r.next; c.status = r.next ? 'live' : 'ended';
+        if (c.replay) { c.first = r.next; c.needSeek = true; return; }   // (a replay starts at the video's place: tickReplay)
+        apply(c, r.items);
         c.reactions = r.reactions || []; c.input = r.input || null; c.emojis = r.emojis || []; c.support = r.support || [];
         c.leaderboard = r.leaderboard || null; c.xp = c.leaderboard ? c.leaderboard.xp : null;
       }, err => {
         if (chat !== c) return;
+        if (attempt + 1 < START_TRIES) { c.status = 'retry'; c.retryAt = performance.now() + START_RETRY_MS; return; }   // (tick tries again)
         console.warn('[streamxr] live chat unavailable:', err && err.message || err);
         c.status = 'error';
-      }).then(() => { c.busy = false; c.due = performance.now() + POLL_MS; });
+      }).then(() => { c.busy = false; c.due = performance.now() + (c.replay ? 0 : POLL_MS); });   // (a replay fetches at once)
     }
 
     // Apply a batch of changes (youtube-chat.js) to the chat.
@@ -134,17 +151,57 @@
       }).then(() => { c.busy = false; });
     }
 
+    // A replay, every frame: a seek starts it again; what's due by the video's place shows; more
+    // is fetched while little waits ahead.
+    function tickReplay(c, frame) {
+      const t = Math.round((frame.st.time || 0) * 1000);
+      if (c.lastT != null && (t < c.lastT - SEEK_BACK_MS || t > c.lastT + SEEK_AHEAD_MS)) {
+        c.items = []; c.ids = new Set(); c.banner = null; c.queue = []; c.queueEnd = -1; c.needSeek = true; c.version++;
+        resume();
+      }
+      c.lastT = t;
+      let due = 0;
+      while (due < c.queue.length && c.queue[due].at <= t) due++;
+      if (due) apply(c, c.queue.splice(0, due));
+      if (!c.busy && performance.now() >= c.due && (c.needSeek || (c.next && c.queueEnd - t < REPLAY_AHEAD_MS))) fetchReplay(c, t);
+    }
+    // Fetch a replay's next chunk (or, for a seek, the chunk from a little before the video's place).
+    function fetchReplay(c, t) {
+      const seek = c.needSeek, from = seek ? Math.max(0, t - REPLAY_BACKFILL_MS) : t;
+      c.busy = true;
+      ns.youtubeChat.pollReplay(seek ? c.first : c.next, from).then(r => {
+        if (chat !== c) return;
+        if (seek) { c.queue = []; c.needSeek = false; }
+        const items = r.items.map(ch => (ch.at != null ? ch : { ...ch, at: from }));
+        c.queue.push(...items);
+        if (items.length) c.queueEnd = Math.max(c.queueEnd, items[items.length - 1].at);
+        c.next = r.next;
+        if (!r.next) c.queueEnd = Infinity;                // the end of the recorded chat: nothing more to fetch
+        c.tries = 0;
+        c.due = performance.now() + (items.length ? 0 : POLL_MS);
+      }, err => {
+        if (chat !== c) return;
+        if (++c.tries >= MAX_TRIES) { console.warn('[streamxr] chat replay stopped:', err && err.message || err); c.status = 'error'; }
+        c.due = performance.now() + RETRY_MS;
+      }).then(() => { c.busy = false; });
+    }
+
     // Every frame: while the panel is open, start the chat (or start it again: another video,
-    // another view, or reopened after a while) and poll it when due.
+    // another view, live or replay, or reopened after a while) and poll it when due (a replay:
+    // tickReplay).
     function tick(frame) {
       if (!host.isOpen()) return;
-      const now = frame.now, views = viewsOf(frame.st);
+      const now = frame.now, views = viewsOf(frame.st), replay = !!(frame.st.liveChat && frame.st.liveChat.replay);
       if (!views.length) { chat = null; return; }
       const i = chosen(views);
       const stale = now - lastOpen > RESTART_MS;
       lastOpen = now;
-      if (!chat || chat.view !== i || chat.video !== ns.youtubeData.currentVideoId() || (stale && !chat.busy)) { start(i, views[i].title); return; }
-      if (chat.status === 'live' && !chat.busy && now >= chat.due && chat.next) poll(chat, now);
+      if (!chat || chat.view !== i || chat.replay !== replay || chat.video !== ns.youtubeData.currentVideoId() || (stale && !chat.busy)) {
+        start(i, views[i].title, replay); return;
+      }
+      if (chat.status === 'retry') { if (performance.now() >= chat.retryAt) start(chat.view, chat.title, chat.replay, chat.attempt + 1); return; }
+      if (chat.replay) { if (chat.status === 'live') tickReplay(chat, frame); }
+      else if (chat.status === 'live' && !chat.busy && now >= chat.due && chat.next) poll(chat, now);
       if (fans && fans.at && !fans.busy && performance.now() - fans.at > FANS_REFRESH_MS) loadFans();
     }
 
@@ -173,7 +230,7 @@
       const tabs = views.length ? views.map((v, k) => ({ id: String(k), label: v.title || tr('yt.panel.chat') })) : [{ id: '0', label: tr('yt.panel.chat') }];
       let content;
       if (!views.length) content = { kind: 'message', text: tr('yt.chat.none') };
-      else if (!chat || (chat.status === 'loading' && !chat.items.length)) content = { kind: 'message', text: tr('yt.loading'), spinner: true };
+      else if (!chat || ((chat.status === 'loading' || chat.status === 'retry') && !chat.items.length)) content = { kind: 'message', text: tr('yt.loading'), spinner: true };
       else if (chat.status === 'error' && !chat.items.length) content = { kind: 'message', text: tr('yt.chat.error') };
       else {
         // (an emoji written without its emoji selector, as YouTube writes ❤, gets one: drawn in colour, not as a plain glyph)
@@ -187,7 +244,7 @@
             send: tr('yt.chat.send'), support: tr('yt.chat.support') } };
       }
       const m = { tabs, tab: String(i), content, scroll: fans ? fansScroll : scroll, now: frame.now / 1000 };
-      const loading = !chat || chat.status === 'loading';
+      const loading = !chat || chat.status === 'loading' || chat.status === 'retry';
       const lits = content.reactions ? content.reactions.map(r => (r.on ? 1 : 0)).join('') : '';
       const key = [tabs.map(t => t.label).join(','), i, chat ? `${chat.video}:${chat.status}:${follow ? chat.version : 'paused'}` : '',
         follow, unseen, Math.round(scroll), chat && chat.banner ? chat.banner.id : '', lits, draft, typing, sending, sendError,
