@@ -223,6 +223,13 @@ even where they look like something to "fix".
   panels since 0.78.4), the search
   bar (3 s), the controllers and the lasers (3.5 s each, when held still). Each from 1 s to
   30 s or Never, with a Default button; remembered; the global reset puts them back.
+- **A trigger pull on empty space hides everything (0.88.0, the maintainer, 2026-10-17, from a
+  user's request):** the controls panel, the side toolbars, the search bar and the lasers go at
+  once, paused or not (a press that lets go of a menu, a dialog or typing does only that).
+  Panels that stay up (the live chat) stay. A pull or pointing at a panel brings them back.
+- **"Auto-hide while paused" is a switch (0.88.0, the maintainer, 2026-10-17):** Settings → Auto-hide,
+  off by default (paused, everything stays up, as before); on, the auto-hide waits run while
+  paused too, to take in a scene. The default waits stay as they are.
 - Live streams count as "live" until you're 12 s behind, so a short pause stays red.
 - Unsubscribing asks first, in a dialog (0.67.0): "Unsubscribe from <channel>?" with Cancel
   and Unsubscribe (dark red), on the panels' glass (0.67.1); it floats in front of everything (56 dp) with the rest dimmed

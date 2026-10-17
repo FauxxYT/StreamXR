@@ -385,6 +385,7 @@
     let model = M.identity();             // the controls panel's pose in the world (centre; +Z faces you)
     let visible = cfg.showOnStart;        // are the panels shown (toggled by the left D-pad, auto-hide)
     let lastActivity = 0;                 // when the laser last touched them (for auto-hide)
+    let dismissedAt = -1;                 // when a trigger press on nothing hid everything (-1: not hidden so; see update)
     const hands = new Map();          // handedness -> { hover, trigger, grip, beam, scrollPanel, pagePanel }
     let pressed = null;               // { hand, id } while the trigger is held on a control
     let scrub = null;                 // { hand, time } while dragging on the seek bar
@@ -931,14 +932,18 @@
         // what was last clicked: typing stops (the panel gets Escape, which puts away a
         // keyboard that came up for it), an open menu on the controls panel closes, and a
         // dialog is cancelled (anywhere off it counts, as with M3's scrim).
+        // With nothing to let go of (and no keyboard up), the press hides everything at once:
+        // the panels, the side toolbars and the search bar, as auto-hide would (paused too).
         // With everything hidden (auto-hide, or the left D-pad), a trigger pull brings the
         // panels back, and the lasers with them (they only show while the panels do).
         if (trigger && !h.trigger) fling = null;                      // any press stops a scroll that keeps going
-        if (trigger && !h.trigger && !visible && !tHit) { visible = true; lastActivity = now; buzz(src, 0.3, 15); }
+        if (trigger && !h.trigger && !visible && !tHit) { visible = true; lastActivity = now; dismissedAt = -1; buzz(src, 0.3, 15); }
         else if (trigger && !h.trigger && !onPanel && !tHit) {
+          const holding = !!(typing || menu || dialog || kbShown);
           if (typing) { lastActivity = now; typing.ctrl.event({ type: 'key', value: 'Escape' }); }
           menu = null;
           closeDialog(false);
+          if (!holding) { visible = false; grab = null; sideGrab = null; dismissedAt = now; }
         }
         if (trigger && !h.trigger && hover) {
           pressed = { hand, id: hover };
@@ -1048,12 +1053,16 @@
       // being up, counts as using it), each part after its own wait (Settings → Auto-hide,
       // fade-options.js): everything (the controls panel, the open panels, the lasers), the
       // side toolbars with their open panels, the search bar. Pointing at anything (where a
-      // faded one is, too) brings them back.
+      // faded one is, too) brings them back. With Settings → Auto-hide → "Auto-hide while paused"
+      // on, a paused video counts too (not with no video at all). After a trigger press on
+      // nothing hid everything, the toolbars and the search bar stay hidden until the next use.
       const F = ns.vrFadeOptions, unused = now - lastActivity;
-      const idle = !st.paused && !scrub && !setDrag && !pressed && !grab && !sideGrab && !menu && !dialog && !canSkip && !typingNow() && !kbShown;
+      if (dismissedAt >= 0 && lastActivity > dismissedAt) dismissedAt = -1;
+      const playing = !st.paused || (F.hideWhilePaused() && st.duration > 0);
+      const idle = playing && !scrub && !setDrag && !pressed && !grab && !sideGrab && !menu && !dialog && !canSkip && !typingNow() && !kbShown;
       if (visible && idle && unused > F.seconds('panels') * 1000) visible = false;
-      barsAwake = !(idle && unused > F.seconds('bars') * 1000);
-      searchAwake = !(idle && unused > F.seconds('search') * 1000);
+      barsAwake = dismissedAt < 0 && !(idle && unused > F.seconds('bars') * 1000);
+      searchAwake = dismissedAt < 0 && !(idle && unused > F.seconds('search') * 1000);
 
       // The keyboard: redrawn only when its keys (Shift, page, layout), what's pointed at or
       // pressed, or what you're typing into change.

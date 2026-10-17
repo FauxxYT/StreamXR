@@ -88,6 +88,8 @@
     'fade.lasersHint': 'When the controller is held still',
     'fade.seconds': '{n} s',
     'fade.never': 'Never',
+    'fade.paused': 'Auto-hide while paused',
+    'fade.pausedHint': 'The waits above run with the video paused too',
     'safezone.note': 'Where the panels go: a share of what your headset shows ({h}° × {v}°). The outline shows it.',
     'safezone.width': 'Width',
     'safezone.widthHint': 'Of your view, left to right',

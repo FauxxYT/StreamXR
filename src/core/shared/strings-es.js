@@ -80,6 +80,8 @@
     'fade.lasersHint': 'Al dejar el mando quieto',
     'fade.seconds': '{n} s',
     'fade.never': 'Nunca',
+    'fade.paused': 'Ocultar automáticamente en pausa',
+    'fade.pausedHint': 'Las esperas de arriba cuentan también con el vídeo en pausa',
     'safezone.note': 'Dónde van los paneles: una parte de lo que muestran tus gafas ({h}° × {v}°). El contorno la muestra.',
     'safezone.width': 'Ancho',
     'safezone.widthHint': 'De tu vista, de izquierda a derecha',

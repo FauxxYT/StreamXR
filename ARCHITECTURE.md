@@ -111,7 +111,7 @@ src/core/                      THE CORE (shell, part 1): the VR interface, site-
       motion.js                hover / press easing (M3E springs): one tracker per panel canvas; the opening springs (panels without bounce)
       laser-options.js         the Laser settings tab: steadiness (the shell's own)
       appearance-options.js    the Appearance settings tab: the colour theme, the glass look on / off and its tint, the panel size, vibration on / off (the shell's own)
-      fade-options.js          the Auto-hide settings tab: how long the controls panel, toolbars, search bar, controllers and lasers wait before hiding / fading
+      fade-options.js          the Auto-hide settings tab: how long the controls panel, toolbars, search bar, controllers and lasers wait before hiding / fading, and the "Auto-hide while paused" switch
       safe-zone.js             the Safe Zone: where the layout goes, as shares of the headset's field of view (measured from the eyes' projections); its outline
       safe-zone-options.js     the Safe zone settings tab: width, height, centre (the shell's own)
       keyboard-options.js      the Keyboard settings tab: style and language (or yours), and the layout keyboard.js draws

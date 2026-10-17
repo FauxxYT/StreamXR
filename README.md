@@ -232,7 +232,7 @@ Still stuck? See [Something not working?](#-something-not-working) for how to re
 
 | Input | Does |
 |---|---|
-| Trigger | click the panels with the laser; hold on the seek bar to scrub; drag a scrolling area; brings the panels (and lasers) back when they're hidden |
+| Trigger | click the panels with the laser; hold on the seek bar to scrub; drag a scrolling area; on empty space, hides the panels, toolbars and search bar at once (another pull brings them back, with the lasers) |
 | A (right) | play / pause |
 | B (right) | swap the controls panel for the keyboard (same place), and back: click its keys with the laser to type into a text box (Search); the bar under it moves it (and the controls panel with it), its bottom corners resize it |
 | Left D-pad | show / hide the panels |

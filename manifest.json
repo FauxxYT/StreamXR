@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "StreamXR",
-  "version": "0.87.1",
+  "version": "0.88.1",
   "description": "Watch streaming video in a SteamVR headset: 360° and VR180 videos around you, regular videos on a cinema screen. Supports YouTube.",
   "action": {
     "default_title": "StreamXR: open YouTube and click the VR button (the headset)",

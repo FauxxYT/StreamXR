@@ -6,6 +6,24 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.88.1
+
+### Changed
+- The Auto-hide tab's new switch is called **"Auto-hide while paused"** (was "Hide while paused"), so
+  it says what it does.
+
+## 0.88.0
+
+### Added
+- **Pull the trigger on empty space to hide everything at once:** the controls panel, the side
+  toolbars, the search bar and the lasers go away without waiting for auto-hide (paused too).
+  A press that closes a menu, a dialog or typing still only does that; the next one hides.
+  Another pull, or pointing at a panel, brings them back. Panels set to stay up (the live
+  chat) stay.
+- **Settings → Auto-hide → "Hide while paused"** (off by default, remembered): while on, the
+  auto-hide waits also run with the video paused, so you can pause and take in a 180° / 360°
+  scene with nothing in the way. The waits themselves are unchanged.
+
 ## 0.87.1
 
 ### Fixed
