@@ -3,13 +3,16 @@
 // both worlds (the panel lists the formats; the renderer needs the projection). Which
 // format a video is, is decided by the site's provider (detectFormat).
 //
-// There are no 3D formats: on desktop YouTube sends one eye only, even for 3D videos.
+// 3D: most 3D videos reach the desktop as one eye only (shown as mono); some arrive with both
+// eyes side by side in one frame, which '180sbs' (VR180) and 'flatsbs' (the cinema screen)
+// give each eye its half of. Nothing in the site's data marks those, so they're picked by hand
+// (docs/youtube.md, "Formats and VR180").
 (function (ns) {
   'use strict';
 
-  // The four formats. The ids are used everywhere: 'mono' = one picture for both eyes;
-  // 'eac' = equi-angular cubemap.
-  const IDS = Object.freeze(['flat', '360mono', '360eac', '180mono']);
+  // The six formats. The ids are used everywhere: 'mono' = one picture for both eyes;
+  // 'eac' = equi-angular cubemap; 'sbs' = 3D side by side (left eye's picture on the left).
+  const IDS = Object.freeze(['flat', 'flatsbs', '360mono', '360eac', '180mono', '180sbs']);
   const DEFAULT = 'flat';                   // when nothing is known about the video
   const isFormat = id => IDS.includes(id);
 
@@ -23,14 +26,20 @@
   // sites/youtube/page/provider/provider.js.)
 
   // Horizontal span of the sphere, in radians (the cinema screen doesn't use a sphere).
-  const longitudeSpan = fmt => (fmt === '180mono' ? Math.PI : Math.PI * 2);
+  const longitudeSpan = fmt => (fmt === '180mono' || fmt === '180sbs' ? Math.PI : Math.PI * 2);
+
+  // Which part of the frame each eye sees, across: [scale, offset] for the left eye and the
+  // right eye ([1, 0] = the whole frame; side by side, the left and right halves).
+  const isSbs = fmt => fmt === '180sbs' || fmt === 'flatsbs';
+  const eyeSpans = fmt => (isSbs(fmt) ? { left: [0.5, 0], right: [0.5, 0.5] } : { left: [1, 0], right: [1, 0] });
 
   // How the sphere maps the frame: 0 = one wrap-around picture (equirectangular),
   // 1 = YouTube's equi-angular cubemap.
   const projectionMode = fmt => (fmt === '360eac' ? 1 : 0);
 
-  // Flat videos go on the cinema screen; everything else on the video sphere.
-  const isFlat = fmt => fmt === 'flat';
+  // Flat videos (2D, or 3D side by side) go on the cinema screen; everything else on the
+  // video sphere.
+  const isFlat = fmt => fmt === 'flat' || fmt === 'flatsbs';
 
-  ns.formats = { IDS, DEFAULT, isFormat, label, shortLabel, longitudeSpan, projectionMode, isFlat };
+  ns.formats = { IDS, DEFAULT, isFormat, label, shortLabel, longitudeSpan, eyeSpans, isSbs, projectionMode, isFlat };
 })(globalThis.__streamxr = globalThis.__streamxr || {});

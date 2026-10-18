@@ -84,7 +84,8 @@
       thumb: bestImage(g.thumbnailRenderer) };
   }
 
-  // A post (backstagePostRenderer / postRenderer): { id, text, author, published, likes,
+  // A post (backstagePostRenderer / postRenderer): { id, text, author, channelId (the
+  //   author's, '' if not given), avatar, published, likes,
   //   images: [urls], video: item | null, comments (the count, "882"), commentsParams (its
   //   own page, for postComments), likeState ('liked' | 'disliked' | 'none': yours),
   //   actions: { like, unlike, dislike, undislike } (endpoints for ratePost; null signed out),
@@ -109,6 +110,7 @@
       dislike: usable(dislike.defaultServiceEndpoint), undislike: usable(dislike.toggledServiceEndpoint) };
     return {
       id: p.postId, text: strOf(p.contentText), author: strOf(p.authorText),
+      channelId: dig(p, 'authorEndpoint', 'browseEndpoint', 'browseId') || '', avatar: bestImage(p.authorThumbnail),
       published: strOf(p.publishedTimeText), likes: strOf(p.voteCount),
       images, video: att.videoRenderer ? D.fromCompact(att.videoRenderer) : null,
       comments: strOf(reply.text), commentsParams: dig(reply, 'navigationEndpoint', 'browseEndpoint', 'params') || '',
@@ -162,6 +164,7 @@
   // channel(id) -> Promise of { id, title, badge, handle, subscribers, videoCount,
   //   description (short), avatar, banner, links (e.g. "x.com/somechannel and 4 more links"),
   //   url, rssUrl, keywords, isFamilySafe, subscribed (true/false signed in, else null),
+  //   notifications (the bell: { state, options } or null, see bellOf),
   //   tabs: { videos: params, ... } (only the tabs this channel has), aboutToken }. Cached
   //   for 5 minutes.
   const headerCache = new Map();              // id -> { at, promise }
@@ -204,7 +207,43 @@
       // Signed in: YouTube's saved subscription state (the same subscriptionStateEntity a
       // Subscribe answer carries); null while signed out or when it isn't sent.
       subscribed: (() => { const e = findKeyAll(r.frameworkUpdates, 'subscriptionStateEntity')[0]; return e && e.subscribed != null ? !!e.subscribed : null; })(),
+      notifications: bellOf(r),
     };
+  }
+
+  // The header's notification bell, signed in and subscribed: { state ('ALL', 'OCCASIONAL',
+  // 'OFF' ...: the end of SUBSCRIPTION_NOTIFICATION_STATE_*, or ''), options: [{ label,
+  // params, selected }] } (the choices YouTube's own bell menu sends, as in the Manage list's
+  // notificationOptions), or null when the header has none. UNVERIFIED (written signed out):
+  // each choice is found as a modifyChannelNotificationPreferenceEndpoint inside the header,
+  // named by the nearest enclosing item with a title or text; the state is the
+  // subscriptionNotificationStateEntity the header's button points to (by its store key).
+  function bellOf(r) {
+    const options = [], seen = new Set();
+    const walk = (node, stack, depth) => {
+      if (!node || typeof node !== 'object' || depth > 40) return;
+      if (Array.isArray(node)) { for (const x of node) walk(x, stack, depth + 1); return; }
+      const ep = node.modifyChannelNotificationPreferenceEndpoint;
+      if (ep && ep.params) {
+        if (seen.has(ep.params)) return;
+        seen.add(ep.params);
+        const item = [...stack].reverse().find(a => strOf(a.title) || strOf(a.text));
+        if (item) options.push({ label: strOf(item.title) || strOf(item.text), params: ep.params, selected: !!(item.isSelected || item.selected) });
+        return;
+      }
+      stack.push(node);
+      for (const k of Object.keys(node)) walk(node[k], stack, depth + 1);
+      stack.pop();
+    };
+    walk(r.header, [], 0);
+    if (!options.length) return null;
+    const key = findKey(r.header, 'notificationStateEntityStoreKey');
+    const ents = (dig(r, 'frameworkUpdates', 'entityBatchUpdate', 'mutations') || [])
+      .filter(m => findKey(m.payload, 'subscriptionNotificationStateEntity'));
+    const ent = ents.find(m => key && m.entityKey === key) || (ents.length === 1 ? ents[0] : null);
+    const state = String(dig(findKey(ent && ent.payload, 'subscriptionNotificationStateEntity'), 'state') || '')
+      .replace(/^SUBSCRIPTION_NOTIFICATION_STATE_/, '');
+    return { state, options };
   }
 
   // The browse params for one of a channel's tabs (its own, or the usual ones).

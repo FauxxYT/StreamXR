@@ -8,13 +8,17 @@
   ns.i18n.add('es', {
     // Video formats.
     'format.flat': 'Pantalla de cine (vídeo normal)',
+    'format.flatsbs': 'Pantalla de cine 3D lado a lado (los dos ojos en un fotograma)',
     'format.360mono': '360°',
     'format.360eac': '360° cubemap (YouTube "mesh")',
     'format.180mono': '180° (VR180)',
+    'format.180sbs': '180° 3D lado a lado (los dos ojos en un fotograma)',
     'format.short.flat': 'Pantalla\nde cine',
+    'format.short.flatsbs': 'Cine 3D\nlado a lado',
     'format.short.360mono': '360°',
     'format.short.360eac': '360°\ncubemap',
     'format.short.180mono': '180°',
+    'format.short.180sbs': '180° 3D\nlado a lado',
 
     // The popup and the player's VR button.
     'popup.button': 'Ver en VR (SteamVR)',

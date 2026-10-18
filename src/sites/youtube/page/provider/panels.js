@@ -18,7 +18,11 @@
 //   create(host) -> controller }.
 // host (given by vr-panel.js): { actions (the session's: provider + shell), style (this panel's style instance:
 //   maxScroll(), shownScroll() ...), perPage (cards / rows per page), open(), close(),
-//   isOpen() (this panel), closeMenu() (the controls panel's open menu), confirm(d) (ask
+//   isOpen() (this panel), closeMenu() (the controls panel's open menu), openMenu(control)
+//   (a floating menu on one of this panel's controls, e.g. 'action:bell': its items from the
+//   controller's menu(control) -> { items: [{ id, text, on, disabled, icons }], note, stay },
+//   a choice arriving as { type: 'menu', value: item id, menu: control }), panel(id) (another
+//   panel's controller), confirm(d) (ask
 //   in the shell's dialog: d = { title, text, confirm, cancel, danger } -> Promise of bool),
 //   typeInto(on, opts) (opts.emojis: [{ text, image, label }], the panel's own emojis for the
 //   keyboard's emoji pages; ask
@@ -39,6 +43,8 @@
 //   tick(frame)       (optional)     every frame, shown or not
 //   afterDraw()       (optional)     after the style drew the model
 //   opened()          (optional)     its toolbar item (or pill) opened the panel
+//   menu(control)     (optional)     while a menu it opened (host.openMenu) is up, every
+//                                    frame: what it lists (null closes it)
 //   ...anything else the controls panel calls (e.g. channel.openChannel) }
 (function (ns) {
   'use strict';

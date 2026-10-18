@@ -1,7 +1,8 @@
 // YouTube's "Channel" panel (Profile style): which channel is open, its header, the chosen
 // tab and sort, the loaded videos (a pager that loads more pages as you page through), the
 // current page, the channel's featured video (a "Featured" tab, first, when the channel
-// has one), and the Subscribe button (unsubscribing asks in a dialog). Three tabs aren't
+// has one), and the Subscribe button (unsubscribing asks in a dialog), with the notification
+// bell beside it once subscribed (a round button opening a menu of YouTube's choices). Three tabs aren't
 // video grids: Store (product cards, just to look at: buying leads off YouTube), Posts (a
 // scrolling feed, more loading near its end) and About (a scrolling page). On a post you
 // can like / dislike it and vote in its poll (signed in; shown at once, undone if YouTube
@@ -16,12 +17,16 @@
 //   openCurrent()                           show the playing video's channel
 //   showCurrent()                           the channel name was clicked: fold the panel if it
 //                                           shows that channel, else open it on it
+//   show(id, hint)                          show a channel picked elsewhere (the You panel's
+//                                           Channels list; hint: { subscribed, notifications })
+//                                           and open the panel
 //   noteSubscribed(id, on)                  a subscription changed elsewhere (controls panel)
 //   channelId()                             the channel shown (or null)
 //   actions used: channelHeader(id) -> Promise of header (youtube-channel.js channel()),
 //   channelList(id, tab, sort) -> pager (Store: Promise of [products]), channelAbout(id) ->
 //   Promise of about | null, channelFeatured(id) -> Promise of item | null,
-//   setSubscribed(id, on) -> Promise of { ok, error }, openVideo(id, playlistId), state(),
+//   setSubscribed(id, on) -> Promise of { ok, error }, setBell(option) -> Promise of { ok, error },
+//   bellMatches(label, state), openVideo(id, playlistId), state(),
 //   ratePost(post, what), votePoll(post, index, on) -> Promise of { ok, error },
 //   postComments(post, sort) -> pager, replies(comment), rateComment(comment, what).
 (function (ns) {
@@ -73,6 +78,7 @@
     const rated = new Map();                  // post id -> 'liked' | 'disliked' | 'none' (your clicks)
     const voted = new Map();                  // post id -> the poll choice you picked (-1: none) (your clicks)
     let sub = 'unknown';                     // 'unknown' | 'subscribed' | 'unsubscribed' | 'busy'
+    let bell = null;                          // the channel's bell: { state, options: [{ label, params, selected }], busy } | null
     let gen = 0, ver = 0;                     // gen: ignore answers for a channel/list no longer shown
     const bump = () => { ver++; };
 
@@ -225,18 +231,22 @@
       else if (k.length === 1) { search.text += k; bump(); }
     }
 
-    function openChannel(id, subscribedHint) {
+    // bellHint: the channel's bell from elsewhere (the Channels list's notifications), until
+    // the header brings its own.
+    function openChannel(id, subscribedHint, bellHint) {
       if (!id || id === channelId) return;
       if (search) { searchFocus(false); search = null; }
       channelId = id; header = null; error = ''; pager = null; page = 0; loading = false; featured = null; about = undefined; scroll = 0; opened = null;
       tab = 'videos'; sort = SORTS.videos[0].id;
       sub = subscribedHint == null ? 'unknown' : subscribedHint ? 'subscribed' : 'unsubscribed';
+      bell = bellOf(bellHint);
       const my = ++gen;
       bump();
       Promise.resolve(actions.channelHeader(id)).then(h => {
         if (my !== gen) return;
         header = h;
         if (h && h.subscribed != null && sub === 'unknown') sub = h.subscribed ? 'subscribed' : 'unsubscribed';
+        if (!bell && h) bell = bellOf(h.notifications);
         const lists = tabs().filter(t => t.id !== 'featured');
         if (!lists.some(t => t.id === tab) && lists.length) { tab = lists[0].id; sort = firstSort(tab); }
         startList();
@@ -271,8 +281,43 @@
       }, err => { if (id === channelId) { sub = before; console.warn('[streamxr] subscription change failed:', err); bump(); } });
     }
 
+    // ---- the notification bell (signed in and subscribed, when YouTube offers one)
+    // The bell from a header's or the Channels list's `notifications` ({ state | current,
+    // options }), with the current choice marked (selected; else the one the state or the
+    // current label names), or null when it has no choices.
+    function bellOf(n) {
+      if (!n || !n.options || !n.options.length) return null;
+      const options = n.options.map(o => ({ ...o }));
+      if (!options.some(o => o.selected)) {
+        const now = options.find(o => n.state && actions.bellMatches && actions.bellMatches(o.label, n.state))
+          || options.find(o => n.current && String(n.current).toLowerCase().includes(String(o.label).toLowerCase()));
+        if (now) now.selected = true;
+      }
+      return { options, busy: false };
+    }
+    // A choice's icon (Material Symbols) from its label (YouTube's words: All / Personalized / None).
+    const bellIcon = label => (/^all/i.test(label) ? 'notifications_active' : /none|off/i.test(label) ? 'notifications_off' : 'notifications');
+    // The bell's menu (host.openMenu('action:bell')): YouTube's choices, the current one ticked.
+    function menu(local) {
+      if (local !== 'action:bell' || !bell) return null;
+      return { note: tr('yt.bell.title'), items: bell.options.map(o => ({ id: o.params, text: o.label, on: !!o.selected, icons: [bellIcon(o.label)], disabled: bell.busy })) };
+    }
+    // Choose a bell setting; the tick moves only when YouTube's answer confirms it (or, with no
+    // state in the answer, when it says OK).
+    function chooseBell(params) {
+      const b = bell, o = b && b.options.find(x => x.params === params), id = channelId;
+      if (!o || o.selected || b.busy) return;
+      b.busy = true; bump();
+      Promise.resolve(actions.setBell(o)).then(res => {
+        if (res && res.ok) b.options.forEach(x => { x.selected = x === o; });
+        else console.warn('[streamxr] bell change failed:', res && res.error);
+      }, err => console.warn('[streamxr] bell change failed:', err)).finally(() => { b.busy = false; if (id === channelId) bump(); });
+    }
+
     function event(ev) {
       if (!channelId) return;
+      if (ev.type === 'action' && ev.value === 'bell') { if (bell) host.openMenu('action:bell'); return; }
+      if (ev.type === 'menu' && ev.menu === 'action:bell') { chooseBell(ev.value); return; }
       // Searching: the search bar's controls and the typed keys.
       if (ev.type === 'search') { startSearch(); return; }
       if (search && !opened) {
@@ -346,6 +391,9 @@
           stats: [h.handle, h.subscribers, h.videoCount].filter(Boolean).join('  ·  ') } : null,
         loadingTitle: tr('yt.channel.loading'),
         action: channelId ? { id: 'subscribe', look: BUTTON[sub].look, label: BUTTON[sub].key ? tr(BUTTON[sub].key) : '…' } : null,
+        // The bell, beside Subscribed: its icon shows the current choice.
+        iconAction: channelId && sub === 'subscribed' && bell ? { id: 'bell', look: bell.busy ? 'busy' : 'secondary',
+          icon: bellIcon((bell.options.find(o => o.selected) || { label: '' }).label) } : null,
         tabs: tabs(), tab, pills: search ? [] : named(SORTS[tab] || []), pill: sort,
         search: !search && !!(header && header.tabs && header.tabs.search),   // the channel can be searched
         field: search ? { id: 'query', text: search.text, placeholder: tr('yt.channel.searchIn', { name: (header && header.title) || tr('yt.channel.thisChannel') }),
@@ -381,7 +429,20 @@
       host.open();
     }
 
-    return { model, event, afterDraw, opened: openCurrent, openChannel, openCurrent, showCurrent, noteSubscribed, channelId: () => channelId };
+    // A channel picked elsewhere (the You panel's Channels list): show it and open the panel.
+    // hint: { subscribed, notifications } from that list, tab (optional): the tab to open on
+    // (e.g. 'posts'; the first one it has if it lacks that).
+    function show(id, hint = {}) {
+      if (id !== channelId) openChannel(id, hint.subscribed, hint.notifications);
+      if (hint.tab && SORTS[hint.tab] && hint.tab !== tab) {
+        closePost();
+        tab = hint.tab; sort = firstSort(tab);
+        if (header) startList(); else bump();       // (before the header arrives, its callback starts the list)
+      }
+      if (!host.isOpen()) host.open();
+    }
+
+    return { model, event, menu, afterDraw, opened: openCurrent, openChannel, openCurrent, showCurrent, show, noteSubscribed, channelId: () => channelId };
   }
 
   ns.ytVr = ns.ytVr || {};

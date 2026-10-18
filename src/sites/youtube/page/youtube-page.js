@@ -180,12 +180,15 @@
   }
 
   // In-page navigation through YouTube's app (no page reload). Returns false if unavailable.
+  // The event is sent from the page manager (inside the app), not the app element itself:
+  // sent from ytd-app it's ignored on some pages (a channel page, checked 2026-10-17), while
+  // from ytd-page-manager it works there and from the watch page alike.
   function navigate(url, watchEndpoint) {
-    const app = document.querySelector('ytd-app');
-    if (!app) return false;
+    const from = document.querySelector('ytd-page-manager') || document.querySelector('ytd-app');
+    if (!from) return false;
     const endpoint = { commandMetadata: { webCommandMetadata: { url, webPageType: 'WEB_PAGE_TYPE_WATCH', rootVe: 3832 } }, watchEndpoint };
     try {
-      app.dispatchEvent(new CustomEvent('yt-navigate', { bubbles: true, composed: true, detail: { endpoint } }));
+      from.dispatchEvent(new CustomEvent('yt-navigate', { bubbles: true, composed: true, detail: { endpoint } }));
       return true;
     } catch (_) { return false; }
   }

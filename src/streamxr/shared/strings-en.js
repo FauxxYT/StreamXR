@@ -15,13 +15,17 @@
     // Video formats: the full names (the popup's picker) and short ones (the VR panel's
     // Format button; \n = line break).
     'format.flat': 'Cinema screen (regular video)',
+    'format.flatsbs': 'Cinema screen 3D side by side (both eyes in one frame)',
     'format.360mono': '360°',
     'format.360eac': '360° cubemap (YouTube "mesh")',
     'format.180mono': '180° (VR180)',
+    'format.180sbs': '180° 3D side by side (both eyes in one frame)',
     'format.short.flat': 'Cinema\nscreen',
+    'format.short.flatsbs': 'Cinema 3D\nside by side',
     'format.short.360mono': '360°',
     'format.short.360eac': '360°\ncubemap',
     'format.short.180mono': '180°',
+    'format.short.180sbs': '180° 3D\nside by side',
 
     // The popup on the video page, and the player's VR button.
     'popup.button': 'Watch in VR (SteamVR)',

@@ -7,43 +7,35 @@ taking your headset off. 🎬✨
 **Works with:**<br> 🖥️ Windows · 🌐 Chrome · 🎮 SteamVR · 🥽 Valve Steam Frame · 🥽 Meta Quest 2 (reported by [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack)) · ([full requirements](#-what-you-need))<br> 
 **Jump to:** [Get started](#-get-started-in-a-minute) ·
 [Quick troubleshooting](#-quick-troubleshooting) · [Controls](#-controls) ·
-[Your privacy](#-your-privacy) · [What's new](#-whats-new-in-v0881) · [Roadmap](#-roadmap) · [How you can help](#-how-you-can-help)
+[Your privacy](#-your-privacy) · [What's new](#-whats-new-in-v0933) · [Roadmap](#-roadmap) · [How you can help](#-how-you-can-help)
 
-> **Early access** (version 0.88). Free and open source, forever. It already works every day; it's
+> **Early access** (version 0.93). Free and open source, forever. It already works every day; it's
 > still growing fast, and your feedback shapes what comes next.
 >
 > StreamXR is vibe coded by one guy (me!), and the only headset I've got is the Steam Frame.
 > Bug fixes, updates and support for more headsets and sites are coming, so please be
 > patient with me. 😭🙏
 
-## ✨ What's new in v0.88.1
+## ✨ What's new in v0.93.3
 
 The latest release, in short (every version's details are in the [changelog](CHANGELOG.md)):
 
-- 💬 **Live chat:** on a live stream, the chat opens on the right and stays up while you watch.
-  Read it with emojis, badges, Super Chats and the pinned message, tap the stream's
-  reactions (❤ 😄 🎉), and type messages on the VR keyboard, which now has emoji pages
-  (with your channel's member emojis). A **Support on desktop** button points you to YouTube's
-  window for Super Chats and memberships.
-- 🏆 **Top fans:** your **XP** in the chat, the ranked list of the stream's top fans, and
-  the top three's #1 / #2 / #3 pills.
-- ⏪ **Chat replays:** on a finished stream that kept its chat, the chat plays along with the
-  video. It pauses when you pause and follows when you jump back or ahead.
-- ✋ **Move the side panels:** grip the grab bar beside either side's toolbar and put that side
-  where you like. Recentering keeps it there, unless you turn on Settings → Safe zone →
-  **Recenter resets panels**.
-- 👆 **Hide everything in one pull** (suggested by [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack)): pull the trigger on empty space and the panels, toolbars
-  and search bar go away at once. Pull again to bring them back.
-- ⏸️ **Settings → Auto-hide → Auto-hide while paused** (suggested by u/TehSuperFruitSnack too): pause and soak in a 180° / 360° scene
-  with nothing in the way (off by default).
-- 🎚️ **Quality menu icons:** each quality shows its 4K / Full HD / HD (and 60 fps) icons, as the
-  Quality button does.
-- 🖐️ **Clearer controller icons:** the grip shows a hand when it will grab something, and the
-  left D-pad shows a panel icon for show / hide.
-- 🥽 **Meta Quest 2 reported working:** [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack) watches through SteamVR on a Quest 2, 8K videos included. Thank you! Other headsets: [tell me how yours does](#-adding-a-headset).
-- 🩹 **Fixes:** the chat now tries again on its own when YouTube's page hasn't loaded it yet;
-  typing in the chat and the search bar no longer shows two text cursors; long dialog
-  messages are no longer cut off.
+- 🕶️ **3D side-by-side videos:** some 3D videos reach your browser with both eyes in one frame.
+  Pick **180° 3D side by side** (VR180) or **Cinema 3D side by side** (regular 3D videos on the
+  cinema screen) in the Format menu, and each eye gets its own half, in real 3D. Thanks to
+  [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack) for spotting them!
+- 💎 **YouTube Premium in VR:** **1080p Premium** (the enhanced bitrate) in the Quality menu, and
+  **Jump ahead** at the end of the seek bar whenever YouTube offers it, both marked with the
+  Diamond.
+- 👥 **Your channels:** You → **Channels** lists the channels you subscribe to, sorted your way
+  (Most relevant, New activity, A-Z). Click one to open it in the Channel panel.
+- 🔔 **The notification bell:** on a channel you subscribe to, choose All, Personalized or None
+  right from the Channel panel.
+- 🎚️ **A tidier Format menu:** every format with its own icon, and the Format button shows the
+  one you picked.
+- 🩹 **Fixes:** videos open from the Channel panel and History even when VR started on a
+  channel page; floating menus no longer clip the pointing ring; the Channels list loads all
+  the way down.
 
 ## 💡 Why I made this
 
@@ -111,7 +103,8 @@ more likely they are to open the door. **If and when they do, I'll make it work 
 ## 🌟 What you get
 ### 🎥 Every kind of video, the way it was meant to be seen
 - **360° and VR180** wrap around you (YouTube's cubemap "mesh" format included); the format
-  is detected automatically and can be changed any time.
+  is detected automatically and can be changed any time. **3D side-by-side** videos play in
+  real 3D, as VR180 or on the cinema screen (pick it in the Format menu).
 - **Regular videos** play on a **cinema screen** you can **curve**, **resize**, **move** and
   **push away**, with **rounded corners** and an optional **ambient glow** that spills the
   picture's colors around it, like a TV with backlighting. 🌈
@@ -126,7 +119,8 @@ more likely they are to open the door. **If and when they do, I'll make it work 
 - Title, views, date and the channel, with **Subscribe**, **Like** and **Dislike**.
 - A **seek bar** with chapter marks, a **preview frame**, YouTube's **Most Replayed** curve
   and how much has **loaded**.
-- **Quality** (8K, 4K, 60 fps...), **speed**, **volume**, **format**, **recenter** and exit.
+- **Quality** (8K, 4K, 60 fps, and **1080p Premium** 💎 with Premium), **speed**, **volume**,
+  **format**, **recenter** and exit; **Jump ahead** 💎 at the seek bar's end when YouTube offers it.
 - **💬 Captions** in any language the video has, drawn right in VR.
 - **🔖 Save** to Watch later or any of your playlists.
 - Playlists get **Previous / Next** with a preview card; live streams get a **LIVE** label
@@ -140,7 +134,8 @@ glassy toolbars on each side:
   and **Channel** (videos, Shorts, live streams, playlists, posts, About, Subscribe).
 - 🔎 **Search** above the video, with suggestions as you type on the **VR keyboard**.
 - ➡️ **What to watch:** **Up Next**, **Explore** (your Home feed with all its topic chips,
-  "Immersive videos" included, plus News) and **You** (Subscriptions, Your channel,
+  "Immersive videos" included, plus News) and **You** (Subscriptions, your Channels with their
+  notification bells, Your channel,
   History, Playlists, Watch later, Liked videos).
 - 💬 **Live chat** on live streams (and **chat replays** on finished ones, playing along with the
   video): it opens by itself and stays up while you watch. Read it with emojis, badges, Super
@@ -328,8 +323,10 @@ what bugs you most):
   CC BY, CC BY-SA, CC BY-NC-SA or CC0), like the Steam Frame models' (CC BY-NC-SA 4.0).
 
 **🎬 Video**
-- **No 3D (stereo) videos.** On desktop, YouTube only sends one eye's picture, so 3D videos
-  play flat.
+- **Most 3D (stereo) videos play flat.** On desktop, YouTube sends only one eye's picture for
+  most 3D videos (and caps some VR180 videos at 4K), while the Meta Quest app gets both eyes.
+  StreamXR shows what YouTube's own player plays and won't bypass it: [why](docs/decisions/0002-site-player-only.md).
+  The 3D videos that do arrive with both eyes side by side play in 3D (Format menu).
 - **Shorts are very tall** on the cinema screen: they keep their vertical shape at the
   screen's full width. Honestly, I left this in because I think it's funny, but I'll fix it
   eventually lol 😂
@@ -399,18 +396,28 @@ which is often all that's needed. 📋
 No dates, just what I'll work on after release, in this order:
 
 1. 🐛 **Immediate bug fixes:** whatever the first wave of users runs into.
-2. 🏪 **Chrome Web Store release:** install StreamXR in one click and get updates
-   automatically, no more downloading new versions by hand. Still free, of course.
-3. 💎 **YouTube Premium features:** Premium quality levels, Add to queue and more.
-4. 🧭 **Explore page tabs:** Live, Gaming, Music, Podcasts and the rest of the "Coming Soon"
+2. 📋 **Add to queue:** line up videos to watch next from any panel, without leaving VR.
+3. 🧭 **Explore page tabs:** Live, Gaming, Music, Podcasts and the rest of the "Coming Soon"
    tabs.
-5. 💬 **Live Chat:** See the chat of a Live Stream while watching
-6. 💬 **Commenting and Live Chat in-headset:** write comments, replies, and type in a live chat with the VR keyboard.
-7. 🟣 **Twitch.tv support:** the first site after YouTube.
-8. 🔐 **Groundwork for YouTube Movies, Netflix, HBO Max, Disney+ and other protected videos:** the
-   infrastructure to play them in VR, ready for the day they allow it
-   ([why they don't yet](#-what-about-netflix-max-and-the-others)).
-9. ✨ **Whatever else I can think of** (and whatever you ask for!).
+4. ✅ **Live Chat:** done (v0.88.1): read, react and type in a live stream's chat.
+5. ✅ **YouTube Premium:** done (v0.93.3): 1080p Premium and Jump ahead, marked with the Diamond.
+6. 💬 **Commenting in-headset:** write comments and replies with the VR keyboard (typing in a live
+   chat is already in).
+7. 🏪 **Chrome Web Store release, StreamXR 1.0:** once the YouTube features are all in, install
+   StreamXR in one click and get updates automatically, no more downloading new versions by
+   hand. Still free, of course.
+8. 🟣 **Twitch.tv support:** the first site after YouTube.
+9. 🪼 **Jellyfin** and 🟠 **Plex support:** your own media server's movies and shows in VR, on the
+   cinema screen. Your own files aren't copy-protected, so they will be able to play.
+10. 🎵 **Music streaming**, starting with **Spotify:** listen while you're in VR, with the player's
+    controls, album art and queue around you.
+11. 🌐 **Barebones mode (experimental):** any video on any website on the cinema screen, with the
+    basic controls (play, seek, volume, format), for sites without full support. Some sites
+    won't allow it.
+12. 🔐 **Groundwork for YouTube Movies, Netflix, HBO Max, Disney+ and other protected videos:** the
+    infrastructure to play them in VR, ready for the day they allow it
+    ([why they don't yet](#-what-about-netflix-max-and-the-others)).
+13. ✨ **Whatever else I can think of** (and whatever you ask for!).
 
 ### ⏳ The "as soon as it's possible" roadmap\*
 
@@ -527,7 +534,7 @@ A reusable VR **shell** in two parts, the **core** (`src/core/`: the VR interfac
 and plugs in through its **provider** (a middle layer), its panels (built on five standard
 styles) and its page buttons. No build step and no ES modules: plain scripts loaded in
 order by `manifest.json` (one vendored library, Google's Material Color Utilities, in
-`third_party/`). There are no 3D formats: on desktop YouTube sends one eye only.
+`third_party/`). Most 3D videos reach desktop as one eye only, and StreamXR never bypasses the site's player to get more ([decision 0002](docs/decisions/0002-site-player-only.md)).
 
 | Read | For |
 |---|---|
