@@ -2,7 +2,7 @@
 
 One list of what's still open, gathered from the feature backlogs (`docs/features/`) and
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
-Last updated for 0.92.0.
+Last updated for 0.93.3.
 
 ## Top priority: before the first release
 
@@ -49,16 +49,34 @@ until another headset or two has been tried and the unverified items are cleared
 ## The public roadmap (README, after release, in this order)
 
 1. Immediate bug fixes (what the first users run into).
-2. Chrome Web Store release (one-click install, automatic updates, still free; needs the
-   store's privacy questions answered: the README's "Your privacy" section covers them).
-3. YouTube Premium features (below: the Diamond icon, Premium qualities, Add to queue ...).
-4. Explore page tabs (the "Coming Soon" ones).
+2. Add to queue (free on desktop, not Premium; how the page's queue can be driven is to probe
+   first: `features/video-page.md`).
+3. Explore page tabs (the "Coming Soon" ones).
+4. Done: Live chat (0.79.0 to 0.88.1), YouTube Premium (1080p Premium 0.91.0, Jump ahead 0.92.3).
 5. Commenting in-headset (writing comments and replies with the VR keyboard).
-6. Twitch.tv support (the first site after YouTube: a new provider, `src/sites/twitch/`).
-7. Groundwork for DRM-protected videos (YouTube Movies, HBO Max and Netflix first, then Disney+, Prime Video): providers and
-   player ready for when browsers and the services allow protected video in WebXR (e.g. media
-   layers); the README asks users to tell the services they want desktop XR support.
-8. Whatever else comes up.
+6. Chrome Web Store release as **1.0** (the maintainer, 2026-10-17: once the YouTube features are
+   all in; one-click install, automatic updates, still free; needs the store's privacy
+   questions answered: the README's "Your privacy" section covers them).
+7. Twitch.tv support (the first site after YouTube: a new provider, `src/sites/twitch/`; reuses
+   the live chat panel).
+8. Jellyfin and Plex support (new providers, `src/sites/jellyfin/`, `src/sites/plex/`: no DRM on
+   your own media). Self-hosted servers live at any address, so each needs host access to the
+   user's server: an optional permission asked when it's turned on (the maintainer agrees on
+   any permission first: AGENTS.md).
+9. Music streaming, Spotify first (its audio is DRM-protected, but sound plays as on the page;
+   VR shows the player's controls, art and queue, no video to draw). Needs open.spotify.com's
+   host permission (to agree on first).
+10. Barebones mode, **experimental** (the maintainer, 2026-10-17: kept out of 1.0 and after the
+    full providers, since how well it works depends on each site and first impressions
+    matter): any `<video>` on any site on the cinema screen with basic controls (play, seek,
+    volume, format), a generic provider for sites without one. Likely shape: `activeTab` +
+    `scripting` (it runs only on a page where you click StreamXR's button; nothing added to
+    the install warning), to agree on first. Unprotected video only (DRM: see 11), and videos
+    served cross-origin without CORS can't be drawn in WebGL, so many sites will refuse.
+11. Groundwork for DRM-protected videos (YouTube Movies, HBO Max and Netflix first, then Disney+, Prime Video): providers and
+    player ready for when browsers and the services allow protected video in WebXR (e.g. media
+    layers); the README asks users to tell the services they want desktop XR support.
+12. Whatever else comes up.
 
 **As soon as it's possible** (README's second roadmap, ahead of everything above once the support exists):
 YouTube Movies (copy-protected: once YouTube allows protected video in desktop XR; showing
@@ -91,20 +109,24 @@ Netflix first) once they allow protected video in desktop XR.
    - Not planned: 3D for videos that reach desktop as one eye, and more than 4K where desktop
      YouTube caps it (e.g. [this VR180 tour](https://www.youtube.com/watch?v=KJ-_LUrGhYE)):
      desktop YouTube limits ([decisions/0002](decisions/0002-site-player-only.md)).
+3. [x] **3D side by side on the cinema screen** (0.93.0, works in the headset): the same for
+   regular (not VR180) 3D videos, each eye its half on the cinema screen.
+   - Test: [Demo 3D[SBS] (HD : 1080P)](https://www.youtube.com/watch?v=u0hmMt5znX0) (half side
+     by side: a 16:9 frame, each eye squeezed into half).
 
 ## Features to build (easiest first)
 
 - [ ] **Movies in Up Next**: the price / rating in place of views and date, a yellow Movie tag
   (`features/video-page.md`).
-- [ ] **Premium features** (audited 2026-10-17, `features/video-page.md`): **1080p Premium** in the
+- [x] **Premium features** (audited 2026-10-17, `features/video-page.md`): **1080p Premium** in the
   Quality menu and **Jump ahead**, marked with the Diamond (purple without Premium, YouTube Red
-  with it). 1080p Premium (0.91.0) and Jump ahead (0.92.0) built, to check. **Add to queue** is its own item
+  with it). 1080p Premium (0.91.0) and Jump ahead (0.92.3) work in the headset. **Add to queue** is its own item
   (not Premium on desktop).
 - [ ] **Explore's "Coming Soon" tabs**: Live, Gaming, Music, Hype, Courses, Podcasts,
   Memberships (readers exist); Shorts, Movies & TV, Learning need more first
   (`features/home-page.md`).
 - [ ] **News**: its own tabs (Top stories, Sports ...) and the Sports feed.
-- [x] **Subscriptions** (0.90.0, to check signed in): the Channels tab, the bell on the Channel
+- [x] **Subscriptions** (0.90.0 to 0.92.2, work in the headset): the Channels tab with its sort pills, the bell on the Channel
   panel, posts in the feed; the feed's shelves deferred (`features/subscriptions-page.md`).
 - [ ] **Live chat**: reading (0.79.1) and reactions (0.80.0) work in the headset; typing, the
   keyboard's emoji pages and Support on desktop built in 0.81.0, Top fans (XP, the list, rank

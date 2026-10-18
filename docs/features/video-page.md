@@ -58,8 +58,8 @@ published; what matters from them is in this file and docs/youtube.md).
 
     | Benefit | On desktop web? | In StreamXR |
     |---|---|---|
-    | **1080p Premium** (enhanced bitrate, 1080p uploads only) | yes, an extra Quality entry | **Built (0.91.0, to check in the headset):** its own Quality row with the Diamond (red with Premium; purple and greyed out without) |
-    | **Jump ahead** (to the point most viewers skip to) | yes (double-click, Ctrl + →) | **Built (0.92.0, to check in the headset):** a controls-panel button with the Diamond, sending Ctrl + → (works from a script) |
+    | **1080p Premium** (enhanced bitrate, 1080p uploads only) | yes, an extra Quality entry | **Done (0.91.0, works in the headset):** its own Quality row with the Diamond (red with Premium; purple and greyed out without) |
+    | **Jump ahead** (to the point most viewers skip to) | yes (double-click, Ctrl + →) | **Done (0.92.3, works in the headset):** a button at the seek bar's end (Skip ad's spot) with the Diamond, shown while YouTube's own pill is up; clicking it clicks that pill |
     | Ad-free videos | yes | Already: no ads means nothing to skip |
     | Continue watching across devices | yes (account) | Already: YouTube's player resumes |
     | Queue | for everyone on desktop (Premium only on phones) | Not Premium here: its own item (Add to queue, below) |

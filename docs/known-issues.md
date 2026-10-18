@@ -6,13 +6,6 @@ permissions, Firefox) are in [ARCHITECTURE.md](../ARCHITECTURE.md#known-limits).
 
 ## Not verified yet
 
-- **Subscriptions in VR (0.90.0)**, written signed out, to check signed in: the Channels tab
-  (`channels()`, checked in 0.20.1 on 2 channels), the bell on the Channel panel (its choices
-  are read from the channel page's header, `youtube-channel.js` `bellOf`: that shape wasn't
-  seen yet; a channel opened from the Channels list uses the list's choices, which were),
-  the Channels sort pills and section flags (0.90.3: `sortsOf` / `channelsOn`, rewritten from
-  the signed-in page's own data; not yet checked through our own `FEchannels` request,
-  which may differ).
 - **Signed-in Home feeds** other than the main one, History, Playlists, Watch later and
   Liked videos (those were verified in 0.35) (`youtube-home.js`).
 - **Live chat typing (0.81.0)**: sending a message was checked from the console (text only);
@@ -53,7 +46,7 @@ permissions, Firefox) are in [ARCHITECTURE.md](../ARCHITECTURE.md#known-limits).
 - The Channel header's subscribed state can be wrong for a channel whose Home tab features
   other channels; it's only used when the watch page doesn't say.
 - Text matching assumes **English** YouTube: some readers recognise YouTube's own words
-  (the "All" chip, "Joined", an ad's "1 of 2"). This is about what YouTube writes;
+  (the "All" chip, "Joined", an ad's "1 of 2", the Jump ahead pill). This is about what YouTube writes;
   StreamXR's own words follow the interface language (Settings → Language).
 - Replies to replies (YouTube's newer nested comment threads) aren't shown; one level is.
 

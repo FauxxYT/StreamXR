@@ -44,7 +44,8 @@
   //       frame, set per eye),
   //       uKind 2 'eac' (YouTube's cubemap, the same layout as video-sphere.js),
   //       uKind 3 'screen' (the cinema screen: centre uScrC, axes uScrR / uScrU / uScrN
-  //       (toward you), size uScrSize, bent by uBend radians around a vertical circle);
+  //       (toward you), size uScrSize, bent by uBend radians around a vertical circle;
+  //       sampled at this eye's part of the frame across, uUvX, as above);
   //     its texture coordinates, or "outside" (the dark void colour, uVoid);
   //   - the blur: the backdrop texture with a mipmap bias (texture2D's third argument, so
   //     a much smaller mipmap is read), at the centre and four points around it (uBlur
@@ -135,13 +136,16 @@
       vec3 back = uVoid;
       if (uKind > 0.5) {
         vec3 b = behind(uEye, normalize(vWorld - uEye));
+        // On the cinema screen, sample this eye's part of the frame across (uUvX; the picture's
+        // own coordinates, b.xy, stay for the glow's shape).
+        vec2 sb = uKind > 2.5 ? vec2(clamp(b.x, 0.0, 1.0) * uUvX.x + uUvX.y, b.y) : b.xy;
         if (b.z > 0.75) {
           const float BIAS = 5.0;
-          vec3 s = texture2D(uBack, b.xy, BIAS).rgb * 0.4;
-          s += texture2D(uBack, b.xy + vec2(uBlur, uBlur), BIAS).rgb * 0.15;
-          s += texture2D(uBack, b.xy + vec2(-uBlur, uBlur), BIAS).rgb * 0.15;
-          s += texture2D(uBack, b.xy + vec2(uBlur, -uBlur), BIAS).rgb * 0.15;
-          s += texture2D(uBack, b.xy + vec2(-uBlur, -uBlur), BIAS).rgb * 0.15;
+          vec3 s = texture2D(uBack, sb, BIAS).rgb * 0.4;
+          s += texture2D(uBack, sb + vec2(uBlur, uBlur), BIAS).rgb * 0.15;
+          s += texture2D(uBack, sb + vec2(-uBlur, uBlur), BIAS).rgb * 0.15;
+          s += texture2D(uBack, sb + vec2(uBlur, -uBlur), BIAS).rgb * 0.15;
+          s += texture2D(uBack, sb + vec2(-uBlur, -uBlur), BIAS).rgb * 0.15;
           back = s;
         } else if (b.z > 0.25 && uGlow.x > 0.0) {
           // Past the screen's edge: its glow (cinema-screen.js GLOW_FS) added to the dark, the
@@ -152,7 +156,7 @@
           vec2 q = abs(p) - uScrSize * 0.5 + uGlow.z;
           float dist = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - uGlow.z;
           float k = clamp(dist / uGlow.y, 0.0, 1.0), a = uGlow.x * (1.0 - k) * (1.0 - k);
-          if (a > 0.002) back += texture2D(uBack, b.xy, 6.0).rgb * a;
+          if (a > 0.002) back += texture2D(uBack, sb, 6.0).rgb * a;
         }
       }
       float grain = fract(sin(dot(floor(vUv / uTexel), vec2(12.9898, 78.233))) * 43758.5453) - 0.5;

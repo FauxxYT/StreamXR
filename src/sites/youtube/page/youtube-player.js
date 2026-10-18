@@ -103,14 +103,24 @@
     if (level !== 'premium') try { if (p.setPlaybackQuality) p.setPlaybackQuality(id); } catch (_) { /* newer player */ }
   }
 
-  // YouTube Premium's Jump ahead: to the point most viewers skip to. YouTube's desktop
-  // shortcut, Ctrl + →, sent to the player (seen signed in with Premium, 2026-10-17: it jumps
-  // while the video plays and YouTube offers Jump ahead; paused, or where it doesn't, nothing
-  // happens).
-  function jumpAhead() {
+  // YouTube Premium's Jump ahead: to the point most viewers skip to. YouTube offers it as a pill
+  // in the player's "timely actions" overlay at the moments it applies (seen signed in with
+  // Premium, 2026-10-17: ytw-timely-action-view-model > button, its text "Jump ahead"), and a
+  // script's click on that pill jumps (17 s -> 124 s). The pill is found by its text, so this
+  // expects YouTube in English, like the other readers that match YouTube's words.
+  //   jumpAheadOffered() -> is the pill on screen now?   jumpAhead() clicks it (if it is).
+  function jumpAheadButton() {
     const p = player();
-    if (!p) return;
-    p.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', code: 'ArrowRight', keyCode: 39, which: 39, ctrlKey: true, bubbles: true }));
+    if (!p) return null;
+    for (const b of p.querySelectorAll('.ytp-timely-actions-overlay button, ytw-timely-action-view-model button')) {
+      if (b.getClientRects().length && /jump ahead/i.test((b.getAttribute('aria-label') || '') + ' ' + (b.textContent || ''))) return b;
+    }
+    return null;
+  }
+  const jumpAheadOffered = () => !!jumpAheadButton();
+  function jumpAhead() {
+    const b = jumpAheadButton();
+    if (b) b.click();
   }
 
   // Does the signed-in account have YouTube Premium? The page's top-bar logo is YouTube
@@ -393,7 +403,7 @@
   }
 
   ns.youtube = {
-    player, video, call, toggle, seek, seekTo, isPaused, currentTime, duration, title, channel, quality, setQuality, hasPremium, jumpAhead, info,
+    player, video, call, toggle, seek, seekTo, isPaused, currentTime, duration, title, channel, quality, setQuality, hasPremium, jumpAhead, jumpAheadOffered, info,
     speeds, speed, setSpeed, volume, setVolume, setMuted,
     captions, setCaptions, captionLines, audioTracks, setAudioTrack,
     loop, setLoop, autoplay, setAutoplay, playlistPosition, nextVideo, previousVideo, playAt,

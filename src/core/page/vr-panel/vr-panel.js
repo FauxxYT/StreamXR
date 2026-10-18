@@ -27,7 +27,7 @@
 //                             intensity (0..1) }] (how much each part is rewatched; optional),
 //                           ad: null | { ... },
 //                           format: { current, options: [{ id, label, short, disabled }] },
-//                           extras: { left: [...], right: [...] } (the site's own buttons on
+//                           extras: { left: [...], right: [...], seek } (the site's own buttons on
 //                             the controls panel: panel-ui.js, plus menu: null | { items: [{ id,
 //                             text, on, disabled }], note, scroll, width, stay (stays open on a
 //                             choice) }: opens like Quality's),
@@ -1122,7 +1122,7 @@
           };
         } else if (menu === 'format') {
           menuState = {
-            items: format.options.map(o => ({ id: `f:${o.id}`, text: o.short, on: o.id === format.current, disabled: o.disabled })),
+            items: format.options.map(o => ({ id: `f:${o.id}`, text: o.short, on: o.id === format.current, disabled: o.disabled, icons: [ns.vrPanelUI.formatIcon(o.id)] })),
             note: null,
           };
         } else if (menu === 'speed') {
@@ -1159,7 +1159,7 @@
           quality, format: { id: format.current, label: currentFormat ? currentFormat.short : '' },
           speed: st.speed || 1, volume: shownVolume, chapters: st.chapters || [], heatmap: st.heatmap || [], preview, ad,
           menuOpen: menu, grabbing: !!grab,
-          extras: extrasNow ? { left: (extrasNow.left || []).map(stripMenu), right: (extrasNow.right || []).map(stripMenu) } : null,
+          extras: extrasNow ? { left: (extrasNow.left || []).map(stripMenu), right: (extrasNow.right || []).map(stripMenu), seek: extrasNow.seek || null } : null,
         };
         const pf = preview && preview.frame;
         const key = [state.title, Math.floor(state.time), Math.floor(state.duration), state.paused, state.buffered != null ? Math.floor(state.buffered) : '',

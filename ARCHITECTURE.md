@@ -156,7 +156,7 @@ src/sites/youtube/             YOUTUBE
     provider/
       provider.js              the provider (interface at its top); registers YouTube in sites.js
       panels.js                the panel registry (each panel's zone, style, size, controller)
-      extras.js                the controls panel's Captions, Jump ahead and Save buttons (the shell's "extras"; an extra can show its own stacked icons, e.g. the Diamond), premiumMark()
+      extras.js                the controls panel's Captions and Save buttons and Jump ahead at the seek bar's end (the shell's "extras": left, right, seek), premiumMark() (the Diamond)
       strings-en.js            the YouTube panels' words in English (strings-<lang>.js: other languages)
       cards.js, badges.js      YouTube items -> generic cards; the ✓ / ♪ badges
       upnext.js, browse.js (Explore and You), search.js, channel.js, description.js, comments-panel.js, settings.js, live-chat.js

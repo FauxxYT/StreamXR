@@ -2,11 +2,11 @@
 // (left: a menu of Off and the video's caption tracks; the chosen track's lines are drawn in
 // VR by the shell, captions-overlay.js), Save (right: a scrolling menu of Watch later and
 // your playlists, each ticked when the video is in it; a choice adds it or takes it out, and
-// the menu stays open), and Jump ahead (right, before Save: YouTube Premium's jump to where
+// the menu stays open), and Jump ahead (at the seek bar's end: YouTube Premium's jump to where
 // most viewers skip to, marked with the Diamond).
 //
 //   const ex = ns.ytVr.extras.create();       one per VR session (provider.js session())
-//   ex.state(st) -> { left: [captions], right: [jump, save] }   every frame (st: { ad, noVideo, paused, live }: all
+//   ex.state(st) -> { left: [captions], right: [save], seek: jump | null }   every frame (st: { ad, noVideo, paused, live }: all
 //                   are greyed out during an ad or with no video playing; the provider's
 //                   state); the buttons as panel-ui.js / vr-panel.js read them
 //   ex.extra(id, itemId)   the shell's actions.extra: a button's menu opened (itemId null) or
@@ -73,12 +73,13 @@
         menu: { items: list.map(o => ({ id: o.id, text: o.busy ? `${o.title}\n${tr('yt.save.busy')}` : o.title, on: o.saved, disabled: o.busy })),
           note: save.loading && !list.length ? tr('yt.loading') : save.note || null, scroll: true, width: 520, stay: true },
       };
-      // Jump ahead (YouTube Premium): fast-forward over the Diamond; usable while a video plays
-      // (not live, not during an ad); without Premium it's greyed out with the purple Diamond.
-      const playing = !ad && !(st && (st.paused || st.live));
-      const ja = { id: 'jump', icon: 'fast_forward', label: tr('yt.jumpAhead'), icons: ['fast_forward', premiumMark()],
-        disabled: !youtube.hasPremium() || !playing };
-      return { left: [cc], right: [ja, sv] };
+      // Jump ahead (YouTube Premium), at the seek bar's end (where Skip ad goes during ads),
+      // only while YouTube's own Jump ahead pill is on screen: the Diamond, its name,
+      // fast-forward; greyed out while paused.
+      const live = !!(st && st.live), none = !!(st && st.noVideo);
+      const ja = live || none || !youtube.jumpAheadOffered() ? null : { id: 'jump', icon: 'fast_forward', label: tr('yt.jumpAhead'), mark: premiumMark(),
+        disabled: !!(st && (st.paused || st.ad)) };
+      return { left: [cc], right: [sv], seek: ja };
     }
 
     function extra(id, itemId) {

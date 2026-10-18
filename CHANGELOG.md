@@ -6,6 +6,66 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.93.3
+
+### Changed
+- The cinema screen's and 3D Cinema's icons are Material Symbols' **2d_2** and **3d_2** (the
+  plain "2D" / "3D" lettering).
+
+## 0.93.2
+
+### Changed
+- **The Format button** always says **Format**; its icon shows the chosen format (the format's
+  name is in the menu).
+- The cinema screen's icon is Material Symbols' **2d** (3D Cinema keeps `3d`).
+- The Format menu names Cinema screen 3D side by side "Cinema 3D / side by side" again.
+
+## 0.93.1
+
+### Changed
+- **The Format menu** shows each format's icon on the left of its row (as the Quality menu
+  does), the same icons as the Format button.
+- Cinema screen 3D side by side is called **3D Cinema** on the Format button (the longer name
+  was too tight).
+
+## 0.93.0
+
+### Added
+- **Cinema screen 3D side by side:** a new format for regular (not VR180) 3D videos that put
+  both eyes in one frame: the cinema screen gives each eye its half, in 3D, with the `3d` icon
+  on the Format button (180° 3D side by side keeps its own). The screen takes one eye's shape:
+  a 16:9 frame with each eye squeezed into half ("half side by side", the usual upload) shows
+  at 16:9, a frame of two full pictures (wider than 2.5:1) at half its width. The glow and the
+  glass behind the panels show each eye its own half too. Picked by hand in the Format menu.
+
+## 0.92.3
+
+### Fixed
+- **Jump ahead** now follows YouTube's own Jump ahead pill: the button at the seek bar's end
+  shows only while YouTube offers it (so not on videos without it, live streams or their
+  replays), and clicking it clicks YouTube's pill, which jumps (the keyboard shortcut it sent
+  before did nothing from VR). Greyed out while paused.
+
+## 0.92.2
+
+### Fixed
+- **Videos didn't open from the Channel panel or History** while YouTube's page was on a
+  channel page (VR started there, nothing playing yet): YouTube ignored the in-page
+  navigation there. It's now sent from inside the page, which works on channel pages, Home
+  and the watch page alike.
+- **Floating menus:** the ticked row covered the pointing ring of the row next to it; the
+  rings are drawn after all the rows now.
+- **You → Channels sort pills** still didn't show: the sort choices sit deeper in YouTube's
+  answer than the reader looked; it searches all the way down now.
+
+## 0.92.1
+
+### Changed
+- **Jump ahead** moved to the end of the seek bar, where Skip ad shows during ads (the
+  maintainer's choice): a button with the Diamond, "Jump ahead" and fast-forward; the seek bar
+  shortens for it. It's hidden on live streams and greyed out while paused. (A generic slot:
+  a site's `extras.seek` button, panel-ui.js.)
+
 ## 0.92.0
 
 ### Added

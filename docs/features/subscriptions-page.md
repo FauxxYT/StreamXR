@@ -44,13 +44,13 @@ the same shape.
    "Most relevant") are deferred too, as on Home.
    - Code: `p.shelves` (Shorts row, "Most relevant"), `p.posts`
    - VR idea: as on Home. Posts need the post cards from the channel Posts tab.
-3. [x] ~~**Manage list: your subscribed channels**~~ BUILT (v0.90.0, to check signed in: You →
+3. [x] ~~**Manage list: your subscribed channels**~~ DONE (v0.90.0, works in the headset; sort pills 0.92.2: You →
    Channels, round pictures, a click opens the Channel panel)
    - Code: `channels()` -> [{ id, title, handle, subscribers, thumb, subscribed,
      notifications }]
    - VR idea: a list of channel rows (avatar, name, counts); clicking one opens its Channel
      panel. Needs a scrolling list rather than the card grid.
-4. [x] ~~**Notification bell per channel**~~ BUILT (v0.90.0, to check signed in: the bell button
+4. [x] ~~**Notification bell per channel**~~ DONE (v0.90.0, works in the headset: the bell button
    beside Subscribed on the Channel panel, a floating menu of YouTube's choices; the Channels
    list shows each setting)
    - Code: `setNotifications(option)` with one of a channel's `notifications.options`

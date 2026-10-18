@@ -101,6 +101,7 @@
       // round the first and last rows, drawn just outside them, isn't cut).
       const bleed = maxScroll ? 0 : PAD;
       g.save(); g.beginPath(); g.rect(list.x, list.y - bleed, list.w, list.h + bleed * 2); g.clip();
+      const rings = [];                                      // [row, radius, amount] to ring after the rows
       items.forEach((it, i) => {
         const r = { x: card.x + PAD, y: list.y + i * rowH - scroll, w: listW - PAD * 2 - (maxScroll ? 12 : 0), h: rowH };
         if (r.y + r.h < list.y || r.y > list.y + list.h) return;          // scrolled out of view
@@ -122,8 +123,10 @@
         g.fillText(clip(lines[0], textW), r.x + textX, r.y + r.h / 2 + (lines.length > 1 ? -11 : 1));
         if (lines.length > 1) { g.font = T.font('labelMedium', 17); g.fillStyle = it.on ? fg : P.onSurfaceVariant; g.fillText(clip(lines.slice(1).join(' '), textW), r.x + textX, r.y + r.h / 2 + 15); }
         g.globalAlpha = 1;
-        hoverRing(g, r.x, r.y, r.w, r.h, rad, hv);
+        if (hv > 0.01) rings.push([r, rad, hv]);
       });
+      // The pointing rings last, so a neighbouring row (e.g. the ticked one's fill) can't cover one.
+      for (const [r, rad, hv] of rings) hoverRing(g, r.x, r.y, r.w, r.h, rad, hv);
       g.restore();
       if (maxScroll) {                                       // the scroll bar: where the view is in the list
         const th = Math.max(36, list.h * list.h / (list.h + maxScroll)), ty = list.y + (list.h - th) * scroll / maxScroll;

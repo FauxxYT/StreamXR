@@ -133,8 +133,16 @@
   // that reloads the list in that order. The chosen one is the chipEntity's text (or a choice
   // marked isSelected).
   const SORT_KEY = 'channel_list_page_sort_chip_entity:';
+  // Every value under `key` anywhere in `root`, however deep (the sort menu sits deeper than
+  // findKeyAll's 20 levels, in the dropdown's sheet).
+  function deepFind(root, key, out, depth = 0) {
+    if (!root || typeof root !== 'object' || depth > 80) return out;
+    if (Array.isArray(root)) { for (const x of root) deepFind(x, key, out, depth + 1); return out; }
+    for (const k of Object.keys(root)) { if (k === key) out.push(root[k]); else deepFind(root[k], key, out, depth + 1); }
+    return out;
+  }
   function sortsOf(r) {
-    const items = C.findKeyAll(r, 'listItemViewModel').filter(it => String(it.entityKey || '').startsWith(SORT_KEY));
+    const items = deepFind(r, 'listItemViewModel', []).filter(it => String(it.entityKey || '').startsWith(SORT_KEY));
     const chips = (dig(r, 'frameworkUpdates', 'entityBatchUpdate', 'mutations') || [])
       .map(m => findKey(m.payload, 'chipEntity')).filter(Boolean);
     const out = [];
