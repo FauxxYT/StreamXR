@@ -2,7 +2,7 @@
 
 One list of what's still open, gathered from the feature backlogs (`docs/features/`) and
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
-Last updated for 0.93.3.
+Last updated for 0.93.4.
 
 ## Top priority: before the first release
 
@@ -86,9 +86,39 @@ controllers instead of "Oculus Touch"), native Steam Frame support (StreamXR in 
 Chromium browser, no PC, once that browser supports WebXR), streaming services (HBO Max and
 Netflix first) once they allow protected video in desktop XR.
 
+## Road to 1.0 (easiest first)
+
+The roadmap's items before the Chrome Web Store release and the smaller open items, in one
+list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps its own order
+(what users see). Details in the sections below and `features/`.
+
+1. [x] **Cubemap seams** (0.93.4, works in the headset): the glass look's mipmaps (confirmed: gone with the glass off);
+   the cubemap is now read at full resolution (see "Next" below).
+2. [ ] **Movies in Up Next** (small): price / rating in place of views and date, a yellow Movie
+   tag (`features/video-page.md`).
+3. [ ] **Explore's "Coming Soon" tabs, the ready ones** (small to medium): Live, Gaming, Music,
+   Hype, Courses, Podcasts, Memberships; their readers exist, they need wiring into the tabs
+   (`features/home-page.md`).
+4. [ ] **Info cards** (medium): YouTube's cards as they come up during a video
+   (`features/video-page.md`).
+5. [ ] **End screen** (medium): the suggested videos and channel links when a video ends
+   (`features/video-page.md`).
+6. [ ] **News tabs** (medium): Top stories, Sports ... and the Sports feed.
+7. [ ] **Add to queue** (medium to large): probe how desktop YouTube's queue can be driven, then
+   a way to add from cards, the queue in Up Next, and what plays when a video ends
+   (`features/video-page.md`).
+8. [ ] **Explore's other tabs** (large): Shorts, Movies & TV, Learning need new readers first
+   (`features/home-page.md`).
+9. [ ] **Commenting in VR** (large): writing comments and replies with the VR keyboard (posting,
+   threads, typing into the Comments panel).
+10. [ ] **Chrome Web Store release, StreamXR 1.0** (last: it waits on the rest): the store
+    listing, the privacy questions (the README's "Your privacy" covers them), review.
+
+Set aside: the Back button (0.73.0; comes back on demand).
+
 ## Next: from u/TehSuperFruitSnack's Reddit feedback (after 0.88.1)
 
-1. [ ] **Cubemap seams** (small): thin lines along the cube's edges on 360° cubemap ("MESH")
+1. [x] **Cubemap seams** (0.93.4, works in the headset; the cause: the glass look's mipmaps): thin lines along the cube's edges on 360° cubemap ("MESH")
    videos; regular (equirectangular) 360° videos don't have them. Likely cause: the glass look
    (on by default) builds mipmaps of the video (`gl-utils.js` `videoMipmaps`), and the
    sphere's cubemap lookup (`video-sphere.js` `eacUv`) jumps across the texture where two faces
@@ -127,7 +157,7 @@ Netflix first) once they allow protected video in desktop XR.
   (`features/home-page.md`).
 - [ ] **News**: its own tabs (Top stories, Sports ...) and the Sports feed.
 - [x] **Subscriptions** (0.90.0 to 0.92.2, work in the headset): the Channels tab with its sort pills, the bell on the Channel
-  panel, posts in the feed; the feed's shelves deferred (`features/subscriptions-page.md`).
+  panel; posts in the feed (desktop has none) and its shelves deferred (`features/subscriptions-page.md`).
 - [ ] **Live chat**: reading (0.79.1) and reactions (0.80.0) work in the headset; typing, the
   keyboard's emoji pages and Support on desktop built in 0.81.0, Top fans (XP, the list, rank
   pills) in 0.82.0 and chat replays in 0.87.0 (all work in the headset). Other viewers' floating

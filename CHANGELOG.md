@@ -6,6 +6,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.93.4
+
+### Fixed
+- **Seams on 360° cubemap videos:** thin lines along the cube's edges on YouTube's 360° "mesh"
+  videos, with the glass look on. The cubemap is now read at full resolution (the glass's
+  blurred copies of the video made the edges pick up their smallest one); regular 360° videos
+  never had them.
+
 ## 0.93.3
 
 ### Changed
