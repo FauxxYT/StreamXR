@@ -40,7 +40,11 @@
 //              "Skip on desktop" without the Skip Helper extension),
 //          extras: { left: [...], right: [...] } (the site's own buttons, at the inner ends
 //                  of the outer parts of the button row: { id, icon, label (under the
-//                  icon), on (icon filled), disabled }; ids 'x:<id>'),
+//                  icon), on (icon filled), disabled, icons (optional: one or two icons, e.g.
+//                  { name, color } ones, stacked in place of icon + label, like Quality's) },
+//                  and seek: null | { id, label, icon, mark (an icon spec on its left, e.g.
+//                  a coloured one), disabled } (one button at the seek bar's right end, where
+//                  Skip ad goes during ads; the bar shortens for it); ids 'x:<id>'),
 //          menuOpen: null | 'quality' | 'speed' | 'format' | 'volume' | 'x:<id>' (that button
 //                    is shown selected: its menu floats in front of the panel, popups-ui.js) }
 //   hover/pressed: a control id or null. Fixed ids: seek, exit, quality, speed, back10,
@@ -71,9 +75,11 @@
   };
   // The button row: one M3E button group, in three parts ([Exit, Quality, Speed, the site's
   // left extras] [-10 s, play / pause, +10 s] [the site's right extras, Volume, Format,
-  // Recenter]), centred (room for one extra a side). Buttons are BTN.w x
-  // BTN.h, play / pause is bigger; GAP between buttons, SEP between the parts.
+  // Recenter]), centred (room for one extra a side at full width; with more, the buttons
+  // narrow to stay inside ROW_MARGIN). Buttons are BTN.w x BTN.h, play / pause is bigger;
+  // GAP between buttons, SEP between the parts.
   const BTN = { w: 88, h: 88, y: ROW_Y + 2 }, PLAY = { w: 132, h: 104, y: ROW_Y - 6 }, GAP = 8, SEP = 20;
+  const ROW_MARGIN = 48;              // the button row keeps this far from the panel's sides
   // In a playlist: Previous / Next video buttons at the two ends of the seek row, and the
   // seek bar shortened between them.
   const PLAYLIST = {
@@ -91,7 +97,7 @@
   const tr = (key, vars) => ns.i18n.t(key, vars);   // words in the interface language (i18n.js)
 
   // Which icon a format gets on the Format button.
-  const FORMAT_ICONS = { flat: 'theaters', '360mono': '360', '360eac': 'view_in_ar', '180mono': 'panorama_photosphere' };
+  const FORMAT_ICONS = { flat: '2d_2', flatsbs: '3d_2', '360mono': '360', '360eac': 'view_in_ar', '180mono': 'panorama_photosphere', '180sbs': '3d_rotation' };
   // The speaker for a volume (0-100) / muted.
   const volumeIcon = v => (v.muted ? 'volume_off' : v.level <= 0 ? 'volume_mute' : v.level < 50 ? 'volume_down' : 'volume_up');
 
@@ -229,8 +235,8 @@
     // An icon over a small label (the button row's buttons), or the icon alone, centred.
     // One icon big, or two stacked (the first smaller and higher, e.g. 4K over 60 fps).
     function iconStack(icons) {
-      if (icons.length < 2) { S.draw(g, icons[0], 0, 0, 48, false); return; }
-      S.draw(g, icons[0], 0, -14, 38, false); S.draw(g, icons[1], 0, 20, 30, false);
+      if (icons.length < 2) { S.drawIcon(g, icons[0], 0, 0, 48, false); return; }
+      S.drawIcon(g, icons[0], 0, -14, 38, false); S.drawIcon(g, icons[1], 0, 20, 30, false);
     }
     function iconLabel(icon, text, filled = false) {
       if (text) { S.draw(g, icon, 0, -13, 36, filled); label(text, 'labelMedium', 23); }
@@ -318,9 +324,6 @@
     // The button row (see BTN): each shows its icon and, under it, its current value.
     function drawTransport(state) {
       const v = state.volume || { level: 100, muted: false };
-      // The format's short name, first line only (a two-line name would be too small; the
-      // icon tells the formats apart).
-      const fmtLabel = ((state.format && state.format.label) || '—').split('\n')[0];
       // The site's own buttons (state.extras): [id, icon, label, extra].
       const extras = side => ((state.extras && state.extras[side]) || []).map(x => [`x:${x.id}`, x.icon, x.label || '', x]);
       const items = [
@@ -330,10 +333,15 @@
         ['back10', 'replay_10', ''], ['play', state.paused ? 'play_arrow' : 'pause', ''], ['fwd10', 'forward_10', ''], null,
         ...extras('right'),
         ['volume', volumeIcon(v), v.muted ? tr('panel.muted') : `${Math.round(v.level)}%`],
-        ['format', FORMAT_ICONS[state.format && state.format.id] || 'theaters', fmtLabel],
+        ['format', formatIcon(state.format && state.format.id), tr('panel.format')],   // (the icon tells the formats apart)
         ['recenter', 'recenter', tr('panel.recenter')],
       ];
-      const width = it => (it[0] === 'play' ? PLAY.w : BTN.w);
+      // Buttons narrow (from BTN.w) when a site's extra buttons would push the row past the
+      // panel's side margins; heights stay.
+      const n = items.filter(it => it && it[0] !== 'play').length, seps = items.filter(it => !it).length;
+      const gaps = (items.length - seps - 1) * GAP + seps * (SEP - GAP);
+      const bw = Math.min(BTN.w, Math.floor((W - ROW_MARGIN * 2 - PLAY.w - gaps) / Math.max(1, n)));
+      const width = it => (it[0] === 'play' ? PLAY.w : bw);
       const total = items.reduce((s, it) => s + (it ? width(it) + GAP : SEP - GAP), -GAP);
       let x = (W - total) / 2;
       for (const it of items) {
@@ -345,8 +353,9 @@
         } else {
           // the button whose menu is open shows selected (its menu floats in front: popups-ui.js);
           // an extra that's `on` (e.g. captions showing) has its icon filled
-          const qi = id === 'quality' && state.quality && state.quality.icons;   // the quality as icons (its full name is in its menu)
-          button({ x, y: BTN.y, w: BTN.w, h: BTN.h }, id, state, () => (qi && qi.length ? iconStack(qi) : iconLabel(icon, text, !!(extra && extra.on))),
+          // the quality as icons (its full name is in its menu), or a site button's own icons
+          const qi = id === 'quality' ? state.quality && state.quality.icons : extra && extra.icons;
+          button({ x, y: BTN.y, w: bw, h: BTN.h }, id, state, () => (qi && qi.length ? iconStack(qi) : iconLabel(icon, text, !!(extra && extra.on))),
             { kind: state.menuOpen === id ? 'selected' : 'tonal', disabled: !!(extra && extra.disabled) });
         }
         x += width(it) + GAP;
@@ -408,6 +417,16 @@
       regions = [];
       const queue = state.nowPlaying && state.nowPlaying.queue;
       seekRect = queue && !state.ad ? PLAYLIST.seek : FIXED.seek;
+      // The site's seek-row button (state.extras.seek, e.g. Jump ahead), where Skip ad goes
+      // during ads: at the seek bar's right end (before a playlist's next button), the bar
+      // shortened to make room.
+      const sa = !state.ad && state.extras && state.extras.seek;
+      let saRect = null;
+      if (sa) {
+        const right = queue ? PLAYLIST.next.x - 16 : seekRect.x + seekRect.w;
+        saRect = { x: right - FIXED.skipad.w, y: FIXED.skipad.y, w: FIXED.skipad.w, h: FIXED.skipad.h };
+        seekRect = { ...seekRect, w: saRect.x - 24 - seekRect.x };
+      }
       g.clearRect(0, 0, W, H);
       g.fillStyle = bodyFill();
       roundRect(g, 0, 0, W, BODY_H, T.shape.extraLarge); g.fill();
@@ -461,6 +480,7 @@
       else {
         drawSeekBar(state, shown);
         if (queue) drawPlaylistButtons(queue, state);
+        if (sa) drawSeekAction(sa, saRect, state);
       }
 
       drawTransport(state);                                // the button row
@@ -501,6 +521,19 @@
           g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, 0, 1);
         }, { disabled: true });
       }
+    }
+
+    // The site's seek-row button (id 'x:<id>', like its other extras), shaped like Skip ad:
+    // its mark (an icon, e.g. the Diamond in its own colour) on the left, the label, its icon
+    // on the right. Greyed out when disabled.
+    function drawSeekAction(x, r, state) {
+      button(r, `x:${x.id}`, state, () => {
+        const left = x.mark ? 36 : 0;
+        if (x.mark) S.drawIcon(g, x.mark, -r.w / 2 + 30, 0, 26, true);
+        const t = ns.vrKit.fitFont(g, x.label || '', r.w - 84 - left, 24, '500 ');
+        g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, -20 + left / 2, 1);
+        if (x.icon) S.draw(g, x.icon, r.w / 2 - 34, 0, 30, true);
+      }, { disabled: !!x.disabled });
     }
 
     // A live stream, in place of the time (top right): a "● LIVE" chip in the brand colour at
@@ -624,5 +657,8 @@
       titleMoving: () => titleMoving, animating: motion.moving };
   }
 
-  ns.vrPanelUI = { createPanelUI, formatTime: fmt, speedName };
+  // The Format button's icon for a format id (also each row's icon in the Format menu: vr-panel.js).
+  const formatIcon = id => FORMAT_ICONS[id] || '2d_2';
+
+  ns.vrPanelUI = { createPanelUI, formatTime: fmt, speedName, formatIcon };
 })(globalThis.__streamxr = globalThis.__streamxr || {});

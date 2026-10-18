@@ -10,7 +10,8 @@
 // right above its button.
 //   const menu = ns.vrPopupsUI.createMenu();
 //   menu.draw(m, { hover, pressed })   m: { items: [{ id, text ("1080p" or "1080p\nPremium"),
-//     on (the current one: ticked), disabled, icons (optional: Material Symbols names drawn
+//     on (the current one: ticked), disabled, icons (optional: Material Symbols names, or
+//     { name, color } for one in its own colour (symbols.js drawIcon), drawn
 //     on the row's left, e.g. ['4k', '60fps']; the tick then moves to the right end) }],
 //     note (a grey line above the items), scroll
 //     (a long list scrolls: see drawList), key, width }
@@ -96,7 +97,11 @@
       list = { x: card.x, y: card.y + PAD + noteH, w: listW, h: shownRows * rowH };
       maxScroll = m.scroll ? Math.max(0, items.length * rowH - list.h) : 0;
       scroll = Math.min(maxScroll, Math.max(0, scroll));
-      g.save(); g.beginPath(); g.rect(list.x, list.y, list.w, list.h); g.clip();
+      // Clipped to the rows, plus the card's padding when nothing scrolls (so the hover ring
+      // round the first and last rows, drawn just outside them, isn't cut).
+      const bleed = maxScroll ? 0 : PAD;
+      g.save(); g.beginPath(); g.rect(list.x, list.y - bleed, list.w, list.h + bleed * 2); g.clip();
+      const rings = [];                                      // [row, radius, amount] to ring after the rows
       items.forEach((it, i) => {
         const r = { x: card.x + PAD, y: list.y + i * rowH - scroll, w: listW - PAD * 2 - (maxScroll ? 12 : 0), h: rowH };
         if (r.y + r.h < list.y || r.y > list.y + list.h) return;          // scrolled out of view
@@ -111,15 +116,17 @@
         const fg = it.on ? P.onSecondaryContainer : P.onSurface;
         g.fillStyle = fg;
         if (it.on) S.draw(g, 'check', lead ? r.x + r.w - 30 : r.x + 32, r.y + r.h / 2, 28, false);
-        (it.icons || []).forEach((name, k) => S.draw(g, name, r.x + ICON_LEFT + ICON_STEP * k + ICON_STEP / 2, r.y + r.h / 2, ICON, false));
+        (it.icons || []).forEach((icon, k) => S.drawIcon(g, icon, r.x + ICON_LEFT + ICON_STEP * k + ICON_STEP / 2, r.y + r.h / 2, ICON, false));
         const lines = String(it.text).split('\n'), textW = r.w - textX - (lead ? 52 : 12);
         g.textAlign = 'left'; g.textBaseline = 'middle';
         g.font = T.font('labelLarge', 24);
         g.fillText(clip(lines[0], textW), r.x + textX, r.y + r.h / 2 + (lines.length > 1 ? -11 : 1));
         if (lines.length > 1) { g.font = T.font('labelMedium', 17); g.fillStyle = it.on ? fg : P.onSurfaceVariant; g.fillText(clip(lines.slice(1).join(' '), textW), r.x + textX, r.y + r.h / 2 + 15); }
         g.globalAlpha = 1;
-        hoverRing(g, r.x, r.y, r.w, r.h, rad, hv);
+        if (hv > 0.01) rings.push([r, rad, hv]);
       });
+      // The pointing rings last, so a neighbouring row (e.g. the ticked one's fill) can't cover one.
+      for (const [r, rad, hv] of rings) hoverRing(g, r.x, r.y, r.w, r.h, rad, hv);
       g.restore();
       if (maxScroll) {                                       // the scroll bar: where the view is in the list
         const th = Math.max(36, list.h * list.h / (list.h + maxScroll)), ty = list.y + (list.h - th) * scroll / maxScroll;

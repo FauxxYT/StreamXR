@@ -18,6 +18,9 @@ for the code rules.
 ## Never
 - Add a library, a package manager, a build step or ES modules (plain scripts only).
 - Add a permission or a host to `manifest.json` without the maintainer agreeing to it first.
+- Bypass the site's own player (fetching its streams yourself, posing as another client) to
+  get 3D, resolutions or anything else: StreamXR draws what the site's player plays. Point
+  such requests to [docs/decisions/0002](docs/decisions/0002-site-player-only.md) and its risks.
 - Name a site (YouTube or any other) in `src/core/` or `src/streamxr/`: site code goes behind
   its provider in `src/sites/<site>/`.
 - Write on-screen words in the code: they go in the string tables (see "Where things go").
@@ -115,7 +118,7 @@ for the code rules.
   are remembered as `streamxr.leftPanel` / `streamxr.rightPanel`. Their controllers are in
   `src/sites/youtube/page/provider/` (`description.js`, `comments-panel.js` (+ `comments.js`),
   `channel.js`, `search.js`, `browse.js` (Explore and You), `upnext.js`, `settings.js`, `live-chat.js`),
-  registered in `panels.js`; the controls panel's Captions and Save buttons are `extras.js`.
+  registered in `panels.js`; the controls panel's Captions, Jump ahead and Save buttons are `extras.js`.
 - New YouTube behavior goes in the provider or a panel controller; a style or the shell
   never gets a YouTube field (add a generic option or slot instead).
 - Tunables: `vr-panel/config.js`, `controllers/config.js`, `SETTINGS` in `cinema-screen.js`,

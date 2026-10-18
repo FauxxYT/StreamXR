@@ -85,7 +85,9 @@
   // as uSize), d its distance
   // outside a rounded rectangle of corner radius uRadius (Inigo Quilez's sdRoundBox); the
   // last 4 mm inside the edge fade out (alpha, blended over what's behind without touching
-  // the frame's alpha: see draw), and outside it's discarded.
+  // the frame's alpha: see draw), and outside it's discarded. The video is read at this eye's
+  // part of the frame across (uUvX: scale, offset; the whole frame, or a 3D side-by-side
+  // frame's half).
   const VS = `
     attribute vec2 aCorner;                 // -0.5..0.5
     uniform mat4 uProj, uView, uModel; uniform vec2 uSize; uniform float uBend;
@@ -101,14 +103,14 @@
       gl_Position = uProj * uView * uModel * vec4(p, 1.0);
     }`;
   const FS = `
-    precision mediump float; uniform sampler2D uTex; uniform vec2 uScreen; uniform float uRadius; varying vec2 vUv;
+    precision mediump float; uniform sampler2D uTex; uniform vec2 uScreen, uUvX; uniform float uRadius; varying vec2 vUv;
     void main() {
       vec2 p = (vUv - 0.5) * uScreen;
       vec2 q = abs(p) - uScreen * 0.5 + uRadius;
       float d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - uRadius;
       float a = 1.0 - smoothstep(-0.004, 0.0, d);
       if (a <= 0.0) discard;
-      gl_FragColor = vec4(texture2D(uTex, vUv).rgb, a);
+      gl_FragColor = vec4(texture2D(uTex, vec2(vUv.x * uUvX.x + uUvX.y, vUv.y)).rgb, a);
     }`;
 
   // The glow (WebGL 2 shaders, GLSL ES 3.00, for textureLod): the same strip, bigger (uSize,
@@ -120,7 +122,8 @@
   // texture coordinate clamped to the picture) from the mipmap level about uDetail texels
   // wide (blurred; a level further up further out: chosen here rather than by the GPU, which
   // would pick the sharpest level where the clamped coordinate doesn't change), fading out to
-  // nothing at uReach metres. Added to what's behind (light), at uStrength.
+  // nothing at uReach metres. Added to what's behind (light), at uStrength. Read at this eye's
+  // part of the frame across (uUvX), as FS.
   const GLOW_VS = `#version 300 es
     in vec2 aCorner;
     uniform mat4 uProj, uView, uModel; uniform vec2 uSize; uniform float uBend;
@@ -137,7 +140,7 @@
     }`;
   const GLOW_FS = `#version 300 es
     precision mediump float;
-    uniform sampler2D uTex; uniform vec2 uGlow, uScreen; uniform float uRadius, uReach, uDetail, uStrength;
+    uniform sampler2D uTex; uniform vec2 uGlow, uScreen, uUvX; uniform float uRadius, uReach, uDetail, uStrength;
     in vec2 vUv;
     out vec4 outColor;
     void main() {
@@ -149,6 +152,7 @@
       float a = uStrength * (1.0 - t) * (1.0 - t);
       if (a <= 0.002) discard;
       vec2 uv = clamp(p / uScreen + 0.5, 0.0, 1.0);
+      uv.x = uv.x * uUvX.x + uUvX.y;
       float lod = log2(max(1.0, float(textureSize(uTex, 0).x) / uDetail)) + t * 1.5;
       outColor = vec4(textureLod(uTex, uv, lod).rgb, a);
     }`;
@@ -201,18 +205,20 @@
     return new Float32Array(out);
   }
 
-  // Build the cinema screen renderer. Returns { upload, draw, place, dispose, interaction,
+  // Build the cinema screen renderer for format `fmt` ('flat', or 'flatsbs': 3D side by side,
+  // each eye its half of the frame). Returns { upload, draw, place, dispose, interaction,
   // pauseAnchor, distance, setDistance, setCurve }: the same drawing interface as the video
   // sphere, plus `interaction` (the laser-grabbable handles), `pauseAnchor` (where the pause
   // symbol goes) and the Settings controls.
-  function createCinemaScreen(gl) {
+  function createCinemaScreen(gl, fmt = 'flat') {
+    const spans = ns.formats.eyeSpans(fmt);                 // which part of the frame each eye sees (3D side by side: its half)
     const prog = G.createProgram(gl, VS, FS, 'cinema screen');
     const hprog = G.createProgram(gl, VS, HANDLE_FS, 'cinema handles');
     const isGL2 = typeof WebGL2RenderingContext !== 'undefined' && gl instanceof WebGL2RenderingContext;
     const gprog = isGL2 ? G.createProgram(gl, GLOW_VS, GLOW_FS, 'cinema glow') : null;   // (no glow on WebGL 1)
-    const U = G.uniforms(gl, prog, { proj: 'uProj', view: 'uView', model: 'uModel', size: 'uSize', bend: 'uBend', tex: 'uTex', screen: 'uScreen', radius: 'uRadius' });
+    const U = G.uniforms(gl, prog, { proj: 'uProj', view: 'uView', model: 'uModel', size: 'uSize', bend: 'uBend', tex: 'uTex', screen: 'uScreen', radius: 'uRadius', uvX: 'uUvX' });
     const GU = gprog && G.uniforms(gl, gprog, { proj: 'uProj', view: 'uView', model: 'uModel', size: 'uSize', bend: 'uBend', tex: 'uTex', glow: 'uGlow',
-      screen: 'uScreen', radius: 'uRadius', reach: 'uReach', detail: 'uDetail', strength: 'uStrength' });
+      screen: 'uScreen', radius: 'uRadius', reach: 'uReach', detail: 'uDetail', strength: 'uStrength', uvX: 'uUvX' });
     const HU = G.uniforms(gl, hprog, { proj: 'uProj', view: 'uView', model: 'uModel', size: 'uSize', bend: 'uBend', shape: 'uShape', arc: 'uArc', color: 'uColor', alpha: 'uAlpha' });
     const vaos = G.vertexArrays(gl);
     const corners = new Float32Array([-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5]);
@@ -237,6 +243,12 @@
     const prefs = loadPrefs();
     let width = clampWidth(prefs.width || SETTINGS.width);
     let aspect = 16 / 9;
+    // The screen's shape from the frame's (width / height): 3D side by side, one eye's picture:
+    // half the frame when it's two full pictures (wider than 2.5:1, e.g. 32:9), else the frame
+    // itself (half side by side: each eye squeezed into half of a 16:9 frame, shown at 16:9).
+    const eyeAspect = frame => (ns.formats.isSbs(fmt) && frame > 2.5 ? frame / 2 : frame);
+    // This eye's part of the frame across ([scale, offset]; a headset that names no eye: the left).
+    const eyeSpan = view => (view.eye === 'right' ? spans.right : spans.left);
     let model = M.translation(0, 0, -SETTINGS.distance);   // centre + orientation (+Z faces you)
     let dist = clampDistance(prefs.distance || SETTINGS.distance);
     let curve = curvePrefs();                               // { on, amount }
@@ -322,7 +334,7 @@
       gl.bindTexture(gl.TEXTURE_2D, tex);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
       mipped = G.videoMipmaps(gl, ns.vrTokens.glass.on || glow.on);
-      if (video.videoWidth && video.videoHeight) aspect = video.videoWidth / video.videoHeight;
+      if (video.videoWidth && video.videoHeight) aspect = eyeAspect(video.videoWidth / video.videoHeight);
     }
 
     // What's behind the panels, for the glass look (vr-panel/panel-pass.js): the video's
@@ -336,7 +348,7 @@
       if (!mipped) return null;
       const g = gprog && glow.on && glow.strength > 0
         ? { strength: glow.strength, reach: height() * glow.reach, radius: width * SETTINGS.cornerRadius } : null;
-      return { kind: 'screen', tex, centre: centre(), right: axis(0), up: axis(1), normal: axis(2), size: [width, height()], bend: bend(), glow: g };
+      return { kind: 'screen', tex, centre: centre(), right: axis(0), up: axis(1), normal: axis(2), size: [width, height()], bend: bend(), glow: g, uvX: spans };
     }
 
     // The handles: { id, frame (a point on the screen's centre line, see edgeFrame), x, y
@@ -409,6 +421,7 @@
       gl.uniform1f(GU.reach, reach);
       gl.uniform1f(GU.detail, SETTINGS.glowDetail);
       gl.uniform1f(GU.strength, glow.strength);
+      gl.uniform2fv(GU.uvX, eyeSpan(view));
       gl.enable(gl.BLEND);
       gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ZERO, gl.ONE);
       gl.drawArrays(gl.TRIANGLES, 0, SETTINGS.columns * 6);
@@ -434,6 +447,7 @@
         gl.uniform2f(U.size, width, height());
         gl.uniform2f(U.screen, width, height());
         gl.uniform1f(U.radius, width * SETTINGS.cornerRadius);
+        gl.uniform2fv(U.uvX, eyeSpan(view));
         gl.uniform1f(U.bend, b);
         gl.uniformMatrix4fv(U.proj, false, view.projectionMatrix);
         gl.uniformMatrix4fv(U.view, false, view.transform.inverse.matrix);
@@ -567,7 +581,7 @@
 
   // The right renderer for a format: cinema screen for flat videos, sphere for the rest.
   function createVideoView(gl, fmt) {
-    return ns.formats.isFlat(fmt) ? createCinemaScreen(gl) : ns.videoSphere.createVideoSphere(gl, fmt);
+    return ns.formats.isFlat(fmt) ? createCinemaScreen(gl, fmt) : ns.videoSphere.createVideoSphere(gl, fmt);
   }
 
   // The global reset: forget the remembered size, placement and curve.

@@ -19,6 +19,9 @@ backlogs in [features/](features/)):
 - `youtube-player.js` (`ns.youtube`): everything on the `#movie_player` API.
 - `youtube-page.js` (`ns.youtubePage`): Up Next (merged data + DOM scraping, load more,
   playlists), the controls panel's details, Subscribe / Like / Dislike, in-page navigation.
+  In-page navigation is a `yt-navigate` event with a watch endpoint, sent from
+  `ytd-page-manager`: sent from `ytd-app` itself, YouTube ignored it on a channel page (it
+  worked on the watch page and Home), checked 2026-10-17.
 - `youtube-content.js` (`ns.youtubeContent`): metadata, description, owner, chapters,
   heatmap, end screen, cards, playlist, comments / replies, transcript, search.
 - `youtube-channel.js` (`ns.youtubeChannel`): any channel by id (`currentChannelId()` for the
@@ -36,7 +39,15 @@ backlogs in [features/](features/)):
   Manage list `subscribed` is always true; one channel had only a stub `subscriptionButton`
   and no bell), subscribe / unsubscribe / `setNotifications` (they report ok only when
   YouTube's answer shows the new state). Filter chips: none on desktop for the tested
-  account (the documented ones seem app-only).
+  account (the documented ones seem app-only). **No community posts** in the desktop feed
+  (signed in, 2026-10-17: no post data in `FEsubscriptions` at all). The Manage page
+  (`FEchannels`, seen in the signed-in page's `ytInitialData`, 2026-10-17): the list is split
+  into **titled shelves** (`shelfRenderer` inside the item section: "Purchased" for channels
+  you're a member of, then "Subscribed"), and its **sort dropdown** (Most relevant, New
+  activity, A-Z) is a set of `listItemViewModel`s with `entityKey`
+  `channel_list_page_sort_chip_entity:<name>`, each tap updating a `chipEntity` (the
+  dropdown's label) and sending a browse `continuationCommand` that reloads the list in that
+  order (`sortsOf`, `channelsOn`).
 - `youtube-chat.js` (`ns.youtubeChat`): a live stream's chat ("Live chat" below): `info()`
   (its views), `open(token)` (a view's chat page), `poll(next)`, and the chat items as plain
   messages and changes (add, remove, banner).
@@ -96,10 +107,35 @@ The formats are in `src/streamxr/shared/formats.js`; YouTube's detection is the 
   from `getAvailableQualityData()` (`qualityLabel`, e.g. "1080p60", or "2160s60" for a 360° /
   VR180 video: "s" for spherical) where the player has it
   (`youtube-player.js` `quality().labels`); with Premium it also lists "1080p Premium",
-  skipped in favour of the plain entry. Unverified in the headset (see known-issues.md).
+  kept apart as its own level (0.91.0). Seen signed in with Premium (2026-10-17): the entry
+  has `formatId` "721", `quality` "hd1080", `paygatedQualityDetails.paygatedIndicatorText`
+  "Enhanced bitrate", `isPlayable` true, beside the plain 1080p (`formatId` "399"); it's
+  chosen with `setPlaybackQualityRange(q, q, formatId)` and `getPlaybackQualityLabel()` names
+  the one playing. **Whether you have Premium:** the top bar's logo,
+  `ytInitialData.topbar.desktopTopbarRenderer.logo.topbarLogoRenderer.iconImage.iconType`
+  is `YOUTUBE_PREMIUM_LOGO` (`youtube-player.js` `hasPremium`). **Jump ahead:** the page has
+  no data for it, and the player's `prefetchJumpAhead()` returns undefined and moves nothing.
+  YouTube shows a **Jump ahead pill** in the player's "timely actions" overlay at the moments
+  it applies (`.ytp-timely-actions-overlay ytw-timely-action-view-model button`, its text
+  "Jump ahead"), and a script's `click()` on it jumps (17 s -> 124 s, 2026-10-17), so
+  `youtube-player.js` `jumpAhead()` clicks it and `jumpAheadOffered()` tells whether it's up.
+  A script-sent Ctrl + → keydown on `#movie_player` jumped from the console but did nothing
+  from VR.
 
-- Desktop YouTube sends **one eye only**, even for 3D videos, so there are no 3D formats.
-- Formats: `flat` (cinema screen), `360mono`, `360eac`, `180mono`.
+- Desktop YouTube sends **one eye only** for most 3D videos (checked 2026-10-17 with frames
+  from the page's `<video>`): the "Left Right Test in VR 180" (`kle719aQvsc`, 1920×2160) and
+  a 3D VR180 tour (`KJ-_LUrGhYE`, 3840×2160, 2160s at most on desktop) hold the left eye
+  only. **Some arrive side by side** (both eyes in one frame): "VR180 Left/Right"
+  (`ccU0imlNp5Q`, 3840×2160, LEFT | RIGHT). Nothing in the player response tells them apart
+  (all `MESH`, `vrConfig.partialSpherical`, no stereo field). The Quest app gets both eyes
+  and higher resolutions, most likely as a VR client; StreamXR doesn't bypass the page's
+  player to get them ([decisions/0002](decisions/0002-site-player-only.md)).
+- 8K reaches desktop where YouTube offers it, e.g. an 8K 360° video (`tR8ZtyhSDYw`):
+  `4320s`, 7680×3840, AV1 (itag 571).
+- Formats: `flat` (cinema screen), `flatsbs` (the cinema screen in 3D side by side: 0.93.0;
+  e.g. "Demo 3D[SBS]", `u0hmMt5znX0`, a RECTANGULAR 16:9 frame, each eye squeezed into half),
+  `360mono`, `360eac`, `180mono`, `180sbs` (3D side by side,
+  picked by hand: 0.89.0).
 - "MESH" 360° videos use an **equi-angular cubemap**, 3×2: top row left | front | right,
   bottom row down | back | up; down and up rotated 270° clockwise, back 90° (the same as
   ffmpeg's `eac`). Verified against a real frame.

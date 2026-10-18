@@ -9,9 +9,9 @@
   const { formats, gl: G } = ns;
 
   // Vertex shader: passes the vertex position along as the view direction (vDir) for the
-  // cubemap lookup, and applies uUvXform (scale xy, offset zw) to the texture coordinates;
-  // it's [1,1,0,0] ("whole frame") now that 3D layouts are gone, but it's where per-eye
-  // cropping would plug in.
+  // cubemap lookup, and applies uUvXform (scale xy, offset zw) to the texture coordinates:
+  // [1,1,0,0] for the whole frame, or one eye's half of a side-by-side 3D frame
+  // (formats.eyeSpans).
   const VS = `
     attribute vec3 aPos; attribute vec2 aUv;
     uniform mat4 uProj, uView, uModel; uniform vec4 uUvXform;
@@ -97,6 +97,7 @@
     const vao = vaos ? vaos.create() : null;
     if (vaos) vaos.bind(vao);
     const mesh = buildSphere(formats.longitudeSpan(fmt));
+    const spans = formats.eyeSpans(fmt);      // which part of the frame each eye sees
     const buffers = [
       G.floatAttribute(gl, prog, 'aPos', mesh.pos, 3),
       G.floatAttribute(gl, prog, 'aUv', mesh.uv, 2),
@@ -117,13 +118,14 @@
 
     // What's behind the panels, for the glass look (vr-panel/panel-pass.js): the video's
     // texture and how it's mapped ('sphere': equirectangular over `span` radians of
-    // longitude; 'eac': the cubemap), turned by `yaw`. Builds the mipmaps at once if the
-    // glass was just turned on. null while the glass is off.
+    // longitude, `uvX` each eye's part of the frame across: { left, right }; 'eac': the
+    // cubemap), turned by `yaw`. Builds the mipmaps at once if the glass was just turned on.
+    // null while the glass is off.
     function backdrop() {
       if (!ns.vrTokens.glass.on) return null;
       if (!mipped) { gl.bindTexture(gl.TEXTURE_2D, tex); mipped = G.videoMipmaps(gl, true); }
       if (!mipped) return null;
-      return { kind: formats.projectionMode(fmt) > 0.5 ? 'eac' : 'sphere', tex, span: formats.longitudeSpan(fmt), yaw: lastYaw };
+      return { kind: formats.projectionMode(fmt) > 0.5 ? 'eac' : 'sphere', tex, span: formats.longitudeSpan(fmt), uvX: spans, yaw: lastYaw };
     }
 
     // The video is "at infinity": only the head's rotation matters, not its position.
@@ -147,7 +149,10 @@
         m[12] = m[13] = m[14] = 0;                  // drop the head's position, keep only its rotation
         gl.uniformMatrix4fv(U.proj, false, view.projectionMatrix);
         gl.uniformMatrix4fv(U.view, false, m);
-        gl.uniform4fv(U.xf, [1, 1, 0, 0]);          // whole frame for both eyes (YouTube sends one eye)
+        // This eye's part of the frame (side by side: its half; a headset that names no eye
+        // gets the left one).
+        const [sx, ox] = view.eye === 'right' ? spans.right : spans.left;
+        gl.uniform4fv(U.xf, [sx, 1, ox, 0]);
         gl.drawElements(gl.TRIANGLES, mesh.idx.length, gl.UNSIGNED_SHORT, 0);
       }
       if (vaos) vaos.bind(null);

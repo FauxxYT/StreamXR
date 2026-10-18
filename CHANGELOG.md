@@ -6,6 +6,152 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.93.3
+
+### Changed
+- The cinema screen's and 3D Cinema's icons are Material Symbols' **2d_2** and **3d_2** (the
+  plain "2D" / "3D" lettering).
+
+## 0.93.2
+
+### Changed
+- **The Format button** always says **Format**; its icon shows the chosen format (the format's
+  name is in the menu).
+- The cinema screen's icon is Material Symbols' **2d** (3D Cinema keeps `3d`).
+- The Format menu names Cinema screen 3D side by side "Cinema 3D / side by side" again.
+
+## 0.93.1
+
+### Changed
+- **The Format menu** shows each format's icon on the left of its row (as the Quality menu
+  does), the same icons as the Format button.
+- Cinema screen 3D side by side is called **3D Cinema** on the Format button (the longer name
+  was too tight).
+
+## 0.93.0
+
+### Added
+- **Cinema screen 3D side by side:** a new format for regular (not VR180) 3D videos that put
+  both eyes in one frame: the cinema screen gives each eye its half, in 3D, with the `3d` icon
+  on the Format button (180° 3D side by side keeps its own). The screen takes one eye's shape:
+  a 16:9 frame with each eye squeezed into half ("half side by side", the usual upload) shows
+  at 16:9, a frame of two full pictures (wider than 2.5:1) at half its width. The glow and the
+  glass behind the panels show each eye its own half too. Picked by hand in the Format menu.
+
+## 0.92.3
+
+### Fixed
+- **Jump ahead** now follows YouTube's own Jump ahead pill: the button at the seek bar's end
+  shows only while YouTube offers it (so not on videos without it, live streams or their
+  replays), and clicking it clicks YouTube's pill, which jumps (the keyboard shortcut it sent
+  before did nothing from VR). Greyed out while paused.
+
+## 0.92.2
+
+### Fixed
+- **Videos didn't open from the Channel panel or History** while YouTube's page was on a
+  channel page (VR started there, nothing playing yet): YouTube ignored the in-page
+  navigation there. It's now sent from inside the page, which works on channel pages, Home
+  and the watch page alike.
+- **Floating menus:** the ticked row covered the pointing ring of the row next to it; the
+  rings are drawn after all the rows now.
+- **You → Channels sort pills** still didn't show: the sort choices sit deeper in YouTube's
+  answer than the reader looked; it searches all the way down now.
+
+## 0.92.1
+
+### Changed
+- **Jump ahead** moved to the end of the seek bar, where Skip ad shows during ads (the
+  maintainer's choice): a button with the Diamond, "Jump ahead" and fast-forward; the seek bar
+  shortens for it. It's hidden on live streams and greyed out while paused. (A generic slot:
+  a site's `extras.seek` button, panel-ui.js.)
+
+## 0.92.0
+
+### Added
+- **Jump ahead** (YouTube Premium) on the controls panel, right after +10 s: fast-forward over
+  the **Diamond**. It jumps to the point most viewers skip to, as YouTube's own Jump ahead
+  does (it sends YouTube's desktop shortcut, Ctrl + →, to the player). Usable while a video
+  plays; not on live streams or during an ad. Without Premium it's greyed out with the purple
+  Diamond. On videos YouTube doesn't offer Jump ahead for (Shorts, music, movies...) it does
+  nothing.
+
+### Changed
+- The controls panel's buttons narrow a little when the site adds more buttons than fit the
+  row, so it keeps its margins (one more site button on the right, Jump ahead, made it so).
+
+## 0.91.0
+
+### Added
+- **1080p Premium** in the Quality menu (YouTube Premium's enhanced-bitrate 1080p, on videos
+  uploaded at 1080p): its own row just above the plain 1080p, marked with the **Diamond** in
+  YouTube red. Without Premium the row shows a purple Diamond and is greyed out (as YouTube's
+  own menu upsells it). While it plays, the Quality button shows Full HD with the Diamond.
+- For other sites (ARCHITECTURE.md): an icon can carry its own colour (`{ name, color,
+  filled }`: symbols.js `drawIcon`), in menu rows and on the Quality button; a quality level
+  can be `disabled`.
+
+## 0.90.3
+
+### Fixed
+- **You → Channels:** the sort pills (Most relevant, New activity, A-Z) and the section flags
+  (e.g. **Purchased**) never showed: they're read now from where YouTube's page really keeps
+  them (the sort choices as list items that reload the list, the sections as titled shelves).
+
+## 0.90.2
+
+### Removed
+- **The Posts pill in You → Subscriptions:** desktop YouTube's Subscriptions feed doesn't mix
+  community posts in (checked signed in), so it always came up empty. Posts are still on each
+  channel's Posts tab.
+
+## 0.90.1
+
+### Added
+- **Channels sort pills:** You → Channels offers YouTube's own sort choices for the list (Most
+  relevant, New activity, A-Z), the one it's sorted by chosen. Channels YouTube lists in a
+  section of their own (e.g. **Purchased**, a channel you're a member of) carry that
+  section's name as a flag.
+
+### Fixed
+- **3D side by side:** the glass panels showed the left eye's picture behind them in both
+  eyes; each eye now sees its own half behind the glass too.
+- **Floating menus** (the bell's, Format, Quality...) cut off the pointing ring round their
+  first and last rows.
+- The Channels list could stop after its first page when YouTube splits it into sections.
+
+## 0.90.0
+
+### Added
+- **Your channels** (You → **Channels**, signed in): the channels you subscribe to, A to Z, with
+  their round pictures, handle · subscribers and their notification setting. Click one to
+  open it in the Channel panel.
+- **The notification bell** on the Channel panel: once you're subscribed, a round bell button
+  beside Subscribed opens a small menu with YouTube's choices (All, Personalized, None), the
+  current one ticked; its icon shows which is on. The tick moves only when YouTube confirms.
+- **Posts from your subscriptions:** You → Subscriptions has two pills, **Videos** (the feed)
+  and **Posts** (the community posts mixed into it). A post that shares a video plays it;
+  any other opens its channel's Posts tab.
+- For other sites' panels (ARCHITECTURE.md): side panels can open a floating menu from one of
+  their controls (`host.openMenu(control)`, the controller's `menu(control)`, choices as
+  `{ type: 'menu' }` events) and reach another panel's controller (`host.panel(id)`); the
+  Profile style has a round icon button beside its action button (`iconAction`) and
+  `rectOf(id)`; a card can show a round picture (`fit: 'round'`). New icons: `diamond`,
+  `fast_forward`, `notifications_off`.
+
+## 0.89.0
+
+### Added
+- **3D side-by-side videos:** a new format, **180° 3D side by side**, in the Format menu (and
+  the video page's format picker). Some VR180 videos reach the browser with both eyes in one
+  frame (left eye's picture on the left), which used to be stretched over the half sphere as
+  one picture; this format gives each eye its half, in 3D. YouTube's data doesn't mark these
+  videos, so pick it by hand when a VR180 video shows two pictures side by side. (Most 3D
+  videos reach desktop browsers as one eye only and still play flat:
+  [decisions/0002](docs/decisions/0002-site-player-only.md).)
+- For other renderers: the glass backdrop's `uvX` option (the part of the frame a sphere
+  backdrop covers, across), `formats.eyeSpans(fmt)`.
+
 ## 0.88.1
 
 ### Changed

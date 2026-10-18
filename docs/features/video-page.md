@@ -51,10 +51,25 @@ published; what matters from them is in this file and docs/youtube.md).
     `provider/cards.js`); check Browse and Search results show movies the same way.
 - [ ] **Premium features** (the maintainer, after 0.78.4): YouTube Premium's extras in VR, marked with
   Material Symbols' **Diamond** icon: **purple** when you don't have Premium (an upsell, like
-  YouTube's own), **YouTube Red** when you do. To include: the Premium quality levels
-  ("1080p Premium" in the Quality menu: check they show and work), **Add to queue**, and
-  Premium's other features (to list from the watch page: e.g. Jump ahead, downloads where
-  they make sense in VR). Find out first how the page says whether you have Premium.
+  YouTube's own), **YouTube Red** when you do. Find out first how the page says whether you
+  have Premium (a probe signed in with Premium).
+  - **Audit** (2026-10-17, from YouTube's help article "YouTube Premium benefits", answer
+    6308116, computer and Android versions):
+
+    | Benefit | On desktop web? | In StreamXR |
+    |---|---|---|
+    | **1080p Premium** (enhanced bitrate, 1080p uploads only) | yes, an extra Quality entry | **Done (0.91.0, works in the headset):** its own Quality row with the Diamond (red with Premium; purple and greyed out without) |
+    | **Jump ahead** (to the point most viewers skip to) | yes (double-click, Ctrl + →) | **Done (0.92.3, works in the headset):** a button at the seek bar's end (Skip ad's spot) with the Diamond, shown while YouTube's own pill is up; clicking it clicks that pill |
+    | Ad-free videos | yes | Already: no ads means nothing to skip |
+    | Continue watching across devices | yes (account) | Already: YouTube's player resumes |
+    | Queue | for everyone on desktop (Premium only on phones) | Not Premium here: its own item (Add to queue, below) |
+    | Downloads (offline) | desktop has a Download button | Deferred: watching in VR needs the PC online anyway |
+    | Background play, picture-in-picture, Smart downloads, On-the-go mode, Auto speed | phones only | Out |
+    | Higher-quality audio (256 kbps music) | apps and TVs only | Out |
+    | YouTube Music app, Premium badges, Co-Watch with Meet, Afterparties, smart devices | other apps | Out |
+    | Early access to new features (experiments) | varies | Out: they come and go |
+- [ ] **Add to queue** (desktop: for everyone, not Premium): queue a video from a card and
+  play the queue in order. Find out first how the page's queue can be driven.
 
 ## Medium: new panels with scrolling or long text
 

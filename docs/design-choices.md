@@ -276,3 +276,20 @@ even where they look like something to "fix".
 - The lasers are smoothed against hand tremor (pointing, clicks and grabbing alike), with
   fast moves passing through at once. The user sets how much in Settings → Laser
   (Steadiness, Off to Steadiest; the middle is the default, which felt right in testing).
+- **Subscriptions (the maintainer, 2026-10-17):** your subscribed channels are a **Channels** tab
+  in the You panel, right after Subscriptions (round channel pictures, a click opens the
+  channel in the Channel panel). A channel's **notification bell** (All / Personalized / None)
+  is a bell button beside Subscribe on the Channel panel, opening a small floating menu like
+  the controls panel's menus. The Subscriptions feed was to show **community posts** (desktop's
+  feed has none: 0.90.2), but not its
+  shelves (the Shorts row, "Most relevant"), as on Home.
+- **Premium (the maintainer, 2026-10-17):** from the audit in `features/video-page.md`: 1080p
+  Premium in the Quality menu and Jump ahead, with the Diamond; queueing isn't Premium on
+  desktop and is its own item.
+- **Jump ahead sits at the seek bar's end** (the maintainer, 2026-10-17, 0.92.1), where Skip ad
+  shows during ads, not in the button row: the Diamond, "Jump ahead", fast-forward.
+- **3D side by side on the cinema screen** (the maintainer, 2026-10-17, 0.93.0): its own
+  format with Material Symbols' `3d_2` icon (0.93.3); 180° 3D side by side keeps `3d_rotation`.
+- **The Format button says "Format"** (the maintainer, 2026-10-17, 0.93.2), whatever's chosen;
+  its icon shows the format, and the Format menu shows every format's icon and name. The
+  cinema screen's icon is `2d_2`, 3D Cinema's `3d_2` (0.93.3).

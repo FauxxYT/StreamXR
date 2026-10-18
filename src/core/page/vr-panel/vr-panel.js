@@ -19,7 +19,7 @@
 //              whatever the site's panels use,
 //              state() -> { title, time, duration, paused,
 //                           nowPlaying (what the controls panel shows: see panel-ui.js),
-//                           quality: { current, currentLabel, levels: [{ id, label, icons? }] },
+//                           quality: { current, currentLabel, levels: [{ id, label, icons?, disabled? }] },
 //                           live: null | { atHead, behind (seconds), dvr } (a live stream; time
 //                             and duration then cover only the rewindable part),
 //                           speed, speeds: [rates], volume: { level, muted },
@@ -27,7 +27,7 @@
 //                             intensity (0..1) }] (how much each part is rewatched; optional),
 //                           ad: null | { ... },
 //                           format: { current, options: [{ id, label, short, disabled }] },
-//                           extras: { left: [...], right: [...] } (the site's own buttons on
+//                           extras: { left: [...], right: [...], seek } (the site's own buttons on
 //                             the controls panel: panel-ui.js, plus menu: null | { items: [{ id,
 //                             text, on, disabled }], note, scroll, width, stay (stays open on a
 //                             choice) }: opens like Quality's),
@@ -127,6 +127,12 @@
         close: () => { if (isOpen(reg.id)) toggleOpen(reg.id); },
         isOpen: () => isOpen(reg.id),
         closeMenu: () => { menu = null; },
+        panel: id => controller(id),         // another of the site's panels' controllers (e.g. to show something in it)
+        // Open (or close, if it's open) a floating menu on one of this panel's controls
+        // (`local`, e.g. 'action:bell'; the style needs rectOf). Its items come from the
+        // controller's menu(local) each frame; a choice arrives as { type: 'menu', value:
+        // item id, menu: local }.
+        openMenu: local => { const id = `p:${reg.id}${SEP}${local}`; menu = menu === id ? null : id; lastActivity = performance.now(); },
         confirm: d => confirm(d),
         typeInto: (on, opts) => typeInto(p, on, opts),
       });
@@ -174,6 +180,12 @@
     const SEP = '|';
     const panelOf = id => (id && id.includes(SEP) ? panels.get(id.slice(0, id.indexOf(SEP))) : null);
     const localOf = (id, p) => (id && id.startsWith(p.reg.id + SEP) ? id.slice(p.reg.id.length + 1) : null);
+    // A side panel's menu id ('p:<panel>|<control>', host.openMenu) -> { p, local } or null.
+    function panelMenu(id) {
+      if (!id || !id.startsWith('p:')) return null;
+      const rest = id.slice(2), i = rest.indexOf(SEP), p = i < 0 ? null : panels.get(rest.slice(0, i));
+      return p ? { p, local: rest.slice(i + 1) } : null;
+    }
     // Tell a panel's controller one of its controls was used: '<type>:<value>' -> event.
     function sendEvent(p, local, extra) {
       const i = local.indexOf(':');
@@ -226,7 +238,18 @@
     // Where the menu goes: its bottom middle just above the button that opened it (centred
     // on it, kept from reaching far past the panel's sides), in the controls panel's tilt,
     // 32 dp in front.
+    // A side panel's menu ('p:<panel>|<control>') goes the same way above its control, in
+    // that panel's pose.
     function menuModel(id) {
+      const pm = panelMenu(id);
+      if (pm) {
+        const r = pm.p.style.rectOf && pm.p.style.rectOf(pm.local), c = pm.p.style.canvas, sz = pm.p.size;
+        if (!r) return null;
+        const half = Math.max(0, sz[0] / 2 - 0.12);
+        const x = Math.max(-half, Math.min(half, ((r.x + r.w / 2) / c.width - 0.5) * sz[0]));
+        const bottom = (0.5 - r.y / c.height) * sz[1] + 12 * MPX;
+        return M.multiply(panelModel(pm.p), M.translation(x, bottom + menuSize[1] / 2, dp(32)));
+      }
       const rect = ui.rectOf(id);
       if (!rect) return null;
       const cx = ((rect.x + rect.w / 2) / ui.width - 0.5) * size[0];
@@ -640,6 +663,13 @@
     function click(id) {
       const p = panelOf(id);
       if (p) { sendEvent(p, localOf(id, p)); return; }
+      if (id.startsWith('pi:')) {                     // an item of a side panel's menu: 'pi:<index>'
+        const pm = panelMenu(menu), mm = pm && pm.p.ctrl.menu ? pm.p.ctrl.menu(pm.local) : null;
+        const it = mm && (mm.items || [])[+id.slice(3)];
+        if (it && !it.disabled) pm.p.ctrl.event({ type: 'menu', value: it.id, menu: pm.local });
+        if (!(mm && mm.stay)) menu = null;
+        return;
+      }
       if (id.startsWith('toggle:')) {
         const pid = id.slice(7);
         toggleOpen(pid);
@@ -1087,12 +1117,12 @@
         let menuState = null;
         if (menu === 'quality') {
           menuState = {
-            items: quality.levels.map(q => ({ id: `q:${q.id}`, text: q.label, on: q.id === quality.current, icons: q.icons })),
+            items: quality.levels.map(q => ({ id: `q:${q.id}`, text: q.label, on: q.id === quality.current, icons: q.icons, disabled: !!q.disabled })),
             note: quality.levels.length ? null : tr('panel.noQualities', { site: site.name || tr('panel.theSite') }),
           };
         } else if (menu === 'format') {
           menuState = {
-            items: format.options.map(o => ({ id: `f:${o.id}`, text: o.short, on: o.id === format.current, disabled: o.disabled })),
+            items: format.options.map(o => ({ id: `f:${o.id}`, text: o.short, on: o.id === format.current, disabled: o.disabled, icons: [ns.vrPanelUI.formatIcon(o.id)] })),
             note: null,
           };
         } else if (menu === 'speed') {
@@ -1102,6 +1132,10 @@
           const x = extraOf(menu.slice(2)), mm = x && x.menu;
           if (mm) menuState = { ...mm, key: menu, items: (mm.items || []).map(it => ({ ...it, id: `xi:${x.id}:${it.id}` })) };
           else menu = null;                            // the button went away
+        } else if (panelMenu(menu)) {                  // a side panel's menu (its items' ids: 'pi:<index>')
+          const pm = panelMenu(menu), mm = shown(pm.p) && pm.p.ctrl.menu ? pm.p.ctrl.menu(pm.local) : null;
+          if (mm) menuState = { ...mm, key: menu, items: (mm.items || []).map((it, i) => ({ ...it, id: `pi:${i}` })) };
+          else menu = null;                            // the panel closed, or has no menu there now
         }
         const volume = st.volume || { level: 100, muted: false };
         muted = !!volume.muted;
@@ -1125,7 +1159,7 @@
           quality, format: { id: format.current, label: currentFormat ? currentFormat.short : '' },
           speed: st.speed || 1, volume: shownVolume, chapters: st.chapters || [], heatmap: st.heatmap || [], preview, ad,
           menuOpen: menu, grabbing: !!grab,
-          extras: extrasNow ? { left: (extrasNow.left || []).map(stripMenu), right: (extrasNow.right || []).map(stripMenu) } : null,
+          extras: extrasNow ? { left: (extrasNow.left || []).map(stripMenu), right: (extrasNow.right || []).map(stripMenu), seek: extrasNow.seek || null } : null,
         };
         const pf = preview && preview.frame;
         const key = [state.title, Math.floor(state.time), Math.floor(state.duration), state.paused, state.buffered != null ? Math.floor(state.buffered) : '',
@@ -1280,7 +1314,9 @@
       }
       if (hoverShown && !kbShown && cpA > 0.01) items.push([hoverPass, hoverCardModel(hoverShown.rect), hoverSize, null, cpA]);
       // The floating menu, growing up from its button (its canvas's bottom edge).
-      const MA = Math.min(1, Math.max(0, anim.menu.get())) * cpA, mm = MA > 0.01 && menuShown ? menuModel(menuShown) : null;
+      // (A side panel's menu fades with its panel's side instead of the controls panel.)
+      const menuA = panelMenu(menuShown) ? (panelMenu(menuShown).p.reg.stays ? 1 : V * B) : cpA;
+      const MA = Math.min(1, Math.max(0, anim.menu.get())) * menuA, mm = MA > 0.01 && menuShown ? menuModel(menuShown) : null;
       if (mm) items.push([menuPass, scaled(mm, [0, -menuSize[1] / 2], shrink(anim.menu.get())), menuSize, backdrop, MA]);
       // Settled ones first (writing depth), then the ones still fading.
       items.sort((a, b) => (b[4] > 0.99) - (a[4] > 0.99));

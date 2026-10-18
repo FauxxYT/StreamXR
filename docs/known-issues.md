@@ -46,7 +46,7 @@ permissions, Firefox) are in [ARCHITECTURE.md](../ARCHITECTURE.md#known-limits).
 - The Channel header's subscribed state can be wrong for a channel whose Home tab features
   other channels; it's only used when the watch page doesn't say.
 - Text matching assumes **English** YouTube: some readers recognise YouTube's own words
-  (the "All" chip, "Joined", an ad's "1 of 2"). This is about what YouTube writes;
+  (the "All" chip, "Joined", an ad's "1 of 2", the Jump ahead pill). This is about what YouTube writes;
   StreamXR's own words follow the interface language (Settings → Language).
 - Replies to replies (YouTube's newer nested comment threads) aren't shown; one level is.
 

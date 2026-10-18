@@ -63,6 +63,25 @@
     return [QUALITY_ICONS[q] || 'high_quality', ...(fps >= 50 ? ['60fps'] : [])];
   }
 
+  // YouTube Premium's mark (extras.js premiumMark: the Diamond, red with Premium, purple without).
+  const diamond = () => ns.ytVr.premiumMark();
+
+  // The shell's quality state from youtube.quality(): the levels (YouTube's names and icons),
+  // with Premium's enhanced-bitrate one ('premium', e.g. "1080p Premium") just above its plain
+  // twin, marked with the Diamond and greyed out without Premium; it's the current one while
+  // it plays.
+  function qualityState(q) {
+    const p = q.premium;
+    const premiumLevel = p && { id: 'premium', label: p.label.replace(' ', '\n'), icons: [...qualityIcons(p.quality, q.labels).slice(0, 1), diamond()], disabled: !p.playable };
+    const levels = [];
+    for (const id of q.levels || []) {
+      if (premiumLevel && id === p.quality) levels.push(premiumLevel);
+      levels.push({ id, label: qualityName(id, q.labels), icons: qualityIcons(id, q.labels) });
+    }
+    if (p && p.on) return { current: 'premium', currentLabel: p.label, icons: premiumLevel.icons, levels };
+    return { current: q.current, currentLabel: qualityName(q.current, q.labels), icons: qualityIcons(q.current, q.labels), levels };
+  }
+
   // Pick the format from player data (youtube.info(): projection[], spherical,
   // partialSpherical, title, keywords, video = "WxH"):
   //   not marked spherical by YouTube        -> cinema screen
@@ -321,6 +340,10 @@
       ratePost: (post, what) => ns.youtubeChannel.ratePost(post, what),
       votePoll: (post, index, on) => ns.youtubeChannel.votePoll(post, index, on),
       setSubscribed,
+      // A channel's notification bell: one of its notifications.options (youtube-subscriptions.js
+      // setNotifications -> { ok, confirmed, state, error }), and which choice a state means.
+      setBell: option => ns.youtubeSubscriptions.setNotifications(option),
+      bellMatches: (label, state) => ns.youtubeSubscriptions.bellMatches(label, state),
       // Description panel: the transcript (opens and reads YouTube's transcript panel), the
       // comments ('top' | 'newest') and a thread's replies (pagers), rating a comment.
       transcript: () => ns.youtubeContent.transcript(),
@@ -334,6 +357,7 @@
       search: query => ns.youtubeContent.search(query),                 // the Search panel
       suggest: text => ns.youtubeHome.suggestions(text),                // and its suggestions
       browseSubscriptions: () => ns.youtubeSubscriptions.feed(),
+      browseChannels: sort => ns.youtubeSubscriptions.channels(sort), // You: Channels (sort: one of p.sorts' texts)
       browseFeed: name => ns.youtubeHome.feedVideos(name),
       browsePlaylist: id => ns.youtubeContent.playlistVideos(id),
       myChannelId: () => ns.youtubeHome.myChannelId(),                   // You: Your channel
@@ -358,14 +382,14 @@
         title, time: l ? l.current - l.start : youtube.currentTime(), duration: l ? l.end - l.start : youtube.duration(),
         live: l && liveLabel(l), paused: youtube.isPaused(),
         buffered: l || ad() ? null : youtube.bufferedEnd(),           // the seek bar's loaded part (not on live streams or ads)
-        quality: { current: q.current, currentLabel: qualityName(q.current, q.labels), icons: qualityIcons(q.current, q.labels), levels: (q.levels || []).map(id => ({ id, label: qualityName(id, q.labels), icons: qualityIcons(id, q.labels) })) },
+        quality: qualityState(q),
         speed: youtube.speed(), speeds: youtube.speeds(), volume: youtube.volume(), chapters: chapters(), heatmap: l ? [] : heatmap(), ad: ad(),
         nowPlaying: nowPlaying({ title, channel, details, playlist: pl, subscribeUi: subscribeUi() }),
         // For YouTube's panels:
         channelId: ns.youtubeChannel.currentChannelId(), details, playlist: pl, description: description(),
         recommendations: page.recommendations(),
         playback: { loop: youtube.loop(), autoplay: !!youtube.autoplay() }, audio: audioTracks(),
-        extras: extras.state({ ad: ad() }),
+        extras: extras.state({ ad: ad(), paused: youtube.isPaused(), live: !!l }),
         liveChat: chatFor(l),                                        // a live stream's chat, or a finished one's chat replay (live-chat.js)
       };
       // No video playing (VR started from the Home page...): what the panels show instead of
