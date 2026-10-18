@@ -150,6 +150,19 @@ The formats are in `src/streamxr/shared/formats.js`; YouTube's detection is the 
 - VR180 test video: "how TV screens made watching movies worse" by Noodle (`wlUV6y5TUko`):
   no "180" in the title, 16:9 below 2160p.
 
+## Movies
+
+- **YouTube's movies are copy-protected, the free ones too** (checked 2026-10-18, signed out:
+  "Matilda", `_F8kU1vb_rk`, "Free with ads", PG): playable on the page, but every format
+  carries `drmFamilies` (WIDEVINE, PLAYREADY, FAIRPLAY) and `streamingData.drmParams`, so
+  StreamXR can't draw them in VR (as Netflix: ARCHITECTURE.md "Known limits"). An R-rated one
+  ("Life", `SosdXyFcL7c`) asks signed-out viewers to sign in to confirm their age.
+- In search results a movie is a `movieRenderer` with `badges` of
+  `metadataBadgeRenderer`s: the price as style `BADGE_STYLE_TYPE_YPC` ("Free with ads", or a
+  price), the rating and "CC" as `BADGE_STYLE_TYPE_MEDIA` ("PG", "TV-G", "R", "Unrated");
+  `longBylineText` "YouTube Movies & TV", a `movieposter_en.webp` thumbnail (portrait). Up
+  Next's movie items (seen signed in, 0.66.1) weren't captured yet.
+
 ## Ads
 
 Test ad handling in a browser without YouTube Premium (e.g. signed out); ads are rationed,

@@ -79,8 +79,8 @@ until another headset or two has been tried and the unverified items are cleared
 12. Whatever else comes up.
 
 **As soon as it's possible** (README's second roadmap, ahead of everything above once the support exists):
-YouTube Movies (copy-protected: once YouTube allows protected video in desktop XR; showing
-them in Up Next with price / rating can come before),
+YouTube Movies (copy-protected, the free ones too: once YouTube allows protected video in desktop XR;
+their Up Next cards (price / rating, the Movie tag) come with them: `features/video-page.md`, "Deferred"),
 Firefox (desktop WebXR), full Steam Frame controller support (Chrome recognizing the
 controllers instead of "Oculus Touch"), native Steam Frame support (StreamXR in the Frame's own
 Chromium browser, no PC, once that browser supports WebXR), streaming services (HBO Max and
@@ -94,27 +94,26 @@ list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps 
 
 1. [x] **Cubemap seams** (0.93.4, works in the headset): the glass look's mipmaps (confirmed: gone with the glass off);
    the cubemap is now read at full resolution (see "Next" below).
-2. [ ] **Movies in Up Next** (small): price / rating in place of views and date, a yellow Movie
-   tag (`features/video-page.md`).
-3. [ ] **Explore's "Coming Soon" tabs, the ready ones** (small to medium): Live, Gaming, Music,
+2. [ ] **Explore's "Coming Soon" tabs, the ready ones** (small to medium): Live, Gaming, Music,
    Hype, Courses, Podcasts, Memberships; their readers exist, they need wiring into the tabs
    (`features/home-page.md`).
-4. [ ] **Info cards** (medium): YouTube's cards as they come up during a video
+3. [ ] **Info cards** (medium): YouTube's cards as they come up during a video
    (`features/video-page.md`).
-5. [ ] **End screen** (medium): the suggested videos and channel links when a video ends
+4. [ ] **End screen** (medium): the suggested videos and channel links when a video ends
    (`features/video-page.md`).
-6. [ ] **News tabs** (medium): Top stories, Sports ... and the Sports feed.
-7. [ ] **Add to queue** (medium to large): probe how desktop YouTube's queue can be driven, then
+5. [ ] **News tabs** (medium): Top stories, Sports ... and the Sports feed.
+6. [ ] **Add to queue** (medium to large): probe how desktop YouTube's queue can be driven, then
    a way to add from cards, the queue in Up Next, and what plays when a video ends
    (`features/video-page.md`).
-8. [ ] **Explore's other tabs** (large): Shorts, Movies & TV, Learning need new readers first
+7. [ ] **Explore's other tabs** (large): Shorts, Movies & TV, Learning need new readers first
    (`features/home-page.md`).
-9. [ ] **Commenting in VR** (large): writing comments and replies with the VR keyboard (posting,
+8. [ ] **Commenting in VR** (large): writing comments and replies with the VR keyboard (posting,
    threads, typing into the Comments panel).
-10. [ ] **Chrome Web Store release, StreamXR 1.0** (last: it waits on the rest): the store
+9. [ ] **Chrome Web Store release, StreamXR 1.0** (last: it waits on the rest): the store
     listing, the privacy questions (the README's "Your privacy" covers them), review.
 
-Set aside: the Back button (0.73.0; comes back on demand).
+Set aside: the Back button (0.73.0; comes back on demand). Deferred: Movies in Up Next (YouTube's
+movies are copy-protected, so they can't play in VR yet: `features/video-page.md`, "Deferred").
 
 ## Next: from u/TehSuperFruitSnack's Reddit feedback (after 0.88.1)
 
@@ -146,8 +145,6 @@ Set aside: the Back button (0.73.0; comes back on demand).
 
 ## Features to build (easiest first)
 
-- [ ] **Movies in Up Next**: the price / rating in place of views and date, a yellow Movie tag
-  (`features/video-page.md`).
 - [x] **Premium features** (audited 2026-10-17, `features/video-page.md`): **1080p Premium** in the
   Quality menu and **Jump ahead**, marked with the Diamond (purple without Premium, YouTube Red
   with it). 1080p Premium (0.91.0) and Jump ahead (0.92.3) work in the headset. **Add to queue** is its own item
