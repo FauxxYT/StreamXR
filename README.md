@@ -22,8 +22,8 @@ The latest release, in short (every version's details are in the [changelog](CHA
 
 - 🕶️ **3D side-by-side videos:** some 3D videos reach your browser with both eyes in one frame.
   Pick **180° 3D side by side** (VR180) or **Cinema 3D side by side** (regular 3D videos on the
-  cinema screen) in the Format menu, and each eye gets its own half, in real 3D. Thanks to
-  [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack) for spotting them!
+  cinema screen) in the Format menu, and each eye gets its own half, in real 3D. Thanks to [@damics80](https://x.com/damics80) for asking for it and
+  [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack) for spotting the VR180 ones!
 - 💎 **YouTube Premium in VR:** **1080p Premium** (the enhanced bitrate) in the Quality menu, and
   **Jump ahead** at the end of the seek bar whenever YouTube offers it, both marked with the
   Diamond.
@@ -316,7 +316,7 @@ what bugs you most):
   vibrate yet, so Settings → Appearance → Vibration is greyed out.
 - **Only Steam Frame controller models.** Other controllers are drawn as Steam Frame
   controllers. Besides the Steam Frame, only the Quest 2 has been reported working (by
-  u/TehSuperFruitSnack); other headsets are untested. **Got 3D models of your controllers?** 🧊
+  [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack)); other headsets are untested. **Got 3D models of your controllers?** 🧊
   Share them in a **Headset / controller compatibility** issue (with where they came from and
   their license) and I'll integrate them once I start accepting pull requests. They need a
   license that lets them be shared and changed in a free project, with credit (for example

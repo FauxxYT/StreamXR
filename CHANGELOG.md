@@ -31,7 +31,7 @@ developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 ## 0.93.0
 
 ### Added
-- **Cinema screen 3D side by side:** a new format for regular (not VR180) 3D videos that put
+- **Cinema screen 3D side by side** (asked for by [@damics80](https://x.com/damics80)): a new format for regular (not VR180) 3D videos that put
   both eyes in one frame: the cinema screen gives each eye its half, in 3D, with the `3d` icon
   on the Format button (180° 3D side by side keeps its own). The screen takes one eye's shape:
   a 16:9 frame with each eye squeezed into half ("half side by side", the usual upload) shows
@@ -142,7 +142,7 @@ developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 ## 0.89.0
 
 ### Added
-- **3D side-by-side videos:** a new format, **180° 3D side by side**, in the Format menu (and
+- **3D side-by-side videos** (the VR180 ones spotted by [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack)): a new format, **180° 3D side by side**, in the Format menu (and
   the video page's format picker). Some VR180 videos reach the browser with both eyes in one
   frame (left eye's picture on the left), which used to be stretched over the half sphere as
   one picture; this format gives each eye its half, in 3D. YouTube's data doesn't mark these
@@ -166,7 +166,7 @@ developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
   A press that closes a menu, a dialog or typing still only does that; the next one hides.
   Another pull, or pointing at a panel, brings them back. Panels set to stay up (the live
   chat) stay.
-- **Settings → Auto-hide → "Hide while paused"** (suggested by u/TehSuperFruitSnack; off by default, remembered): while on, the
+- **Settings → Auto-hide → "Hide while paused"** (suggested by [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack); off by default, remembered): while on, the
   auto-hide waits also run with the video paused, so you can pause and take in a 180° / 360°
   scene with nothing in the way. The waits themselves are unchanged.
 
