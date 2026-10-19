@@ -6,6 +6,59 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.97.4
+
+### Fixed
+- **An info card's video showed first in Up Next**: reading Up next from the page also picked
+  up the description panel's info cards (YouTube keeps that panel in the same side column);
+  links inside YouTube's side panels are now skipped.
+- **The info card teaser could come up with the panels hidden**: like Skip ad, a teaser now
+  brings the controls panel back, and it stays while the teaser shows.
+
+## 0.97.3
+
+### Changed
+- **The Cards menu shows the cards as videos**: each row has the video's thumbnail with its
+  length, its title, and channel · views · age (the shell's menus can now show a picture on
+  a row's left).
+- **The info card teaser is clickable**: pointing at it and clicking plays the card's video.
+
+## 0.97.2
+
+### Fixed
+- **Info cards read from where YouTube keeps them**: the video's description data (its
+  "infocards" section), so the Cards menu lists the real cards (title, then channel, views
+  and age), and the button is greyed only on videos without any.
+- **The teaser now follows YouTube's own**: the cards' times aren't in YouTube's data, so the
+  teaser floats above the Cards button while YouTube's player shows its card teaser (read
+  from the player, UNVERIFIED), with the card it's about. The "View corrections" teaser every
+  video has is ignored.
+
+## 0.97.1
+
+### Fixed
+- **Every video seemed to have a "View corrections" info card** (the Cards button never
+  greyed out): YouTube's card list holds that teaser on every video, with nothing behind it
+  but its corrections panel. It's left out; the real cards are still to read (they weren't in
+  that list on a video that has them).
+
+## 0.97.0
+
+### Added
+- **Info cards**: a **Cards** button on the controls panel (after Captions; greyed on a
+  video without cards). Its menu lists the video's cards (title, what it is, when it comes);
+  a choice plays the card's video or playlist (a link to another site says it opens on
+  desktop). When a card's time comes, its teaser floats above the button for 6 seconds,
+  like the Previous / Next hover card, and the button's icon fills.
+- **Autoplay** on the controls panel (next to Play, on the right): YouTube's own switch,
+  On / Off under its icon.
+- The shell: a site button can have a `teaser` (a card floating above it); the `autoplay`
+  icon.
+
+### Changed
+- **The controls panel is wider** (1408 px, was 1216) so its 13 buttons keep their full size
+  and the row stays even on both sides of Play.
+
 ## 0.96.6
 
 ### Fixed

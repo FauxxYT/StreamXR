@@ -306,6 +306,15 @@ even where they look like something to "fix".
   **Membership** page in the Channel panel: each level with its price, perks and disclaimer)
   and OK. A creator card in Explore → Memberships opens that Membership page. Joining stays
   on desktop: each level shows a greyed **Join on desktop** button.
+- **Info cards and Autoplay on the controls panel (the maintainer, 2026-10-19, 0.97.0):** the
+  panel is wider (1408 px, was 1216) so two more buttons keep full size and the row stays
+  even on both sides of Play: **Cards** at the inner end of the left part (after Captions;
+  always there, greyed on a video without cards, so the row never shifts; a menu of the
+  video's cards; as a card's time comes, its teaser floats above the button like the
+  Previous / Next hover card, nothing drawn over the video) and **Autoplay** at the inner end
+  of the right part (before Save; YouTube's own switch, On / Off under its icon). The teaser
+  is clickable (plays its card) and, like Skip ad, brings hidden panels back while it shows; the
+  Cards menu shows each card as a video row (thumbnail, length, title, channel · views · age).
 - **The Membership tab for a member (the maintainer, 2026-10-18):** on a channel you're a
   member of, the Membership tab has three pills: **Perks** (your level, "Member · 3 months" and
   your perks with their emoji and loyalty badges, on the same page as the Join offer), **Videos**

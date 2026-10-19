@@ -468,6 +468,27 @@ snippets); read by `youtube-chat.js` since 0.79.0:
   So `mostReplayed()` reads the page's data and otherwise asks `next` once per video
   (checked Oct 2026 on a very popular music video). Newer or less watched videos have none.
 
+## Info cards
+
+- The player's data has a card list, `playerResponse.cards.cardCollectionRenderer.cards[]`,
+  each a `cardRenderer` with `teaser.simpleCardTeaserRenderer.message` (the teaser),
+  `cueRanges[0].startCardActiveMs` (when it comes) and, in the shape it used to have, `content`
+  (a video, playlist or link card). StreamXR read it in 0.97.0 (`youtube-content.js` `cards()`,
+  the Cards button in `extras.js`); in practice it holds no real cards (below).
+  Probed 2026-10-19 (signed in): on a video **with** cards and one without, that list held
+  only one card, the same on both: a "View corrections" teaser (`prominent`, its tap opens the
+  `engagement-panel-error-corrections` panel) with no `content`, cue 0-5 s; the collection's
+  `headerText` is "From <channel>". It's left out (0.97.1). The video with cards had them in
+  the watch page's description panel instead: `engagementPanels[].…structuredDescriptionContentRenderer
+  .items[].videoDescriptionInfocardsSectionRenderer.infocards[].compactInfocardRenderer` (the
+  video without had the section but no infocards). Each `compactInfocardRenderer.content` is
+  e.g. a `structuredDescriptionVideoLockupRenderer` (`title`, `shortBylineText` "by …",
+  `metadataDetails` "56K views · 3 years ago", `lengthText`, `navigationEndpoint.watchEndpoint`).
+  **No times anywhere**: a teaser showed at 26:18 and neither the description section nor the
+  player's card list changed (still only the corrections card). So since 0.97.2 the cards are
+  read from the description section and the teaser's moment from the player's own
+  `.ytp-cards-teaser` element while it shows (`youtube-player.js` `cardTeaser()`; works, 0.97.2).
+
 ## Audio, channels, storyboards
 
 - Audio tracks (checked on OLEG ZAYANOV, `DbKDX-AyJIQ`: "English (US)" auto-dub = default,

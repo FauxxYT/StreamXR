@@ -59,11 +59,11 @@
   const TC = T.color;                                // (today's colours: the ad colour)
   const F = role => T.font(role);
 
-  // The panel is one 1216-pixel-wide canvas, laid out in fixed pixel positions (the world
+  // The panel is one 1408-pixel-wide canvas, laid out in fixed pixel positions (the world
   // size follows the panels' pixel density: vr-panel.js). From the top: title row, info line, creator
   // row (with the action buttons on its right), seek bar, button row, then the grab bar
   // below the body.
-  const W = 1216, H = 422;            // panel body is 0..374; the grab bar sits below it
+  const W = 1408, H = 422;            // panel body is 0..374; the grab bar sits below it (1408: 13 buttons at full width)
   const BODY_H = 374;
   const ROW_Y = 250;                  // top of the button row
   const ACTIONS = { y: 74, h: 58, gap: 12, joined: 3 };   // right to left; `joined`: inside a connected group

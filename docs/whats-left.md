@@ -2,7 +2,7 @@
 
 One list of what's still open, gathered from the feature backlogs (`docs/features/`) and
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
-Last updated for 0.96.6.
+Last updated for 0.97.4.
 
 ## Top priority: before the first release
 
@@ -101,7 +101,7 @@ list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps 
    Recommended playlist cards untested): clicking a
    playlist card opens it in its panel (Explore, You, Search, Channel, Up Next): details, Play all,
    Shuffle, Save, and its videos (`features/home-page.md`).
-4. [ ] **Info cards** (medium): YouTube's cards as they come up during a video
+4. [x] **Info cards** (0.97.0 to 0.97.4, work in the headset; with an Autoplay button): YouTube's cards as they come up during a video
    (`features/video-page.md`).
 5. [ ] **End screen** (medium): the suggested videos and channel links when a video ends
    (`features/video-page.md`).

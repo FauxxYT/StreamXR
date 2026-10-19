@@ -31,7 +31,9 @@
 //                           extras: { left: [...], right: [...], seek } (the site's own buttons on
 //                             the controls panel: panel-ui.js, plus menu: null | { items: [{ id,
 //                             text, on, disabled }], note, scroll, width, stay (stays open on a
-//                             choice) }: opens like Quality's),
+//                             choice) }: opens like Quality's, and teaser: null | { card, label }
+//                             (a card floating above the button for a while, like the hover
+//                             card: e.g. an info card as its time comes)),
 //                           ...and what the site's panels read } }
 //   The layout (docs/Spatial-Layout.md) is placed around the Safe Zone (safe-zone.js), which
 //   keeps the video clear: each registered panel belongs to a zone (its registration's
@@ -198,14 +200,15 @@
     let hoverImages = 0;
     const hoverCard = ns.vrHoverCardUI.create(() => { hoverImages++; });
     const hoverPass = ns.vrPanelPass.createPanelPass(gl, vaos, hoverCard.canvas);
-    let hoverShown = null;            // { rect (controls canvas px) } while a card is up
+    let hoverShown = null;            // { rect (controls canvas px), teaser (the site button's id, a teaser: clickable) } while a card is up
     let hoverKey = '';
 
     // ------------------------------------------------------------ popups and dialogs
     // The controls panel's menus float in front of it (32 dp, Android XR's popup level),
     // rising from the button that opened them (popups-ui.js createMenu); a dialog (confirm()
     // below) stands in front of everything (56 dp) over a dim layer (the scrim).
-    const menuUi = ns.vrPopupsUI.createMenu();
+    let menuImages = 0;                // bumps when a menu row's picture arrives (redraw)
+    const menuUi = ns.vrPopupsUI.createMenu(() => { menuImages++; });
     const menuPass = ns.vrPanelPass.createPanelPass(gl, vaos, menuUi.canvas), menuSize = metres(menuUi.canvas);
     let menuKey = '', menuShown = null;   // what was last drawn; the menu last opened (it fades out from its button)
     const dialogUi = ns.vrPopupsUI.createDialog();
@@ -424,6 +427,7 @@
     let menuDrag = null;              // { hand, v, scroll, moved } while a trigger drags a scrolling menu
     let muted = false;                // last seen mute state (for the Mute/Unmute button)
     let adSkippable = false;          // last seen: the current ad can be skipped
+    let teaserWas = false;            // last seen: a site button had a teaser up
     let targets = [];                 // other grabbable things (see setTargets)
     let targetGrab = null;            // { hand, target } while gripping one of them
     let drawnKey = '';
@@ -704,10 +708,12 @@
         const rest = id.slice(3), i = rest.indexOf(':'), xid = rest.slice(0, i), x = extraOf(xid);
         if (actions.extra) actions.extra(xid, rest.slice(i + 1));
         if (!(x && x.menu && x.menu.stay)) menu = null;
+      } else if (id.startsWith('teaser:')) {          // a site button's teaser card: 'teaser:<button>'
+        if (actions.extra) actions.extra(id.slice(7), 'teaser');
       }
     }
     // A site button as the button row draws it (without its menu).
-    const stripMenu = ({ menu: _m, ...x }) => x;
+    const stripMenu = ({ menu: _m, teaser: _t, ...x }) => x;   // (menus and teasers aren't drawn on the panel)
     // One of the site's own buttons (st.extras) by id, or null.
     const extraOf = xid => [...((extrasNow && extrasNow.left) || []), ...((extrasNow && extrasNow.right) || [])].find(x => x.id === xid) || null;
 
@@ -747,7 +753,7 @@
     //     (press, scrub/slide/drag while held, release = click) and the grip (grab the panel's
     //     bar or a handle), and set up the beam to draw;
     //  3. show the cinema screen's handles while the panel is up;
-    //  4. ad handling (no scrubbing; pop up when Skip appears) and auto-hide;
+    //  4. ad handling (no scrubbing; pop up when Skip appears, or a teaser) and auto-hide;
     //  5. redraw each canvas only if something it shows has changed.
     let lastUpdate = 0;               // the previous update's time (ms), for frameDt
     let frameDt = 0;                  // seconds since the previous update (capped)
@@ -853,7 +859,7 @@
         // What is this laser on? The panel (only while shown) or another target; nearest wins.
         const inside = r => !!(r && r.u >= 0 && r.u <= 1 && r.v >= 0 && r.v <= 1);
         const mainHit = visible && !kbShown && !dialog ? intersect(origin, dir) : null;   // (the keyboard stands in for it; a dialog is modal)
-        // Which surface the laser is on (nearest if several): 'main', 'orbit:<left | right |
+        // Which surface the laser is on (nearest if several): 'main', 'teaser', 'orbit:<left | right |
         // pill | bar>', 'menu', 'dialog', 'keyboard' or a panel id. The orbiters, the menu and the
         // keyboard only where they're drawn (the rest of their canvas lets the laser through).
         const hits = { main: mainHit };
@@ -862,6 +868,10 @@
             if (name === 'pill' && kbShown) continue;      // the pill sits on the controls panel, not the keyboard
             const r = intersect(origin, dir, orbiterModel(name), o.size);
             if (inside(r) && o.ui.solidAt(r.u, r.v)) hits[`orbit:${name}`] = r;
+          }
+          if (hoverShown && hoverShown.teaser && !kbShown) {   // a teaser card (clickable, unlike the hover card)
+            const r = intersect(origin, dir, hoverCardModel(hoverShown.rect), hoverSize);
+            if (inside(r)) hits.teaser = r;
           }
           if (menu && !kbShown) {                            // the floating menu (on its card only)
             const mm = menuModel(menu), r = mm && intersect(origin, dir, mm, menuSize);
@@ -905,6 +915,8 @@
           target = r ? { id: `kb:${r.id}` } : null;
         } else if (onPanel && surface === 'menu') {
           target = menuUi.hitTest(hit.u, hit.v);
+        } else if (onPanel && surface === 'teaser') {
+          target = { id: `teaser:${hoverShown.teaser}` };
         } else if (onPanel && surface === 'dialog') {
           target = dialogUi.hitTest(hit.u, hit.v);
         } else if (onPanel && surface === 'orbit:bar') {
@@ -1079,6 +1091,10 @@
       const canSkip = !!(ad && ad.skippable && ad.canSkipInVR);
       if (canSkip && !adSkippable) { visible = true; lastActivity = now; }
       adSkippable = canSkip;
+      // Likewise when a site button's teaser comes up (e.g. an info card), and they stay while it shows.
+      const teaserUp = !ad && !!extrasNow && [...(extrasNow.left || []), ...(extrasNow.right || [])].some(x => x.teaser && !x.disabled);
+      if (teaserUp && !teaserWas) { visible = true; lastActivity = now; }
+      teaserWas = teaserUp;
 
       // Auto-hide while playing and nobody is using it (typing into a panel, or the keyboard
       // being up, counts as using it), each part after its own wait (Settings → Auto-hide,
@@ -1090,7 +1106,7 @@
       const F = ns.vrFadeOptions, unused = now - lastActivity;
       if (dismissedAt >= 0 && lastActivity > dismissedAt) dismissedAt = -1;
       const playing = !st.paused || (F.hideWhilePaused() && st.duration > 0);
-      const idle = playing && !scrub && !setDrag && !pressed && !grab && !sideGrab && !menu && !dialog && !canSkip && !typingNow() && !kbShown;
+      const idle = playing && !scrub && !setDrag && !pressed && !grab && !sideGrab && !menu && !dialog && !canSkip && !teaserUp && !typingNow() && !kbShown;
       if (visible && idle && unused > F.seconds('panels') * 1000) visible = false;
       barsAwake = dismissedAt < 0 && !(idle && unused > F.seconds('bars') * 1000);
       searchAwake = dismissedAt < 0 && !(idle && unused > F.seconds('search') * 1000);
@@ -1177,7 +1193,7 @@
         // at on them, changes, and every frame while something on them eases).
         if (menuState) {
           menuShown = menu;
-          const mKey = [JSON.stringify(menuState), hover, pressed && pressed.id, Math.round(menuUi.shownScroll()), ns.i18n.version(), ns.vrTokens.glass.version, menuUi.moving() ? now : ''].join('|');
+          const mKey = [JSON.stringify(menuState), hover, pressed && pressed.id, Math.round(menuUi.shownScroll()), menuImages, ns.i18n.version(), ns.vrTokens.glass.version, menuUi.moving() ? now : ''].join('|');
           if (mKey !== menuKey) { menuUi.draw(menuState, { hover, pressed: pressed && pressed.id }); menuPass.upload(); menuKey = mKey; }
         }
         if (dialog) {
@@ -1186,13 +1202,16 @@
         }
 
         // Hover card: pointing at Previous / Next in a list shows the card it leads to
-        // (nowPlaying.queue.prev / next, cards made by the provider).
+        // (nowPlaying.queue.prev / next, cards made by the provider); otherwise a site
+        // button's teaser floats above that button (extras' teaser: { card, label }).
         const q = state.nowPlaying && state.nowPlaying.queue;
-        const cardItem = q && !ad ? (hover === 'pl:prev' ? q.prev : hover === 'pl:next' ? q.next : null) : null;
-        const cardRect = cardItem && ui.rectOf(hover);
-        hoverShown = cardRect ? { rect: cardRect } : null;
+        let cardItem = q && !ad ? (hover === 'pl:prev' ? q.prev : hover === 'pl:next' ? q.next : null) : null;
+        let cardAt = hover, label = hover === 'pl:prev' ? tr('panel.previousVideo') : tr('panel.nextVideo');
+        const teasing = !cardItem && !ad && !menu && [...((extrasNow && extrasNow.left) || []), ...((extrasNow && extrasNow.right) || [])].find(x => x.teaser && !x.disabled);
+        if (teasing) { cardItem = teasing.teaser.card; cardAt = `x:${teasing.id}`; label = teasing.teaser.label || ''; }
+        const cardRect = cardItem && ui.rectOf(cardAt);
+        hoverShown = cardRect ? { rect: cardRect, teaser: teasing ? teasing.id : null } : null;
         if (hoverShown) {
-          const label = hover === 'pl:prev' ? tr('panel.previousVideo') : tr('panel.nextVideo');
           const card = cardItem;
           const hKey = [JSON.stringify(card), label, hoverImages, ns.vrTokens.glass.version].join('|');
           if (hKey !== hoverKey) { hoverCard.draw(card, label); hoverPass.upload(); hoverKey = hKey; }

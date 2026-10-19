@@ -254,6 +254,17 @@
   const setLoop = on => { call('setLoopVideo', [!!on]); };
 
   // Autoplay (play the next video when this one ends): the player's own toggle button.
+  // The info card teaser the player shows now (its text, e.g. a linked video's title), or ''.
+  // YouTube's card data holds no times for the real cards, so the moment is read from its own
+  // player: the `.ytp-cards-teaser` element while it's laid out and visible (UNVERIFIED).
+  function cardTeaser() {
+    const el = [...document.querySelectorAll('#movie_player .ytp-cards-teaser')]
+      .find(e => e.getClientRects().length && getComputedStyle(e).display !== 'none' && getComputedStyle(e).visibility !== 'hidden' && +getComputedStyle(e).opacity > 0);
+    if (!el) return '';
+    const t = el.querySelector('.ytp-cards-teaser-text') || el;
+    return (t.textContent || '').trim();
+  }
+
   const autoplayButton = () => document.querySelector('.ytp-autonav-toggle-button');
   const autoplay = () => { const b = autoplayButton(); return b ? b.getAttribute('aria-checked') === 'true' : null; };
   function setAutoplay(on) {
@@ -406,7 +417,7 @@
     player, video, call, toggle, seek, seekTo, isPaused, currentTime, duration, title, channel, quality, setQuality, hasPremium, jumpAhead, jumpAheadOffered, info,
     speeds, speed, setSpeed, volume, setVolume, setMuted,
     captions, setCaptions, captionLines, audioTracks, setAudioTrack,
-    loop, setLoop, autoplay, setAutoplay, playlistPosition, nextVideo, previousVideo, playAt,
+    loop, setLoop, autoplay, setAutoplay, cardTeaser, playlistPosition, nextVideo, previousVideo, playAt,
     live, goLive, sphericalView, setSphericalView, storyboard, ad, skipAd, skipHelperInstalled,
     videoData, statsForNerds, aspectRatio, playerState, loadedFraction, bufferedEnd,
   };

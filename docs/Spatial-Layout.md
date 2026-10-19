@@ -113,7 +113,7 @@ Measured from `config.js` (the mock-up prints these):
 |---|---|---|
 | Open panel (Browse) | centre −7°, 50° wide × 34° tall, 1.08 m away | centre −5°, ≈ 48° wide, 1.75 m |
 | Toolbar | between the controls and the panel, −28° | navigation never between panels |
-| Controls panel | centre −37°, 44° × 12°, 1.0 m | an orbiter under its panel |
+| Controls panel | centre −37°, 50° × 12° (44° until 0.97.0), 1.0 m | an orbiter under its panel |
 | Whole stack | +10° to −43° tall | primary content in the central 41° |
 
 Already as the guides ask: one panel at a time; panels fixed in the room with Recenter (no

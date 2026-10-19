@@ -75,7 +75,9 @@ published; what matters from them is in this file and docs/youtube.md).
 - [x] ~~**Transcript panel**~~ DONE (v0.29.0: "Transcript" tab when the video has one;
   loading spinner, current line highlighted and followed, click a line to seek)
   - ~~Code: `youtubeContent.transcript()`, `youtubeContent.hasTranscript()`~~
-- [ ] **Info cards**
+- [x] **Info cards** (0.97.0 to 0.97.4, work in the headset: the menu with thumbnails, the clickable teaser at the right time, greying,
+  the panels coming back for a teaser: a Cards button on the controls panel,
+  a menu of the video's cards, and each card's teaser above the button as its time comes)
   - Code: `youtubeContent.cards()`
   - VR idea: show the "i" cards (linked videos/playlists) at their times.
 

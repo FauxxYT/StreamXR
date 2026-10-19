@@ -30,6 +30,7 @@
         if (/[?&]list=/.test(a.getAttribute('href'))) continue;                               // playlist card
         const card = a.closest(CARD) || a.parentElement;
         if (!card || card.closest('ytd-ad-slot-renderer, ytd-in-feed-ad-layout-renderer')) continue;   // skip ads
+        if (card.closest('ytd-engagement-panel-section-list-renderer')) continue;   // a side panel's (e.g. the description's info cards), not Up next
         const title = textOf(card.querySelector('#video-title, h3 [title], h3, .yt-lockup-metadata-view-model__title, a#video-title-link'))
           || a.getAttribute('title') || textOf(a);
         if (!title) continue;

@@ -210,22 +210,26 @@
     });
   }
 
-  // Info cards (the "i" teasers during the video): [{ start (s), teaser, title, subtitle,
-  //   image, videoId?, playlistId?, url? }]
+  // Info cards (the "i" cards): [{ title, subtitle (who · views · age, or what it is), image,
+  //   duration, videoId?, playlistId?, url? }], as the video's description panel lists them
+  //   (videoDescriptionInfocardsSectionRenderer: compactInfocardRenderer's content, e.g. a
+  //   structuredDescriptionVideoLockupRenderer). Their times aren't there (nor in the player's
+  //   card list, which only holds a "View corrections" teaser on every video): the moment a
+  //   card's teaser shows is read from the player itself (youtube-player.js cardTeaser()).
   function cards() {
-    const list = dig(D.playerResponse(), 'cards', 'cardCollectionRenderer', 'cards') || [];
-    return list.map(c => c.cardRenderer).filter(Boolean).map(c => {
-      const content = c.content ? c.content[Object.keys(c.content)[0]] : {};
+    const sec = findKey(D.watchData() && D.watchData().engagementPanels, 'videoDescriptionInfocardsSectionRenderer');
+    return ((sec && sec.infocards) || []).map(c => c.compactInfocardRenderer).filter(Boolean).map(c => {
+      const content = c.content ? c.content[Object.keys(c.content)[0]] || {} : {};
       const we = findKey(content, 'watchEndpoint') || {}, ue = findKey(content, 'urlEndpoint') || {};
+      const be = findKey(content, 'browseEndpoint') || {};
+      const playlistId = we.playlistId || (be.browseId && /^VL/.test(be.browseId) ? be.browseId.slice(2) : undefined);
       return {
-        start: (+dig(c, 'cueRanges', 0, 'startCardActiveMs') || 0) / 1000,
-        teaser: strOf(dig(c, 'teaser', 'simpleCardTeaserRenderer', 'message')),
-        title: strOf(content.videoTitle || content.playlistTitle || content.title),
-        subtitle: strOf(content.channelName || content.viewCountText || content.playlistVideoCount),
-        image: bestImage(content.videoThumbnail || content.playlistThumbnail || content.image),
-        videoId: we.videoId, playlistId: we.playlistId, url: ue.url,
+        title: strOf(content.title),
+        subtitle: [strOf(content.shortBylineText).replace(/^by\s+/i, ''), strOf(content.metadataDetails)].filter(Boolean).join(' · '),
+        image: we.videoId ? D.thumbOf(we.videoId) : bestImage(content.thumbnail),
+        duration: strOf(content.lengthText), videoId: we.videoId, playlistId, url: ue.url,
       };
-    });
+    }).filter(c => c.title);
   }
 
   // ---------------------------------------------------------------- playlist being played

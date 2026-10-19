@@ -12,7 +12,9 @@
 //   menu.draw(m, { hover, pressed })   m: { items: [{ id, text ("1080p" or "1080p\nPremium"),
 //     on (the current one: ticked), disabled, icons (optional: Material Symbols names, or
 //     { name, color } for one in its own colour (symbols.js drawIcon), drawn
-//     on the row's left, e.g. ['4k', '60fps']; the tick then moves to the right end) }],
+//     on the row's left, e.g. ['4k', '60fps']; the tick then moves to the right end), image (a
+//     picture's url: a 16:9 thumbnail on the row's left, the row taller, e.g. a video), corner
+//     (text on the picture's bottom-right, e.g. its length) }],
 //     note (a grey line above the items), scroll
 //     (a long list scrolls: see drawList), key, width }
 //     or { volume: { level (0-100), muted } }; ids: the items', or 'vol:mute' / 'vol:slider'
@@ -37,17 +39,20 @@
   const tr = (key, vars) => ns.i18n.t(key, vars);   // words in the interface language (i18n.js)
   const inside = (r, x, y) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
 
-  function createMenu() {
+  // onImageLoaded(): a row's picture arrived (the caller redraws).
+  function createMenu(onImageLoaded = () => {}) {
     const W = 680, H = 760;                              // room for the widest (volume) and tallest (a long list)
     const LIST_W = 360, ROW_H = 64, MIN_ROW_H = 40, PAD = 8, NOTE_H = 48;   // rows shrink (to MIN_ROW_H) so a long list fits
     const SCROLL_ROWS = 8;                               // a scrolling list shows this many rows
     const ICON = 32, ICON_STEP = 36, ICON_LEFT = 20;     // items' leading icons: size, spacing, left margin (px)
+    const THUMB = { w: 144, h: 81, rowH: 100 };          // items' pictures (16:9, e.g. a video's), and their rows' height
     const VOL = { w: 640, h: 112 };
     const canvas = document.createElement('canvas');
     canvas.width = W; canvas.height = H;
     const g = canvas.getContext('2d');
     const motion = ns.vrMotion.create();                // hover / press easing (motion.js)
     let regions = [], card = null, slider = null;
+    const kit = ns.vrKit.createCardKit(g, onImageLoaded);   // (pictures: loading and drawing)
     let list = null, scroll = 0, maxScroll = 0, listKey = null;   // a list's scrolling part, how far scrolled (px), how far it can, its m.key
 
     // The menu's card at r: the panels' glass (T.panelFill: the tint, drawn over the blurred
@@ -80,11 +85,12 @@
     function drawList(m, ui) {
       const items = m.items || [];
       const lead = Math.max(0, ...items.map(it => (it.icons || []).length));
-      const textX = lead ? ICON_LEFT + lead * ICON_STEP + 12 : 64;    // where the names start in a row
-      const listW = Math.min(W, (m.width || LIST_W) + (lead ? textX - 64 + 40 : 0));
+      const pics = items.some(it => it.image != null);              // rows with pictures (taller)
+      const textX = pics ? 12 + THUMB.w + 16 : lead ? ICON_LEFT + lead * ICON_STEP + 12 : 64;    // where the names start in a row
+      const listW = Math.min(W, (m.width || LIST_W) + (lead || pics ? textX - 64 + 40 : 0));
       const noteH = m.note ? NOTE_H : 0;
-      const rowH = m.scroll ? ROW_H : Math.max(MIN_ROW_H, Math.min(ROW_H, Math.floor((H - PAD * 2 - noteH) / Math.max(1, items.length))));
-      const shownRows = m.scroll ? Math.min(items.length, SCROLL_ROWS) : items.length;
+      const rowH = pics ? THUMB.rowH : m.scroll ? ROW_H : Math.max(MIN_ROW_H, Math.min(ROW_H, Math.floor((H - PAD * 2 - noteH) / Math.max(1, items.length))));
+      const shownRows = m.scroll ? Math.min(items.length, pics ? 6 : SCROLL_ROWS) : items.length;
       const h = PAD * 2 + noteH + shownRows * rowH;
       card = { x: (W - listW) / 2, y: H - h, w: listW, h };
       cardAt(card);
@@ -115,9 +121,21 @@
         g.globalAlpha = it.disabled ? 0.38 : 1;
         const fg = it.on ? P.onSecondaryContainer : P.onSurface;
         g.fillStyle = fg;
-        if (it.on) S.draw(g, 'check', lead ? r.x + r.w - 30 : r.x + 32, r.y + r.h / 2, 28, false);
+        if (it.on) S.draw(g, 'check', lead || pics ? r.x + r.w - 30 : r.x + 32, r.y + r.h / 2, 28, false);
+        if (pics) {                                          // its picture (a grey box until it loads), the corner text on it
+          const tx = r.x + 12, ty = r.y + (r.h - THUMB.h) / 2, img = it.image && kit.image(it.image);
+          g.save(); roundRect(g, tx, ty, THUMB.w, THUMB.h, 10); g.clip();
+          if (img) kit.drawImageCover(img, tx, ty, THUMB.w, THUMB.h); else { g.fillStyle = P.surfaceContainerHighest; g.fillRect(tx, ty, THUMB.w, THUMB.h); }
+          g.restore();
+          if (it.corner) {
+            g.font = T.font('labelMedium', 15); const cw = g.measureText(it.corner).width + 10;
+            g.fillStyle = 'rgba(0,0,0,0.75)'; roundRect(g, tx + THUMB.w - cw - 5, ty + THUMB.h - 25, cw, 20, 4); g.fill();
+            g.fillStyle = '#FFFFFF'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(it.corner, tx + THUMB.w - cw / 2 - 5, ty + THUMB.h - 14);
+            g.fillStyle = fg;
+          }
+        }
         (it.icons || []).forEach((icon, k) => S.drawIcon(g, icon, r.x + ICON_LEFT + ICON_STEP * k + ICON_STEP / 2, r.y + r.h / 2, ICON, false));
-        const lines = String(it.text).split('\n'), textW = r.w - textX - (lead ? 52 : 12);
+        const lines = String(it.text).split('\n'), textW = r.w - textX - (lead || pics ? 52 : 12);
         g.textAlign = 'left'; g.textBaseline = 'middle';
         g.font = T.font('labelLarge', 24);
         g.fillText(clip(lines[0], textW), r.x + textX, r.y + r.h / 2 + (lines.length > 1 ? -11 : 1));
