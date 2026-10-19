@@ -53,10 +53,10 @@
   // Where a shelf's "View all" leads (seen 2026-10-18, signed out): { playlistId } when it's a
   // playlist (Hype's shelves: the menu's browse to "VL<playlist id>"), { browseId, params }
   // when it's a page of its own (Live's shelves: the shelf's `endpoint`, a channel's live
-  // tab), or null.
+  // tab; a game shelf's header: UNVERIFIED, presumably the game's own page), or null.
   function viewAllOf(shelf) {
     const be = dig(shelf.endpoint, 'browseEndpoint') || findKey(shelf.showMoreButton, 'browseEndpoint')
-      || findKey(shelf.menu, 'browseEndpoint');
+      || findKey(shelf.menu, 'browseEndpoint') || findKey(dig(shelf, 'header', 'richListHeaderRenderer'), 'browseEndpoint');
     if (!be || !be.browseId) return null;
     if (/^VL/.test(be.browseId)) return { playlistId: be.browseId.slice(2) };
     return { browseId: be.browseId, params: be.params || '' };
@@ -74,8 +74,10 @@
   // Every shelf inside one entry of a page, in order (an entry can hold several: the
   // Memberships page puts "Popular creators", "Trending content", "Up-and-coming" ... in one
   // item section), not looking inside a shelf once found. The newer horizontalShelfViewModel
-  // has its title in header.sectionHeaderViewModel.
-  const SHELF_KEYS = ['richShelfRenderer', 'shelfRenderer', 'reelShelfRenderer', 'horizontalShelfViewModel'];
+  // has its title in header.sectionHeaderViewModel; a horizontalCardListRenderer (the Gaming
+  // page's game shelves, signed in: its cards are videoCardRenderers, or games, left out) in
+  // header.richListHeaderRenderer.
+  const SHELF_KEYS = ['richShelfRenderer', 'shelfRenderer', 'reelShelfRenderer', 'horizontalShelfViewModel', 'horizontalCardListRenderer'];
   function shelvesIn(node, out = [], depth = 0) {
     if (!node || typeof node !== 'object' || depth > 20) return out;
     if (Array.isArray(node)) { for (const x of node) shelvesIn(x, out, depth + 1); return out; }
@@ -99,7 +101,8 @@
         loose = null;
         for (const shelf of shelves) {
           const got = C.collect(shelf.contents || shelf.content || shelf.items || shelf);
-          const title = strOf(shelf.title) || strOf(dig(shelf, 'header', 'sectionHeaderViewModel', 'headline'));
+          const title = strOf(shelf.title) || strOf(dig(shelf, 'header', 'sectionHeaderViewModel', 'headline'))
+            || strOf(dig(shelf, 'header', 'richListHeaderRenderer', 'title'));
           if (got.items.length || got.posts.length) out.push({ title, items: got.items, posts: got.posts, viewAll: viewAllOf(shelf) });
         }
         continue;

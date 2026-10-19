@@ -34,7 +34,7 @@ are the extra work for each feature once the panel exists.
    - Code: `home(chip)`; `p.chips` lists the chips on offer (personalised: News, Music,
      Gaming, Live, Recently uploaded, Watched ...)
    - VR idea: a scrollable row of chip buttons above the grid.
-3. [x] **Explore feeds: Live, Gaming, Music, Hype, Courses, Podcasts, Memberships** (0.94.0 to 0.95.6, work in the headset: each a tab with its sections as pills, "View all" behind each pill, square podcast cards, Memberships' creators and the Membership tab; Gaming's signed-in game shelves still not read; v0.74.0: each
+3. [x] **Explore feeds: Live, Gaming, Music, Hype, Courses, Podcasts, Memberships** (0.94.0 to 0.95.6, work in the headset: each a tab with its sections as pills, "View all" behind each pill, square podcast cards, Memberships' creators and the Membership tab; Gaming's signed-in game shelves as pills since 0.96.5, work in the headset (the pill row keeps its place: 0.96.6); v0.74.0: each
    is a "Coming Soon" tab of the Explore panel, with Shorts, Movies & TV and Learning, ready to fill)
    - Code: `feed(name)` -> sections [{ title, items }] ("Live Now", "Upcoming Live
      Streams", "Top 100" ...)

@@ -205,9 +205,13 @@
       p.next().then(() => {
         if (p === pager && current().chips === 'home' && p.chips && p.chips.length) homeChips = orderChips(p.chips);
         // A list with its own choices (the Channels list's sorts, a feed's sections): offered as its pills, the one
-        // it shows chosen.
+        // it shows chosen. Choices already offered stay, in place, with new ones after them: a
+        // chosen section reads fewer pages, so it would offer fewer (and the pill row, its
+        // labels changed, would slide back to its start).
         if (p === pager && current().chips === 'sorts' && p.sorts && p.sorts.length) {
-          sortsOf[source] = p.sorts.map(x => ({ id: x.text, label: x.label || x.text }));
+          const known = sortsOf[source] || [];
+          const fresh = p.sorts.map(x => ({ id: x.text, label: x.label || x.text }));
+          sortsOf[source] = [...known, ...fresh.filter(f => !known.some(k => k.id === f.id))];
           const on = p.sorts.find(x => x.selected); if (on) chipOf[source] = on.text;
         }
         // A list that found out which of its chips exist (Your channel's tabs), and which it read.

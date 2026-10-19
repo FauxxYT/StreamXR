@@ -408,9 +408,10 @@
   //   const strip = createStrip();
   //   strip.draw(g, regions, box, contentW, key, paint): box { x, y, w, h } is the row's room
   //     on the canvas; contentW how wide the row is; key changes when its contents do (back
-  //     to the start). paint(ctx, regions, x) draws the row starting at x on ctx (canvas
-  //     coordinates); a row that fits is painted straight onto g, else onto the strip's own
-  //     canvas (shifted, faded, then copied in) and its regions are cut to what shows.
+  //     to the start, unless the new key only adds to the end of the old one). paint(ctx,
+  //     regions, x) draws the row starting at x on ctx (canvas coordinates); a row that fits
+  //     is painted straight onto g, else onto the strip's own canvas (shifted, faded, then
+  //     copied in) and its regions are cut to what shows.
   //   strip.point(x, y): where the laser is on the panel (canvas px; called from hitTest).
   //   strip.moving() -> true while it's sliding (keep redrawing).
   const STRIP = { edge: 150, speed: 900, fade: 48, margin: 8, stale: 150 };   // px, px/s at the very end, px, px, ms
@@ -429,7 +430,8 @@
     }
     function draw(g, regions, b, contentW, key, paint) {
       box = b; max = Math.max(0, contentW - b.w);
-      if (key !== lastKey) { lastKey = key; offset = 0; }
+      // New contents: back to the start, unless they only added to the end (more pills arriving).
+      if (key !== lastKey) { if (!(lastKey && key.startsWith(lastKey))) offset = 0; lastKey = key; }
       const now = performance.now(), dt = last ? Math.min(0.05, (now - last) / 1000) : 0;
       last = now;
       offset = Math.min(max, Math.max(0, offset + speed() * dt));

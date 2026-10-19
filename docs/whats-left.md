@@ -2,7 +2,7 @@
 
 One list of what's still open, gathered from the feature backlogs (`docs/features/`) and
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
-Last updated for 0.96.4.
+Last updated for 0.96.6.
 
 ## Top priority: before the first release
 
@@ -97,7 +97,7 @@ list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps 
 2. [x] **Explore's "Coming Soon" tabs, the ready ones** (0.94.0 to 0.95.6, work in the headset): Live, Gaming, Music,
    Hype, Courses, Podcasts, Memberships, each with its sections as pills
    (`features/home-page.md`).
-3. [x] **A playlist's page before playing it** (0.96.0 to 0.96.2, works in the headset;
+3. [x] **A playlist's page before playing it** (0.96.0 to 0.96.4, works in the headset;
    Recommended playlist cards untested): clicking a
    playlist card opens it in its panel (Explore, You, Search, Channel, Up Next): details, Play all,
    Shuffle, Save, and its videos (`features/home-page.md`).
@@ -105,7 +105,8 @@ list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps 
    (`features/video-page.md`).
 5. [ ] **End screen** (medium): the suggested videos and channel links when a video ends
    (`features/video-page.md`).
-6. [ ] **News tabs** (medium): Top stories, Sports ... and the Sports feed.
+6. [x] **News tabs** (0.94.x, work in the headset): Top stories, Sports ... as pills on Explore's
+   News tab. Also done along the way: Gaming's game shelves as pills (0.96.5 to 0.96.6).
 7. [ ] **Add to queue** (medium to large): probe how desktop YouTube's queue can be driven, then
    a way to add from cards, the queue in Up Next, and what plays when a video ends
    (`features/video-page.md`).

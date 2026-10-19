@@ -345,7 +345,7 @@
   // 4 days ago") or short ("7.4K • 4d ago", Watch later): { views: "7.4K views", age:
   // "4 days ago" }, '' for what's missing.
   function statsFromInfo(info) {
-    const parts = strOf(info).split('•').map(s => s.trim()).filter(Boolean);
+    const parts = strOf(info).split(/[•·]/).map(s => s.trim()).filter(Boolean);
     let views = '', age = '';
     for (const p of parts) {
       if (!views && (viewsText(p) || /^[\d.,]+\s*[KMB]?$/i.test(p))) views = viewsText(p) || `${p} views`;

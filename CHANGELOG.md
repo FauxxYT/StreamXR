@@ -6,6 +6,22 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.96.6
+
+### Fixed
+- **The pill row jumped back to its start after picking a pill** (seen on Gaming's game
+  shelves): a chosen section reads fewer pages, so it offered fewer pills; the pills already
+  offered now stay, with new ones added after them. A sliding row also keeps its place when
+  more pills arrive at its end.
+
+## 0.96.5
+
+### Added
+- **Gaming's game shelves** (signed in): each game's row of videos on YouTube's Gaming page
+  (Fortnite, Red Dead Redemption 2, Half-Life: Alyx ...) is now a pill on Explore's Gaming
+  tab, with its videos; a pill's "View all" leads to the game's own page. The game cards
+  themselves ("Top live games", Playables) are left out: they're games, not videos.
+
 ## 0.96.4
 
 ### Added

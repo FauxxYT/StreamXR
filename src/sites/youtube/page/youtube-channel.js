@@ -157,6 +157,9 @@
         const v = o[k];
         if (k === 'lockupViewModel') { const it = D.fromLockup(v); if (it) out.items.push(it); continue; }
         if (k === 'videoRenderer' || k === 'compactVideoRenderer' || k === 'gridVideoRenderer') { const it = D.fromCompact(v); if (it) out.items.push(it); continue; }
+        // A card in a horizontal card list (the Gaming page's game shelves, signed in): the older
+        // video fields, its channel as bylineText and views · age as metadataText (UNVERIFIED).
+        if (k === 'videoCardRenderer') { const it = D.fromCompact({ ...v, shortBylineText: v.bylineText || v.shortBylineText, videoInfo: v.metadataText || v.videoInfo }); if (it) out.items.push(it); continue; }
         if (k === 'shortsLockupViewModel') { const it = fromShort(v); if (it) { out.items.push(it); out.shorts.push(it); } continue; }
         if (k === 'gridShowRenderer') { const it = fromShow(v); if (it) out.items.push(it); continue; }
         if (k === 'backstagePostRenderer' || k === 'postRenderer') { const it = fromPost(v); if (it) out.posts.push(it); continue; }

@@ -163,8 +163,15 @@ Channel, Home, Subscriptions); what matters from them is in this file and the ba
   (`subscribed: true`). The tab list also had **"Podcasts"** (params `Eghwb2RjYXN0c_IGBQoDugEA`).
 - **Gaming page** (`UCOpNcN46UbXVtpKMrmU4Abg`, the same browse id as youtube.com/gaming;
   signed out, 2026-10-18): a "Featured" shelf, a `horizontalCardListRenderer` of
-  `gameCardRenderer`s ("Top live games": games, not videos) and no continuation. Signed in,
-  game shelves show on the page too: where they come from is still to see.
+  `gameCardRenderer`s ("Top live games": games, not videos) and no continuation. Signed in
+  (2026-10-19): every entry is an `itemSectionRenderer`; after "Featured" (a `shelfRenderer`),
+  a game-card list, "Recommended" (a `shelfRenderer` grid) and a Shorts `reelShelfRenderer`
+  come "YouTube Playables" (`miniGameCardViewModel`s) and then the **game shelves**: each a
+  `horizontalCardListRenderer` with its title in `header.richListHeaderRenderer` (the game's
+  name: "Fortnite", "Red Dead Redemption 2" ...; some are "Collaborators") and its videos as
+  `videoCardRenderer`s, about 14 on the first page and more on the continuation. Read since
+  0.96.5 (`youtube-home.js` SHELF_KEYS, `youtube-channel.js` collect; videos, channel, views
+  and age work in the headset); the header's "View all" link is UNVERIFIED.
 ## Subscribe and Like
 
 - The watch page's subscribe box holds both buttons ("Subscribe" and "Subscribed"), so its
