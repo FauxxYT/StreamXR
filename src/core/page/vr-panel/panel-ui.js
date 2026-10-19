@@ -12,6 +12,7 @@
 //
 // state: { title, time, duration, paused, hover, pressed, scrubTime, grabbing,
 //          buffered (seconds: how far the video is loaded ahead, shown on the seek bar; or null),
+//          playable (false: the site won't play this video, Play is greyed out),
 //          now (ms; a long title scrolls with it),
 //          nowPlaying: { info: [{ text, color }] (the line under the title, pieces in a row;
 //                                color: an M3 role name, e.g. 'onSurfaceVariant'),
@@ -349,7 +350,7 @@
         const [id, icon, text, extra] = it;
         if (id === 'play') {
           button({ x, y: PLAY.y, w: PLAY.w, h: PLAY.h }, id, state, () => S.draw(g, icon, 0, 0, 56, true),
-            { kind: 'brand', radius: T.shape.extraLargeIncreased });
+            { kind: 'brand', radius: T.shape.extraLargeIncreased, disabled: state.playable === false });   // (greyed out: the site won't play this video)
         } else {
           // the button whose menu is open shows selected (its menu floats in front: popups-ui.js);
           // an extra that's `on` (e.g. captions showing) has its icon filled

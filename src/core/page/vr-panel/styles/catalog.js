@@ -17,12 +17,15 @@
 //                                    items: [cards for this page], page, pageCount, more,
 //                                    loading (with no items: the loading indicator above
 //                                      emptyText), now (seconds, its clock), emptyText,
+//                                    shape: 'square' (square cards, e.g. podcasts' covers:
+//                                      grid.js) | null (the standard 16:9 ones),
 //                                    emptyIcon (with no items: emptyText larger in the
 //                                      middle with this icon after it: a placeholder) }
 //   Control ids: 'tab:<id>', 'pill:<id>', 'item:<index on page>', 'page:prev', 'page:next',
 //   'field:<id>' (the field), 'clear:<id>' (its ×), 'submit:<id>' (its button),
 //   'suggest:<index>' (a suggestion).
-//   Also: hitTest(u, v) -> { id } | null, has(id), imagesReady(), perPage, canvas, aspect.
+//   Also: hitTest(u, v) -> { id } | null, has(id), imagesReady(), perPage, perPageFor(shape),
+//   canvas, aspect.
 (function (ns) {
   'use strict';
 
@@ -68,7 +71,7 @@
       else if (m.note) { g.fillStyle = P.onSurfaceVariant; g.font = T.font('bodyMedium', 22); g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(m.note, PAD, PILL_Y + PILL_H / 2); }
       grid.divider(DIVIDER_Y);
 
-      grid.grid(m.items || [], ui, regions, m.emptyText || '', m.loading ? m.now || 0 : null, m.emptyIcon || null);
+      grid.grid(m.items || [], ui, regions, m.emptyText || '', m.loading ? m.now || 0 : null, m.emptyIcon || null, m.shape || null);
       grid.paging(m, ui, regions);
       if (m.field && (m.field.suggestions || []).length) drawSuggestions(m.field, ui);   // over the cards
     }
@@ -86,7 +89,9 @@
     const hitTest = (u, v) => { grid.point(u * W, v * H); const r = regionAt(regions, u, v, W, H); return r ? { id: r.id } : null; };
     const has = id => regions.some(r => r.id === id);    // an enabled control from the last draw?
 
-    return { canvas, aspect: H / W, draw, hitTest, has, imagesReady: kit.imagesReady, perPage: grid.PER_PAGE, animating: () => motion.moving() || grid.moving() };
+    return { canvas, aspect: H / W, draw, hitTest, has, imagesReady: kit.imagesReady, perPage: grid.PER_PAGE,
+      perPageFor: shape => (shape === 'square' ? grid.PER_PAGE_SQUARE : grid.PER_PAGE),   // cards per page in a layout
+      animating: () => motion.moving() || grid.moving() };
   }
 
   ns.vrStyles = ns.vrStyles || {};

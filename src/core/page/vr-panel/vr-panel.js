@@ -17,7 +17,8 @@
 //              the live moment), extra(id, itemId) (the site's own button `id` was clicked,
 //              or one of its menu's items; itemId null: its menu just opened), ...and
 //              whatever the site's panels use,
-//              state() -> { title, time, duration, paused,
+//              state() -> { title, time, duration, paused, playable (false: the site won't play
+//                           this video: Play greys out),
 //                           nowPlaying (what the controls panel shows: see panel-ui.js),
 //                           quality: { current, currentLabel, levels: [{ id, label, icons?, disabled? }] },
 //                           live: null | { atHead, behind (seconds), dvr } (a live stream; time
@@ -1153,7 +1154,7 @@
         }
 
         const state = {
-          title: st.title, time: st.time, duration: st.duration, paused: st.paused, buffered: st.buffered != null ? st.buffered : null,
+          title: st.title, time: st.time, duration: st.duration, paused: st.paused, playable: st.playable !== false, buffered: st.buffered != null ? st.buffered : null,
           live: st.live || null, nowPlaying: st.nowPlaying || null, now,
           hover, pressed: pressed && pressed.id, scrubTime: scrub ? scrub.time : null,
           quality, format: { id: format.current, label: currentFormat ? currentFormat.short : '' },
@@ -1162,7 +1163,7 @@
           extras: extrasNow ? { left: (extrasNow.left || []).map(stripMenu), right: (extrasNow.right || []).map(stripMenu), seek: extrasNow.seek || null } : null,
         };
         const pf = preview && preview.frame;
-        const key = [state.title, Math.floor(state.time), Math.floor(state.duration), state.paused, state.buffered != null ? Math.floor(state.buffered) : '',
+        const key = [state.title, Math.floor(state.time), Math.floor(state.duration), state.paused, state.playable, state.buffered != null ? Math.floor(state.buffered) : '',
           JSON.stringify(state.nowPlaying), JSON.stringify(state.extras), state.hover, state.pressed, scrub ? Math.round(scrub.time * 4) : '',
           quality.current, quality.levels.map(q => q.id).join(','), format.current, menu, !!grab,
           state.speed, Math.round(shownVolume.level), shownVolume.muted, state.chapters.length, state.heatmap.length,

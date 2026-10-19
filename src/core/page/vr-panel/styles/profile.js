@@ -28,10 +28,15 @@
 //                { kind: 'page', text (paragraphs split by "\n"), facts: [{ label, value }]
 //                  (two columns under the text), loading, emptyText }
 //                { kind: 'feed', posts: [post], loading, emptyText }
+//                { kind: 'tiers', image, kicker, title, intro: [lines], tiers: [{ title, price,
+//                  button: { id, label, enabled } | null, note, items: [{ title, text, images:
+//                  [urls] }] }], footer, loading, emptyText } (plans or levels to join, e.g. a
+//                  channel's memberships: tiersPage)
 //                { kind: 'post', post, back (the back button's label), thread (thread.js's
 //                  content: its pills and count sit on the bar beside the back button) }
 //              post: { at (the id posts' controls carry; default: the index in posts),
-//                author, avatar, meta, text, images: [urls],
+//                author, avatar, meta, flags: [{ text, bg, fg }] (after the author, e.g.
+//                "Members only"; colour role specs as on cards), text, images: [urls],
 //                card (a generic card, e.g. an attached video; clickable) | null,
 //                poll: { choices: [{ text, on (your choice), percent (0-100: shown as a bar,
 //                  null: no results shown) }], note, enabled (choices clickable) } | null,
@@ -260,6 +265,63 @@
       endScroll();
     }
 
+    // 'tiers': a page of plans or levels to join (e.g. a channel's memberships): a round
+    // picture with a kicker (grey) and a title, the intro lines, then each tier: its title, its
+    // price, its button (id 'action:<id>', greyed when not enabled), its items (a title, a row
+    // of small pictures, a grey description), its note (grey); a grey footer at the end.
+    // One function lays it out and draws it (draw false: just measure), so the two agree.
+    const TIER = { avatar: 72, size: 22, small: 18, line: 30, smallLine: 26, img: 34, gap: 18, btnW: 280, btnH: 52 };
+    function tiersPage(b, ui, top, draw) {
+      let y = top;
+      const text = (lines, font, color, x = VIEW.x, lh = TIER.line) => {
+        for (const line of lines) { if (draw) { g.font = font; g.fillStyle = color; g.fillText(line, x, y + 4); } y += lh; }
+      };
+      const wrapped = (t, font, w = VIEW.w) => { g.font = font; return t ? wrapParas(t, w) : []; };
+      g.textAlign = 'left'; g.textBaseline = 'top';
+      // The heading: picture, kicker and title beside it.
+      if (b.image || b.title) {
+        if (draw) kit.avatar(b.image, b.title, VIEW.x, y, TIER.avatar);
+        const x = VIEW.x + TIER.avatar + 20, y0 = y;
+        y += 6;
+        if (b.kicker) text([b.kicker], `${TIER.small}px ${FONT}`, P.onSurfaceVariant, x, TIER.smallLine);
+        if (b.title) text([b.title], T.font('titleLargeEmphasized', 30), P.onSurface, x, 40);
+        y = Math.max(y, y0 + TIER.avatar) + TIER.gap;
+      }
+      for (const line of b.intro || []) text(wrapped(line, `${TIER.size}px ${FONT}`), `${TIER.size}px ${FONT}`, P.onSurface);
+      for (const t of b.tiers || []) {
+        y += TIER.gap;
+        if (draw) { g.fillStyle = PA('onSurface', 0.12); g.fillRect(VIEW.x, y, VIEW.w, 2); }
+        y += TIER.gap;
+        text([t.title || ''], T.font('titleMedium', 26), P.onSurface, VIEW.x, 36);
+        if (t.price) text([t.price], `500 ${TIER.size}px ${FONT}`, P.onSurface);
+        if (t.button) {
+          y += 8;
+          if (draw) ns.vrKit.button(g, regions, `action:${t.button.id}`, VIEW.x, y, TIER.btnW, TIER.btnH,
+            { label: t.button.label, kind: 'filled', enabled: !!t.button.enabled }, ui);
+          y += TIER.btnH + 8;
+        }
+        if (t.note) text(wrapped(t.note, `${TIER.small}px ${FONT}`), `${TIER.small}px ${FONT}`, P.onSurfaceVariant, VIEW.x, TIER.smallLine);
+        for (const it of t.items || []) {
+          y += 12;
+          text(wrapped(it.title, `500 ${TIER.size}px ${FONT}`), `500 ${TIER.size}px ${FONT}`, P.onSurface);
+          if ((it.images || []).length) {
+            if (draw) it.images.forEach((url, k) => { const img = kit.image(url); if (img) g.drawImage(img, VIEW.x + k * (TIER.img + 8), y + 2, TIER.img, TIER.img); });
+            y += TIER.img + 8;
+          }
+          if (it.text) text(wrapped(it.text, `${TIER.small}px ${FONT}`), `${TIER.small}px ${FONT}`, P.onSurfaceVariant, VIEW.x, TIER.smallLine);
+        }
+      }
+      if (b.footer) { y += TIER.gap; text(wrapped(b.footer, `${TIER.small}px ${FONT}`), `${TIER.small}px ${FONT}`, P.onSurfaceVariant, VIEW.x, TIER.smallLine); }
+      return y - top;
+    }
+    function drawTiers(b, m, ui) {
+      if (!(b.tiers || []).length) { bodyMessage(b.emptyText, b.loading ? m.now || 0 : null); return; }
+      const h = tiersPage(b, ui, 0, false);
+      const top = beginScroll(m, h + 12);
+      tiersPage(b, ui, top, true);
+      endScroll();
+    }
+
     // A post: round picture, author and meta, the text, its pictures (up to 3 side by side;
     // "+N" for more), its card (a standard card, 'post:<at>'), its poll ('vote:<at>.<k>':
     // a bar per choice, filled to its share once results show, yours outlined), then its
@@ -290,6 +352,16 @@
       kit.avatar(p.avatar, p.author, x0, py, POST.avatar);
       g.textAlign = 'left'; g.textBaseline = 'top';
       g.fillStyle = P.onSurface; g.font = `500 20px ${FONT}`; g.fillText(p.author || '', x, py);
+      // Its flags after the author's name: 24 px tall pills, 6 px apart.
+      let fx = x + g.measureText(p.author || '').width + 12;
+      g.font = `600 16px ${FONT}`;
+      for (const f of p.flags || []) {
+        const fw = g.measureText(f.text).width + 16;
+        g.fillStyle = T.resolve(f.bg); roundRect(g, fx, py - 2, fw, 24, T.shape.small); g.fill();
+        g.fillStyle = T.resolve(f.fg); g.textAlign = 'center'; g.fillText(f.text, fx + fw / 2, py + 2);
+        fx += fw + 6;
+      }
+      g.textAlign = 'left';
       g.fillStyle = P.onSurfaceVariant; g.font = `18px ${FONT}`; g.fillText(p.meta || '', x, py + 26);
       py = y0 + POST.head;
       g.fillStyle = P.onSurface; g.font = `${POST.size}px ${FONT}`;
@@ -446,6 +518,7 @@
       if (m.body) {
         if (m.body.kind === 'feed') drawFeed(m.body, m, ui);
         else if (m.body.kind === 'post') drawOpenPost(m.body, m, ui);
+        else if (m.body.kind === 'tiers') drawTiers(m.body, m, ui);
         else drawPage(m.body, m);
         return;
       }

@@ -88,6 +88,12 @@ Also sorted easiest first; all need testing while signed in.
    Re-check it on the right identity first (0.22.1 fix).
 3. ~~**Liking posts, voting in polls, post comments**~~ DONE (v0.40.0: 👍 / 👎 / 💬 on each
    post; 💬 opens the post with its comments; liking and voting signed in. All verified).
-4. **Memberships ("Join")**: no Join button seen signed out; untested.
-5. **Podcasts, Courses, Releases tabs**: named in the code's tab list but no tested
-   channel had them; their contents are unverified.
+4. **Memberships ("Join")**: the Membership tab shows a channel's levels and perks (0.95.0,
+   works in the headset); joining stays on desktop. A channel you're already a member of
+   gets the tab (0.95.7) with Perks, Videos and Posts pills (0.95.8; all work in the
+   headset): your level, length and perks, the highlighted members-only
+   videos, and the recent members-only posts (flagged "Members only", 0.95.9, works in the
+   headset).
+5. **Podcasts, Courses, Releases tabs**: Podcasts has a tab (0.95.7, works in the
+   headset). Courses and Releases are named in the code's tab list but no tested channel
+   had them; their contents are unverified.

@@ -28,6 +28,32 @@
     return cv;
   }
 
+  // A poster for the screen: the first of `urls` that loads (with CORS, so it can go to WebGL),
+  // drawn whole on a dark 16:9 frame (as the placeholder). Returns a Promise of the canvas, or
+  // of null if none loads.
+  async function posterCanvas(urls) {
+    const load = url => new Promise(res => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => res(img.naturalWidth > 120 ? img : null);   // (YouTube answers a missing size with a tiny grey image)
+      img.onerror = () => res(null);
+      img.src = url;
+    });
+    for (const url of urls) {
+      const img = await load(url);
+      if (!img) continue;
+      const W = 1920, H = 1080, cv = document.createElement('canvas');
+      cv.width = W; cv.height = H;
+      const g = cv.getContext('2d');
+      g.fillStyle = (ns.vrTokens && ns.vrTokens.m3.surfaceContainerLowest) || '#0f0f0f';
+      g.fillRect(0, 0, W, H);
+      const k = Math.min(W / img.naturalWidth, H / img.naturalHeight), w = img.naturalWidth * k, h = img.naturalHeight * k;
+      g.drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
+      return cv;
+    }
+    return null;
+  }
+
   // Start VR showing the provider's video in `fmt`. listener(state) gets
   // { state: 'format', fmt } when the format is changed from inside VR,
   // { state: 'ended' } or { state: 'error', message } later on. Must be called from a user gesture.
@@ -72,6 +98,9 @@
       // While no video plays: the placeholder picture (the site's logo, centred on a dark
       // 16:9 frame: placeholderCanvas) on the screen, uploaded once per view.
       let placeholder = null, placeholderFor = null;
+      // While the site won't play its video (siteSide.poster(): picture URLs, best first, or
+      // null): that picture on the screen instead (posterCanvas), uploaded once per view.
+      let poster = { key: '', canvas: null, for: null };
       placeholderCanvas(provider).then(c => { placeholder = c; }, () => {});
       let lastHead = null;                    // where you were (and faced) at the last recenter: { position, yaw }
 
@@ -269,6 +298,13 @@
         const hp = pose.transform.position;
         headNow = [hp.x, hp.y, hp.z];
         if (source.follow()) placeholderFor = null;          // the site swapped its <video> (or a video opened / went away)
+        // The site's poster (a video it won't play): load it when it changes; none: the video again.
+        const posterUrls = (siteSide.poster && siteSide.poster()) || null, posterKey = posterUrls ? posterUrls.join(' ') : '';
+        if (posterKey !== poster.key) {
+          const p = poster = { key: posterKey, canvas: null, for: null };
+          if (posterUrls) posterCanvas(posterUrls).then(c => { p.canvas = c; }, () => {});
+          else { placeholderFor = null; source.invalidate(); }   // (the video's frame again, even paused)
+        }
         input.poll(session.inputSources);
         try { followAds(); } catch (err) { console.warn('[streamxr] ad handling failed:', err); }
         // Recenter: take the direction you're facing now as "front", and put the video and
@@ -283,8 +319,11 @@
         panelSafely('update', () => panel.update(frame, refSpace, session.inputSources, performance.now(), pose.transform.position));
 
         // Copy the video's newest frame to the GPU (only when there is one, and the video
-        // has data). A refused frame (cross-origin) ends the session with a message.
-        if (source.hasNewFrame()) {
+        // has data). A refused frame (cross-origin) ends the session with a message. While
+        // the site gives a poster, that shows instead (once per view).
+        if (poster.key) {
+          if (poster.canvas && poster.for !== view) { view.upload(poster.canvas); poster.for = view; }
+        } else if (source.hasNewFrame()) {
           try {
             view.upload(source.element());
             source.uploaded();

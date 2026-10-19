@@ -2,7 +2,7 @@
 
 One list of what's still open, gathered from the feature backlogs (`docs/features/`) and
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
-Last updated for 0.93.4.
+Last updated for 0.95.9.
 
 ## Top priority: before the first release
 
@@ -94,8 +94,8 @@ list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps 
 
 1. [x] **Cubemap seams** (0.93.4, works in the headset): the glass look's mipmaps (confirmed: gone with the glass off);
    the cubemap is now read at full resolution (see "Next" below).
-2. [ ] **Explore's "Coming Soon" tabs, the ready ones** (small to medium): Live, Gaming, Music,
-   Hype, Courses, Podcasts, Memberships; their readers exist, they need wiring into the tabs
+2. [x] **Explore's "Coming Soon" tabs, the ready ones** (0.94.0 to 0.95.6, work in the headset): Live, Gaming, Music,
+   Hype, Courses, Podcasts, Memberships, each with its sections as pills
    (`features/home-page.md`).
 3. [ ] **Info cards** (medium): YouTube's cards as they come up during a video
    (`features/video-page.md`).
@@ -105,7 +105,7 @@ list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps 
 6. [ ] **Add to queue** (medium to large): probe how desktop YouTube's queue can be driven, then
    a way to add from cards, the queue in Up Next, and what plays when a video ends
    (`features/video-page.md`).
-7. [ ] **Explore's other tabs** (large): Shorts, Movies & TV, Learning need new readers first
+7. [ ] **Explore's other tabs** (large): Shorts and Movies & TV need new readers first (Learning deferred)
    (`features/home-page.md`).
 8. [ ] **Commenting in VR** (large): writing comments and replies with the VR keyboard (posting,
    threads, typing into the Comments panel).
@@ -150,7 +150,7 @@ movies are copy-protected, so they can't play in VR yet: `features/video-page.md
   with it). 1080p Premium (0.91.0) and Jump ahead (0.92.3) work in the headset. **Add to queue** is its own item
   (not Premium on desktop).
 - [ ] **Explore's "Coming Soon" tabs**: Live, Gaming, Music, Hype, Courses, Podcasts,
-  Memberships (readers exist); Shorts, Movies & TV, Learning need more first
+  Memberships built in 0.94.0 (to check); Shorts, Movies & TV, Learning need more first
   (`features/home-page.md`).
 - [ ] **News**: its own tabs (Top stories, Sports ...) and the Sports feed.
 - [x] **Subscriptions** (0.90.0 to 0.92.2, work in the headset): the Channels tab with its sort pills, the bell on the Channel

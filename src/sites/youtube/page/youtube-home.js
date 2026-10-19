@@ -50,19 +50,58 @@
     return dig(findKey(c, 'richGridRenderer'), 'contents') || dig(findKey(c, 'sectionListRenderer'), 'contents') || [];
   }
 
-  // A feed page as sections: [{ title, items, posts }]. Shelves ("Shorts", "Top news",
-  // "Live Now" ...) become their own sections; loose grid items in a row between them are
-  // gathered into one untitled section ('').
+  // Where a shelf's "View all" leads (seen 2026-10-18, signed out): { playlistId } when it's a
+  // playlist (Hype's shelves: the menu's browse to "VL<playlist id>"), { browseId, params }
+  // when it's a page of its own (Live's shelves: the shelf's `endpoint`, a channel's live
+  // tab), or null.
+  function viewAllOf(shelf) {
+    const be = dig(shelf.endpoint, 'browseEndpoint') || findKey(shelf.showMoreButton, 'browseEndpoint')
+      || findKey(shelf.menu, 'browseEndpoint');
+    if (!be || !be.browseId) return null;
+    if (/^VL/.test(be.browseId)) return { playlistId: be.browseId.slice(2) };
+    return { browseId: be.browseId, params: be.params || '' };
+  }
+
+  // The next page's token of a feed page: a channel list's (C.pageToken), else a "load more"
+  // item at the end of the page's own section list (e.g. a long Explore page).
+  function pageToken(r) {
+    const t = C.pageToken(r);
+    if (t) return t;
+    const ents = entriesOf(r), last = ents[ents.length - 1];
+    return last && last.continuationItemRenderer ? D.continuationOf(last) : null;
+  }
+
+  // Every shelf inside one entry of a page, in order (an entry can hold several: the
+  // Memberships page puts "Popular creators", "Trending content", "Up-and-coming" ... in one
+  // item section), not looking inside a shelf once found. The newer horizontalShelfViewModel
+  // has its title in header.sectionHeaderViewModel.
+  const SHELF_KEYS = ['richShelfRenderer', 'shelfRenderer', 'reelShelfRenderer', 'horizontalShelfViewModel'];
+  function shelvesIn(node, out = [], depth = 0) {
+    if (!node || typeof node !== 'object' || depth > 20) return out;
+    if (Array.isArray(node)) { for (const x of node) shelvesIn(x, out, depth + 1); return out; }
+    for (const k of Object.keys(node)) {
+      if (SHELF_KEYS.includes(k) && node[k] && typeof node[k] === 'object') out.push(node[k]);
+      else shelvesIn(node[k], out, depth + 1);
+    }
+    return out;
+  }
+
+  // A feed page as sections: [{ title, items, posts, viewAll }]. Shelves ("Shorts", "Top news",
+  // "Live Now" ...) become their own sections (viewAll: viewAllOf); loose grid items in a row
+  // between them are gathered into one untitled section ('').
   function sectionsOf(r) {
     const out = [];
     let loose = null;
     for (const e of entriesOf(r)) {
       if (e.continuationItemRenderer) continue;
-      const shelf = findKey(e, 'richShelfRenderer') || findKey(e, 'shelfRenderer') || findKey(e, 'reelShelfRenderer');
-      if (shelf) {
+      const shelves = shelvesIn(e);
+      if (shelves.length) {
         loose = null;
-        const got = C.collect(shelf.contents || shelf.content || shelf.items || shelf);
-        if (got.items.length || got.posts.length) out.push({ title: strOf(shelf.title), items: got.items, posts: got.posts });
+        for (const shelf of shelves) {
+          const got = C.collect(shelf.contents || shelf.content || shelf.items || shelf);
+          const title = strOf(shelf.title) || strOf(dig(shelf, 'header', 'sectionHeaderViewModel', 'headline'));
+          if (got.items.length || got.posts.length) out.push({ title, items: got.items, posts: got.posts, viewAll: viewAllOf(shelf) });
+        }
         continue;
       }
       const got = C.collect(e);
@@ -141,7 +180,7 @@
         const msg = findKey(r.contents, 'backgroundPromoRenderer') || findKey(r.contents, 'messageRenderer');
         p.message = msg ? strOf(msg.title) || strOf(msg.text) : '';
       }
-      return { items: sectionsOf(r), token: C.pageToken(r) };
+      return { items: sectionsOf(r), token: pageToken(r) };
     }, null);
     p.tabs = []; p.title = f.title; p.message = '';
     return p;
@@ -159,6 +198,17 @@
     }, 'first');
     p.message = '';
     return p;
+  }
+
+  // viewAll(v) -> pager over everything a shelf's "View all" leads to (v: a section's
+  //   viewAll): a playlist's videos (youtube-content.js playlistVideos), or a page's videos,
+  //   its sections run together, page by page.
+  function viewAll(v) {
+    if (v.playlistId) return ns.youtubeContent.playlistVideos(v.playlistId);
+    return D.pager(async token => {
+      const r = token ? await more(token) : await D.innertube('browse', { browseId: v.browseId, ...(v.params ? { params: decodeURIComponent(v.params) } : {}) });
+      return { items: sectionsOf(r).flatMap(s => s.items), token: pageToken(r) };
+    }, null);
   }
 
   // ---------------------------------------------------------------- left menu
@@ -221,5 +271,5 @@
     }
   }
 
-  ns.youtubeHome = { FEEDS, home, feed, feedVideos, guide, myChannelId, suggestions, sectionsOf, chipsOf };
+  ns.youtubeHome = { FEEDS, home, feed, feedVideos, viewAll, guide, myChannelId, suggestions, sectionsOf, chipsOf };
 })(globalThis.__streamxr = globalThis.__streamxr || {});

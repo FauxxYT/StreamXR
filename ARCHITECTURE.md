@@ -234,7 +234,10 @@ is the source of truth. In short:
     `nextVideo`), plus whatever the site's own panel controllers use.
   - `state()`, polled every frame: `title`, `nowPlaying`, `time`, `duration`, `live`,
     `paused`, `quality` (`{ current, currentLabel, levels: [{ id, label }] }`), `speed`,
-    `speeds`, `volume`, `chapters`, `ad`, plus what the site's panels read.
+    `speeds`, `volume`, `chapters`, `ad`, `playable` (false: the site won't play this video;
+    Play greys out), plus what the site's panels read.
+  - `poster()` (optional): while the site won't play the video, picture URLs (best first) the
+    screen shows in its place (`xr-session.js` `posterCanvas`).
   - `ad()` (optional): the ad playing now, or null.
   - `site`: `{ name, panels (the registry), onControl(id, panel) }`.
 - Optional features simply aren't provided: ads, live streams, the storyboard preview,
@@ -326,7 +329,7 @@ control's id there is `<panel id>|<style id>`.
 | **Info** (`info.js`) | Description, Comments, Live chat | header tabs; each tab one content kind: `text` (rich text, links), `paged` (rows in two columns: chapters), `rows` (scrolling, current row followed: transcript), `thread` (pills, count, rows with children and "show more": comments), `chat` (chat.js: a pinned banner, messages with inline pictures and coloured cards, following the newest or paused with a "jump to newest" button; optionally a message field with Send, reaction buttons and a Support button, an XP pill and a ranked Top fans list: live chat), `message` (optional loading indicator) |
 | **Catalog** (`catalog.js`) | Explore, You, Search | title, source tabs, filter pills (tabs and left-aligned pills slide when they don't fit: kit.js createStrip) or a note or a text field with its button (and a suggestions list dropping down from it), card grid, paging; trims its height to its cards |
 | **Queue** (`queue.js`) | Up Next | title or tabs, paging in the header, 3 x 2 cards, a "current" card |
-| **Profile** (`profile.js`) | Channel | banner, picture, name + badge, stats line, one action button (looks: primary / secondary / danger / busy) and an optional round icon button beside it (the bell), tabs (shrinking to fit beside the pills), pills, a search button (searching: a back button and a text field in place of the tabs), card grid, paging, or one featured card, or a scrolling body: a text `page` (paragraphs, then label / value facts), a `feed` of posts (picture, author, text, pictures, a card, a poll with result bars, buttons with icons and counts), or one opened `post` with a back button and its comments (thread.js) |
+| **Profile** (`profile.js`) | Channel | banner, picture, name + badge, stats line, one action button (looks: primary / secondary / danger / busy) and an optional round icon button beside it (the bell), tabs (shrinking to fit beside the pills), pills, a search button (searching: a back button and a text field in place of the tabs), card grid, paging, or one featured card, or a scrolling body: a text `page` (paragraphs, then label / value facts), a `tiers` page (plans or levels to join: title, price, button, items with small pictures, a note), a `feed` of posts (picture, author, text, pictures, a card, a poll with result bars, buttons with icons and counts), or one opened `post` with a back button and its comments (thread.js) |
 | **Options** (`options.js`) | Settings | tabs (with icons); up to 3 rows (name with its hint under it; at the right: a switch, a slider with a Default button and end captions, a ‹ value › stepper, or a button; faded) or a 4 x 4 choice grid with "More" paging |
 
 Each style file's header lists its model and control ids. Every style returns

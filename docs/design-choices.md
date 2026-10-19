@@ -293,3 +293,21 @@ even where they look like something to "fix".
 - **The Format button says "Format"** (the maintainer, 2026-10-17, 0.93.2), whatever's chosen;
   its icon shows the format, and the Format menu shows every format's icon and name. The
   cinema screen's icon is `2d_2`, 3D Cinema's `3d_2` (0.93.3).
+- **Explore's pages (the maintainer, 2026-10-18, after 0.94.0):** each page's sections are its
+  pills, and a pill shows the whole section (YouTube's "View all"). **News** stays an Explore
+  tab, its own tabs (Top stories, Sports ...) as its pills. **Learning** is deferred (an AI
+  prompt with generated lessons; Courses covers learning). **Podcasts** get **square cards**
+  for their square cover art. **Memberships** stays in Explore: its channel cards show the
+  channel's picture, name and price and open the channel; members-only videos are flagged;
+  joining stays on desktop. Viewing a playlist before playing it comes after Explore.
+- **Members-only videos and memberships (the maintainer, 2026-10-18):** opening a members-only
+  video brings up a short dialog (Members only, the channel, YouTube's "choose a level that's
+  at least …" line and the cheapest level) with **See perks** (opens the channel's
+  **Membership** page in the Channel panel: each level with its price, perks and disclaimer)
+  and OK. A creator card in Explore → Memberships opens that Membership page. Joining stays
+  on desktop: each level shows a greyed **Join on desktop** button.
+- **The Membership tab for a member (the maintainer, 2026-10-18):** on a channel you're a
+  member of, the Membership tab has three pills: **Perks** (your level, "Member · 3 months" and
+  your perks with their emoji and loyalty badges, on the same page as the Join offer), **Videos**
+  (the "Highlighted content for members", as the usual card grid) and **Posts** (the recent
+  members-only posts, as the usual feed).

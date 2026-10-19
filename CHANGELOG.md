@@ -6,6 +6,178 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.95.9
+
+### Added
+- **"Members only" on members-only posts**: the same Members only flag as on members-only
+  video cards, after the channel's name (in the Membership tab's Posts, the Posts tab and an
+  opened post). The Profile style's posts take `flags` for this.
+
+## 0.95.8
+
+### Added
+- **Your membership in the Channel panel**: on a channel you're a member of, the Membership
+  tab has three pills: **Perks** (your level, how long you've been a member, and your perks
+  with their custom emoji and loyalty badges), **Videos** (YouTube's highlighted
+  members-only videos) and **Posts** (recent members-only posts, with likes, polls and
+  comments as on the Posts tab).
+
+## 0.95.7
+
+### Added
+- **The Channel panel's Podcasts tab**: the channel's podcasts, their square covers shown
+  whole in the cards.
+
+### Fixed
+- **The Channel panel said "Subscribe" on a channel you're subscribed to** (seen on one
+  you're a member of): YouTube's answer for the channel now wins over the first guess from
+  the watch page, which could be the previous video's. A subscription change also drops the
+  channel's saved answer, so reopening it shows the change.
+- **No Membership tab on a channel you're a member of**: members get YouTube's Membership tab
+  but no Join button, so the tab now shows whenever the channel has one. Without a Join offer
+  it says your membership is on desktop for now.
+
+## 0.95.6
+
+### Removed
+- The members-only dialog's console diagnostics (0.95.4): the cause is fixed (0.95.5, works
+  in the headset).
+
+## 0.95.5
+
+### Fixed
+- **The members-only dialog on a normal video opened right after a members-only one** (found
+  with 0.95.4's log): the checks behind it were cached for half a second, so just after the
+  switch the new video got the previous video's answers ("won't play", "members only"). Those
+  checks now start over the moment the playing video changes.
+
+## 0.95.4
+
+### Changed
+- **Diagnostics for the members-only dialog** (it still comes up on a normal video opened
+  right after a members-only one): each time it comes up, the console logs what it was decided
+  from ("[streamxr] members-only dialog for …": the address, the playing video, the player's
+  and the watch page's data), to find the cause.
+
+## 0.95.3
+
+### Fixed
+- **The members-only dialog on a normal video, again:** a video now counts as members only
+  only when the watch page itself marks it so (the "Members only" badge under its title),
+  read from the page's data for the playing video, so the player's leftover status from the
+  previous video can't set it off. The dialog also asks again only after a normal video has
+  played for a moment.
+
+## 0.95.2
+
+### Fixed
+- **The members-only dialog still came up on a normal video opened right after one:** the
+  player's leftover data for the members-only video doesn't name its video, so the check in
+  0.95.1 couldn't tell it was stale. The data last seen with the previous video is now ignored
+  until the player has the new video's.
+
+## 0.95.1
+
+### Fixed
+- **The members-only dialog** showed only OK on a members-only video (it asked before the page
+  had the offer: it now waits up to 3 s for it), and came up again on the next, normal video
+  (the player still held the previous video's status for a moment: only the playing video's
+  counts now). It also comes back each time you open a members-only video again.
+
+## 0.95.0
+
+### Added
+- **Members-only videos offer their channel's membership:** opening one brings up a dialog
+  ("Members only: <channel>", YouTube's line about the level it needs) with **See perks** and
+  OK. See perks opens the channel's new **Membership** tab in the Channel panel.
+- **The Membership tab** (signed in, channels with memberships): YouTube's "Join this channel"
+  offer in VR: the channel's picture, each level with its price, its perks (with their badges
+  and emoji) and its disclaimer, and the footnote. Joining stays on desktop: each level shows
+  a greyed **Join on desktop** button. A creator card in Explore → Memberships opens it.
+- For other sites (ARCHITECTURE.md): the Profile style's **'tiers'** page (plans or levels to
+  join: each with a title, price, button, items with small pictures, a note).
+
+## 0.94.6
+
+### Fixed
+- **Explore → Memberships** only offered "Creators for you" as a creators' pill: YouTube puts
+  "Popular creators", "Trending content", "Up-and-coming" and "Loved by members" in one block
+  of the page, and only its first shelf was read. Every shelf in a block is its own pill now
+  (on every Explore page).
+- **Creator cards** show the channel's banner behind its round picture (no more plain grey).
+
+## 0.94.5
+
+### Fixed
+- **Memberships' creators didn't show signed in** ("Creators for you", "Popular creators",
+  "Up-and-coming"): their cards carry the channel in a different encoded parameter then; the
+  reader now looks in all of them.
+
+## 0.94.4
+
+### Changed
+- **A video YouTube won't play** (e.g. members only) now shows its thumbnail on the screen,
+  and the **Play** button is greyed out, besides the red line saying why.
+- **The Channel panel follows the playing video:** while it shows the playing video's channel,
+  it switches to the next video's channel when another video starts (unless you've gone to
+  another channel, a search or a post in it).
+- For other sites (ARCHITECTURE.md): a provider's `poster()` (pictures the screen shows in
+  place of a video the site won't play) and the state's `playable`.
+
+### Fixed
+- The playing video's channel is read from the watch page when the player's data lacks it (a
+  video YouTube won't play).
+
+## 0.94.3
+
+### Fixed
+- **Podcasts' "All" pill** now shows square cards too: a list that's mostly podcasts uses the
+  square layout, its few regular videos shown whole inside their square.
+- **A video YouTube won't play** (e.g. one for channel members only) showed nothing in VR: the
+  controls panel's line under the title now says why, in red ("Members only: join this
+  channel on desktop to watch it." for members-only videos).
+
+## 0.94.2
+
+### Added
+- **Square podcast cards:** a list of podcasts (Explore → Podcasts) shows square cards with
+  each show's own square cover, a **Podcast** flag and its episode count (12 to a page);
+  sections with regular videos (e.g. "Live now") keep the usual cards.
+- **Memberships:** the creators to join ("Popular creators", "Up-and-coming") show as their own
+  pills, as cards with the creator's round picture, name and monthly price; clicking one opens
+  their channel. Joining stays on desktop.
+- **Members only** flag (green) on videos for channel members only.
+- For other sites (ARCHITECTURE.md): the card grid's **square layout** (`shape: 'square'`,
+  Catalog's `perPageFor(shape)`).
+
+### Fixed
+- An Explore page whose "load more" sits at the end of its own section list stopped after its
+  first page.
+
+## 0.94.1
+
+### Changed
+- **Explore's pills show the whole shelf:** picking a section's pill (Live's "Live Now", Hype's
+  "Top 100" ...) shows everything YouTube's "View all" leads to (its own page, loading more as
+  you page through, or its playlist), not just the shelf's first cards.
+- **More sections as pills:** a page's later sections (e.g. Gaming's game shelves, signed in)
+  are read up front, so they're offered too.
+- **News** shows its own tabs as pills: Top stories, Sports, Entertainment, Business,
+  Technology, World, National, Health.
+
+### Fixed
+- **Mixes had no thumbnails** (Music): YouTube's mix art can't be drawn in VR (its image server
+  refuses), so a mix shows its first song's thumbnail instead.
+- The pointing ring round the selected tab or pill was cut at either end of a row that slides.
+
+## 0.94.0
+
+### Added
+- **Explore's Live, Gaming, Music, Hype, Courses, Podcasts and Memberships tabs** (until now
+  "Coming soon"): each shows YouTube's page of that name, with its sections as pills ("All"
+  first, then e.g. Live Now, Recent Live Streams, Upcoming Live Streams on Live). Podcasts and
+  Courses open as playlists. Shorts, Movies & TV and Learning are still to come.
+
 ## 0.93.4
 
 ### Fixed

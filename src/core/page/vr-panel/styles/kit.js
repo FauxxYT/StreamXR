@@ -12,6 +12,7 @@
 //     current (outlined in blue: the item playing now),
 //     progress (0-1: how much of it you've watched, a bar along the thumbnail's bottom in
 //               the brand colour (the site's theme); 0 or missing: no bar),
+//     backdrop (with fit 'round': a picture behind the round one, dimmed, e.g. a banner),
 //     fit ('contain': the whole picture, letterboxed, e.g. a product; 'round': a round picture
 //          in the middle, e.g. a person or a channel (a letter until it loads); default:
 //          cropped to fill),
@@ -173,6 +174,8 @@
       if (card.fit === 'round') {                    // a round picture (a person) in the middle of the box
         const s = Math.round(TH * 0.8);
         g.fillStyle = TC.n17; g.fillRect(x, y, W_, TH);
+        const back = card.backdrop && image(card.backdrop);   // (a picture behind it, dimmed: e.g. a channel's banner)
+        if (back) { drawImageCover(back, x, y, W_, TH); g.fillStyle = 'rgba(0,0,0,0.35)'; g.fillRect(x, y, W_, TH); }
         avatar(card.thumb, card.title, x + (W_ - s) / 2, y + (TH - s) / 2, s);
       } else if (img && card.fit === 'contain') { g.fillStyle = TC.n17; g.fillRect(x, y, W_, TH); drawImageContain(img, x, y, W_, TH); }
       else if (img) drawImageCover(img, x, y, W_, TH);
@@ -426,20 +429,22 @@
       offset = Math.min(max, Math.max(0, offset + speed() * dt));
       if (max <= 0) { offset = 0; paint(g, regions, b.x); return; }
       const M = STRIP.margin;
-      if (cv.width !== b.w || cv.height !== b.h + M * 2) { cv.width = b.w; cv.height = b.h + M * 2; }
+      // (The strip's canvas reaches M past the row on every side, so the pointing ring round an
+      // item at either end isn't cut.)
+      if (cv.width !== b.w + M * 2 || cv.height !== b.h + M * 2) { cv.width = b.w + M * 2; cv.height = b.h + M * 2; }
       sg.setTransform(1, 0, 0, 1, 0, 0); sg.clearRect(0, 0, cv.width, cv.height);
-      sg.setTransform(1, 0, 0, 1, -b.x, -(b.y - M));
+      sg.setTransform(1, 0, 0, 1, -(b.x - M), -(b.y - M));
       const local = [];
       paint(sg, local, b.x - offset);
       sg.setTransform(1, 0, 0, 1, 0, 0);
       // Fade the ends that have more beyond them.
       sg.globalCompositeOperation = 'destination-in';
-      const grad = sg.createLinearGradient(0, 0, b.w, 0), f = STRIP.fade / b.w;
-      grad.addColorStop(0, offset > 0.5 ? 'rgba(0,0,0,0)' : '#000'); grad.addColorStop(f, '#000');
-      grad.addColorStop(1 - f, '#000'); grad.addColorStop(1, offset < max - 0.5 ? 'rgba(0,0,0,0)' : '#000');
+      const grad = sg.createLinearGradient(0, 0, cv.width, 0), a = M / cv.width, f = (M + STRIP.fade) / cv.width;
+      grad.addColorStop(offset > 0.5 ? a : 0, offset > 0.5 ? 'rgba(0,0,0,0)' : '#000'); grad.addColorStop(f, '#000');
+      grad.addColorStop(1 - f, '#000'); grad.addColorStop(offset < max - 0.5 ? 1 - a : 1, offset < max - 0.5 ? 'rgba(0,0,0,0)' : '#000');
       sg.fillStyle = grad; sg.fillRect(0, 0, cv.width, cv.height);
       sg.globalCompositeOperation = 'source-over';
-      g.drawImage(cv, b.x, b.y - M);
+      g.drawImage(cv, b.x - M, b.y - M);
       for (const r of local) {
         const x0 = Math.max(r.x, b.x), x1 = Math.min(r.x + r.w, b.x + b.w);
         if (x1 - x0 > 12) regions.push({ ...r, x: x0, w: x1 - x0 });

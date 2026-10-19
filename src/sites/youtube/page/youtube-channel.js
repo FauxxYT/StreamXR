@@ -1,6 +1,6 @@
 // A YouTube channel's pages, read without leaving the watch page: the header (name, handle,
 // subscribers, avatar, banner), About, Home shelves, and the Videos / Shorts / Live /
-// Playlists / Shows / Posts / Store tabs, a post's comments, liking posts and voting in
+// Playlists / Podcasts / Shows / Posts / Store tabs, a post's comments, liking posts and voting in
 // polls (signed in), plus search inside the channel. Everything comes
 // from YouTube's own browse API (the request its channel pages make), so the video keeps
 // playing. Lists are pagers (`p.next()` loads a page, see youtube-data.js); the rest are
@@ -18,13 +18,22 @@
     home: 'EghmZWF0dXJlZPIGBAoCMgA=', videos: 'EgZ2aWRlb3PyBgQKAjoA', shorts: 'EgZzaG9ydHPyBgUKA5oBAA==',
     live: 'EgdzdHJlYW1z8gYECgJ6AA==', shows: 'EgVzaG93c_IGBAoCYgA=', playlists: 'EglwbGF5bGlzdHPyBgoKCEIGCgIQaCIA',
     posts: 'EgVwb3N0c_IGBAoCSgA=', store: 'EgVzdG9yZfIGBAoCGgA=', search: 'EgZzZWFyY2jyBgQKAloA',
+    podcasts: 'Eghwb2RjYXN0c_IGBQoDugEA',
   };
   // Tab titles as shown on YouTube -> our names (the Live tab is "Live", Posts was "Community").
   const TAB_NAMES = { Home: 'home', Videos: 'videos', Shorts: 'shorts', Live: 'live', Shows: 'shows', Podcasts: 'podcasts',
-    Playlists: 'playlists', Posts: 'posts', Community: 'posts', Store: 'store', Search: 'search', Courses: 'courses', Releases: 'releases' };
+    Playlists: 'playlists', Posts: 'posts', Community: 'posts', Store: 'store', Search: 'search', Courses: 'courses', Releases: 'releases', Membership: 'membership' };
 
   // The channel of the video playing now ('' if unknown).
-  const currentChannelId = () => dig(D.playerResponse(), 'videoDetails', 'channelId') || '';
+  // The playing video's channel: the player's data when it's for this video, else the watch
+  // page's owner box (a video YouTube won't play, e.g. members only, may come without
+  // videoDetails while the page still names its channel).
+  function currentChannelId() {
+    const vd = D.playerResponse().videoDetails || {};
+    if (vd.channelId && vd.videoId === D.currentVideoId()) return vd.channelId;
+    const owner = findKey(dig(D.watchData(), 'contents'), 'videoOwnerRenderer');
+    return dig(owner, 'navigationEndpoint', 'browseEndpoint', 'browseId') || vd.channelId || '';
+  }
 
   // One browse request for a channel tab (or a continuation token).
   const browse = (channelId, params, extra) => D.innertube('browse', { browseId: channelId, ...(params ? { params: decodeURIComponent(params) } : {}), ...extra });
@@ -85,7 +94,7 @@
   }
 
   // A post (backstagePostRenderer / postRenderer): { id, text, author, channelId (the
-  //   author's, '' if not given), avatar, published, likes,
+  //   author's, '' if not given), avatar, published, likes, membersOnly (true/false),
   //   images: [urls], video: item | null, comments (the count, "882"), commentsParams (its
   //   own page, for postComments), likeState ('liked' | 'disliked' | 'none': yours),
   //   actions: { like, unlike, dislike, undislike } (endpoints for ratePost; null signed out),
@@ -112,6 +121,7 @@
       id: p.postId, text: strOf(p.contentText), author: strOf(p.authorText),
       channelId: dig(p, 'authorEndpoint', 'browseEndpoint', 'browseId') || '', avatar: bestImage(p.authorThumbnail),
       published: strOf(p.publishedTimeText), likes: strOf(p.voteCount),
+      membersOnly: !!findKey(p, 'sponsorsOnlyBadgeRenderer'),       // (its "Members only" badge)
       images, video: att.videoRenderer ? D.fromCompact(att.videoRenderer) : null,
       comments: strOf(reply.text), commentsParams: dig(reply, 'navigationEndpoint', 'browseEndpoint', 'params') || '',
       likeState: like.isToggled || p.voteStatus === 'LIKE' ? 'liked' : dislike.isToggled || p.voteStatus === 'DISLIKE' ? 'disliked' : 'none',
@@ -165,6 +175,7 @@
   //   description (short), avatar, banner, links (e.g. "x.com/somechannel and 4 more links"),
   //   url, rssUrl, keywords, isFamilySafe, subscribed (true/false signed in, else null),
   //   notifications (the bell: { state, options } or null, see bellOf),
+  //   offerParams (signed in, a channel with memberships: for offer(), else null),
   //   tabs: { videos: params, ... } (only the tabs this channel has), aboutToken }. Cached
   //   for 5 minutes.
   const headerCache = new Map();              // id -> { at, promise }
@@ -176,6 +187,9 @@
     headerCache.set(channelId, { at: performance.now(), promise });
     return promise;
   }
+  // Drop channel id's saved header (after a change it holds, e.g. Subscribe), so the next
+  // channel() asks again.
+  const forget = channelId => { headerCache.delete(channelId); };
 
   function readHeader(r) {
     const ph = dig(r, 'header', 'pageHeaderRenderer', 'content', 'pageHeaderViewModel') || {};
@@ -208,6 +222,8 @@
       // Subscribe answer carries); null while signed out or when it isn't sent.
       subscribed: (() => { const e = findKeyAll(r.frameworkUpdates, 'subscriptionStateEntity')[0]; return e && e.subscribed != null ? !!e.subscribed : null; })(),
       notifications: bellOf(r),
+      // Signed in, a channel with memberships: its Join button's offer params (offer()), or null.
+      offerParams: dig(findKey(r.header, 'ypcGetOffersEndpoint'), 'params') || null,
     };
   }
 
@@ -245,6 +261,57 @@
       .replace(/^SUBSCRIPTION_NOTIFICATION_STATE_/, '');
     return { state, options };
   }
+
+  // ---------------------------------------------------------------- membership offer
+  // offer(params) -> Promise of a channel's membership offer (YouTube's "Join" popup), or null:
+  //   { channel, image, title ("Join this channel"), subtitle, alert (e.g. "To unlock this
+  //   video and more, choose a level that's at least $2.99/month."), tiers: [{ title, price
+  //   ("$2.99/month"), disclaimer, perks: [{ title, text, images: [urls] }] }], footer }.
+  //   params: a ypcGetOffersEndpoint's (videoOfferParams(), a channel header's offerParams,
+  //   a creator card's), sent as itemParams (seen signed in, 2026-10-18; docs/youtube.md). Only
+  //   reads the offer: joining (the Join button's checkout) stays on desktop.
+  async function offer(params) {
+    if (!params) return null;
+    const r = await D.innertube('ypc/get_offers', { itemParams: params });
+    const o = findKey(r, 'sponsorshipsOfferRenderer');
+    if (!o) return null;
+    const h = findKey(o.header, 'sponsorshipsHeaderRenderer') || {};
+    const tiers = (o.tiers || []).map(t => t.sponsorshipsTierRenderer).filter(Boolean).map(t => ({
+      title: strOf(t.title), price: strOf(t.subtitle) || strOf(t.abovePurchaseButtonText), disclaimer: strOf(t.disclaimer),
+      perks: (dig(t, 'perks', 'sponsorshipsPerksRenderer', 'perks') || []).map(p => p.sponsorshipsPerkRenderer).filter(Boolean).map(p => ({
+        title: strOf(p.title), text: strOf(p.description),
+        images: (p.images || []).map(i => bestImage(i)).filter(Boolean).slice(0, 8),
+      })),
+    }));
+    return { channel: strOf(h.superTitle), image: bestImage(h.channelImage), title: strOf(h.title), subtitle: strOf(h.subtitle),
+      alert: strOf(dig(findKey(o.alert, 'sponsorshipsAlertRenderer'), 'alertMessage')), tiers, footer: strOf(o.bottomDisclaimer) };
+  }
+  // membership(id) -> Promise of what the channel's Membership tab holds for you as a member,
+  // or null when it has no member's view (not a member, or no such tab):
+  //   { tier (the level's name), status ("Member"), length ("3 months"), perksTitle ("Your perks"),
+  //   badge (your loyalty badge's url), avatar, perks: [{ title, text, images: [urls] }]
+  //   (images: its custom emoji or loyalty badges), videos: [items] (the "Highlighted content
+  //   for members" shelf), posts: [posts] (recent members-only posts, see fromPost) }.
+  //   Read from the tab's sponsorshipsHubViewModel (signed in, 2026-10-18; docs/youtube.md).
+  async function membership(channelId) {
+    const params = (await channel(channelId)).tabs.membership;
+    if (!params) return null;
+    const content = tabContent(await browse(channelId, params));
+    const hub = findKey(content, 'sponsorshipsHubViewModel');
+    if (!hub) return null;
+    const list = findKey(hub, 'sponsorshipsPerksListViewModel') || {};
+    const perks = (list.perks || []).map(p => ({
+      title: strOf(p.title), text: strOf(p.description),
+      images: [...(p.emoji || []).map(e => bestImage(e)), ...(p.badges || []).map(b => bestImage(b.image))].filter(Boolean),
+    }));
+    const { items, posts } = collect(content);
+    return { tier: strOf(hub.tierName), status: strOf(hub.membershipType), length: strOf(hub.membershipDurationOrExpiry),
+      perksTitle: strOf(hub.perksTitle), badge: bestImage(hub.badgeImage), avatar: bestImage(hub.avatar), perks, videos: items,
+      posts: posts.map(p => ({ ...p, membersOnly: true })) };       // (all of them are)
+  }
+
+  // The playing video's offer params (a members-only video's Join button on its watch page), or ''.
+  const videoOfferParams = () => (JSON.stringify(D.watchData() || {}).match(/"ypcGetOffersEndpoint":\{"params":"([^"]+)"/) || [])[1] || '';
 
   // The browse params for one of a channel's tabs (its own, or the usual ones).
   const tabParams = async (channelId, name) => (await channel(channelId)).tabs[name] || TAB_PARAMS[name];
@@ -340,6 +407,9 @@
   // shows(id) -> pager of playlist items (a show is a playlist of episodes).
   const shows = channelId => tabPager(async () => browse(channelId, await tabParams(channelId, 'shows')), c => c.items);
 
+  // podcasts(id) -> pager of the channel's podcasts (playlist items with square covers).
+  const podcasts = channelId => tabPager(async () => browse(channelId, await tabParams(channelId, 'podcasts')), c => c.items);
+
   // posts(id) -> pager of posts (see fromPost).
   const posts = channelId => tabPager(async () => browse(channelId, await tabParams(channelId, 'posts')), c => c.posts);
 
@@ -393,7 +463,7 @@
   }
 
   ns.youtubeChannel = {
-    currentChannelId, channel, about, home, videos, shorts, live, playlists, shows, posts, store, search,
+    currentChannelId, channel, forget, about, offer, membership, videoOfferParams, home, videos, shorts, live, playlists, podcasts, shows, posts, store, search,
     postComments, ratePost, votePoll,
     collect, fromShort, fromShow, fromPost, fromProduct, TAB_PARAMS,
     tabContent, pageToken, findKeyAll,           // also used by youtube-home.js

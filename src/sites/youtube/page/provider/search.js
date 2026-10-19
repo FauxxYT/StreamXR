@@ -122,7 +122,7 @@
         suggestions: focused && suggestFor === text.trim() ? suggestions : [] };
       // Redraw on any change, and ~30 times a second while the loading indicator shows.
       const spinning = loading && !m.items.length;
-      return { model: m, key: `${ver}|${spinning ? Math.floor(frame.now / 33) : ''}`, bar, open: !!query };
+      return { model: m, key: `${ver}|${ns.youtubeData.thumbsVersion()}|${spinning ? Math.floor(frame.now / 33) : ''}`, bar, open: !!query };
     }
 
     return { model, event, tick };

@@ -85,6 +85,67 @@ Channel, Home, Subscriptions); what matters from them is in this file and the ba
   matched "backstagePostThreadRenderer" and silently dropped every channel post.
 - Text matching in `youtube-page.js` assumes **English** YouTube.
 
+- **Explore pages' "View all"** (2026-10-18, signed out): Live's shelves (`richShelfRenderer`)
+  carry an `endpoint` to a page of their own (a channel's live tab, with continuations); Hype's
+  (`shelfRenderer`) have it in the shelf's `menu`, a browse to `VL<playlist id>` (Top 100: a
+  101-video playlist). `youtube-home.js` `viewAllOf` / `viewAll`. News's tabs (Top stories,
+  Sports, Entertainment, Business, Technology, World, National, Health) are the page's
+  `twoColumnBrowseResultsRenderer` tabs, each with its own browse params.
+- **Mixes' art can't be drawn:** a mix's lockup (`LOCKUP_CONTENT_TYPE_STATION`, e.g. Music's
+  `RDCLAK5uy_...` mixes) names no first video, and its square art is on `i9.ytimg.com`, which
+  refuses CORS (as do `i.ytimg.com/s_p/...` variants), so the canvas couldn't be uploaded to
+  WebGL. Its first video comes from the `next` request (`currentVideoEndpoint`), and that
+  video's `i.ytimg.com/vi/<id>/` thumbnail loads (`youtube-data.js` `playlistThumb`).
+- **Podcasts' covers** (2026-10-18): a podcast lockup (`LOCKUP_CONTENT_TYPE_PODCAST`) carries
+  its square art in `contentImage` (`i.ytimg.com/pl_c/<id>/studio_square_thumbnail…`, up to
+  720×720, CORS allowed), used instead of its first episode's frame (`square: true`).
+- **Memberships page** (`FEchannel_memberships`, 2026-10-18, signed out): the creators to join
+  are `horizontalShelfViewModel`s (title in `header.sectionHeaderViewModel.headline`) of
+  lockups of `LOCKUP_CONTENT_TYPE_TV_NETWORK`: a banner (`contentImage`), the avatar
+  (`metadata…image.decoratedAvatarViewModel`), the name and the monthly price ("$9.99") as the
+  metadata row. No channel id field: signed out the tap is a sign-in whose `surlp` parameter
+  base64-decodes to the channel's `UC…` id; signed in, it's a `ypcGetOffersEndpoint` (`ypc/get_offers`)
+  whose `params` hold the id the same way (`youtube-data.js` `fromCreator` tries every encoded
+  parameter). The page puts several shelves in one item section (`youtube-home.js` `shelvesIn`). Members-only
+  videos carry a `badgeViewModel` with `badgeStyle: "BADGE_MEMBERS_ONLY"` ("Members only").
+- **A channel's membership offer** (the "Join" popup; signed in, 2026-10-18): a
+  `ypcGetOffersEndpoint.params` (on a members-only video's watch page, its Join button; on
+  the Memberships page, a creator card's tap; starts "sku-") goes to `ypc/get_offers` as
+  **`itemParams`** (as `params` it answers HTTP 400). The answer's
+  `actions[0].openPopupAction.popup.sponsorshipsOfferRenderer`: `header.sponsorshipsHeaderRenderer`
+  (`channelImage`, `superTitle` the channel's name, `title` "Join this channel", `subtitle`
+  "Get access to membership perks"), `alert.sponsorshipsAlertRenderer.alertMessage` ("To
+  unlock this video and more, choose a level that's at least $2.99/month."), `tiers[]` of
+  `sponsorshipsTierRenderer` (`title` "Friends", `subtitle` "$2.99" + "/month", `disclaimer`,
+  `perks.sponsorshipsPerksRenderer.perks[]` of `sponsorshipsPerkRenderer`: `title`, optional
+  `description`, optional `images` (badges, emoji), and `purchaseButton` "Join", a
+  `ypcGetCartEndpoint` (the checkout: StreamXR never calls it)), `bottomDisclaimer`. A
+  blocked video's `playabilityStatus.errorScreen.playerLegacyDesktopYpcOfferRenderer` has only
+  `itemTitle` "Members-only content", `itemThumbnail`, `offerDescription`, `offerId`. The
+  watch page marks a members-only video in `videoPrimaryInfoRenderer.badges`: a
+  `metadataBadgeRenderer` with style `BADGE_STYLE_TYPE_MEMBERS_ONLY`, label "Members only"
+  (the recommendations carry such badges for other videos too). Right after switching videos
+  the player still holds the previous video's data (for a members-only one, not naming its
+  video), so the members-only state also needs that badge (`provider.js` `watchMembersOnly`).
+- **A channel you're a member of** (signed in, 2026-10-18): its header has
+  no `ypcGetOffersEndpoint` (no Join button) and no "join"/"perks" text at all, but the tab
+  list has a **"Membership"** tab (params `EgptZW1iZXJzaGlw8gYECgIiAA==`). For a member, that
+  tab's `sectionListRenderer` starts with a `sponsorshipsHubViewModel` (`tierName` (the level's name),
+  `membershipType` "Member", `membershipDurationOrExpiry` (e.g. "3 months"), `perksTitle` "Your
+  perks", `badgeImage` (the loyalty badge), `avatar`, a ⋮ sheet of help links), and
+  `perkCards[]` of `sponsorshipsHubPerkCardViewModel` (`title`, `icon.iconType`). Each card's
+  `onTap` opens an engagement panel holding the same `sponsorshipsPerksListViewModel`, whose
+  `perks[]` have `title`, `description.content`, `icon.iconType`, and optionally `emoji[]`
+  (custom emoji images) or `badges[]` (`title` "Month 6", `image`) with `currentBadgeIndex`.
+  Then an item section with a `shelfRenderer` "Highlighted content for members" (video
+  lockups), and one with `backstagePostThreadRenderer`s "Recent members-only posts"
+  (`sponsorsOnlyBadgeRenderer`). Read by `youtube-channel.js` `membership()`.
+  The header's `frameworkUpdates` held one `subscriptionStateEntity`
+  (`subscribed: true`). The tab list also had **"Podcasts"** (params `Eghwb2RjYXN0c_IGBQoDugEA`).
+- **Gaming page** (`UCOpNcN46UbXVtpKMrmU4Abg`, the same browse id as youtube.com/gaming;
+  signed out, 2026-10-18): a "Featured" shelf, a `horizontalCardListRenderer` of
+  `gameCardRenderer`s ("Top live games": games, not videos) and no continuation. Signed in,
+  game shelves show on the page too: where they come from is still to see.
 ## Subscribe and Like
 
 - The watch page's subscribe box holds both buttons ("Subscribe" and "Subscribed"), so its
