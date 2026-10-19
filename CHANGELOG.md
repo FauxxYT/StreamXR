@@ -6,6 +6,59 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.96.4
+
+### Added
+- **A shuffle card on Next while shuffle is on**: pointing at the controls' Next shows "A
+  random video from this playlist · Shuffle is on" with the shuffle icon, instead of no card
+  (the next video isn't known until it plays). With shuffle off, the next video's card as
+  before. The generic card takes an `icon` drawn in place of a missing picture.
+
+## 0.96.3
+
+### Changed
+- **No Next preview while a playlist is shuffled**: YouTube only picks the next video when it
+  gets there (its own Next preview shows the in-order one too), so the controls' Next shows
+  no card instead of a wrong one. Reverts 0.96.2's attempt to read it from the player's Next
+  button (it showed the in-order video).
+
+## 0.96.2
+
+### Fixed
+- **Next showed the in-order video with shuffle on**: the controls' Next (its hover card)
+  now shows the video YouTube will actually play next, read from the player's own Next
+  button while the playlist's shuffle is on (UNVERIFIED that its link follows the shuffle).
+- **Save showed different states in two panels**: saving or removing a playlist now shows at
+  once on every open page of it (Up Next's playlist tab and a page opened from a card).
+
+## 0.96.1
+
+### Changed
+- **Up Next's playlist tab is now the playlist as a page** (as when a playlist is opened from
+  its card): its picture, title and position, **Shuffle** (an on / off toggle) and **Save**,
+  then all its videos as rows, the playing one marked and brought into view when it changes.
+- **A playlist card in Up Next's Recommended opens its page** in Recommended's place (a back
+  button returns), instead of playing at once. Mixes still play at once.
+- The Queue style can show a collection page, scrolling.
+
+### Fixed
+- **Shuffle only shuffled the first video**: after YouTube's Shuffle play, StreamXR now also
+  turns on the watch page's own playlist shuffle once it shows (UNVERIFIED: the toggle is
+  found by its "Shuffle" label).
+
+## 0.96.0
+
+### Added
+- **A playlist's page before playing it**: clicking a playlist card in Explore, You, Search
+  or the Channel panel opens the playlist in that panel: its picture, title, author, stats
+  and description, **Play all**, **Shuffle** and **Save** (to your library, signed in), then
+  its videos as rows, more loading as you scroll. A row plays the playlist from that video.
+  **Back** (or the tab again) returns to the list; the playlist stays open while you use
+  other panels. Mixes still play at once.
+- The shell's **collection page** (`styles/collection.js`), shown by the Catalog and Profile
+  styles under a back button; the Catalog style can now scroll it. The `shuffle` and
+  `playlist_add_check` icons.
+
 ## 0.95.9
 
 ### Added

@@ -2,7 +2,7 @@
 
 One list of what's still open, gathered from the feature backlogs (`docs/features/`) and
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
-Last updated for 0.95.9.
+Last updated for 0.96.4.
 
 ## Top priority: before the first release
 
@@ -97,19 +97,23 @@ list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps 
 2. [x] **Explore's "Coming Soon" tabs, the ready ones** (0.94.0 to 0.95.6, work in the headset): Live, Gaming, Music,
    Hype, Courses, Podcasts, Memberships, each with its sections as pills
    (`features/home-page.md`).
-3. [ ] **Info cards** (medium): YouTube's cards as they come up during a video
+3. [x] **A playlist's page before playing it** (0.96.0 to 0.96.2, works in the headset;
+   Recommended playlist cards untested): clicking a
+   playlist card opens it in its panel (Explore, You, Search, Channel, Up Next): details, Play all,
+   Shuffle, Save, and its videos (`features/home-page.md`).
+4. [ ] **Info cards** (medium): YouTube's cards as they come up during a video
    (`features/video-page.md`).
-4. [ ] **End screen** (medium): the suggested videos and channel links when a video ends
+5. [ ] **End screen** (medium): the suggested videos and channel links when a video ends
    (`features/video-page.md`).
-5. [ ] **News tabs** (medium): Top stories, Sports ... and the Sports feed.
-6. [ ] **Add to queue** (medium to large): probe how desktop YouTube's queue can be driven, then
+6. [ ] **News tabs** (medium): Top stories, Sports ... and the Sports feed.
+7. [ ] **Add to queue** (medium to large): probe how desktop YouTube's queue can be driven, then
    a way to add from cards, the queue in Up Next, and what plays when a video ends
    (`features/video-page.md`).
-7. [ ] **Explore's other tabs** (large): Shorts and Movies & TV need new readers first (Learning deferred)
+8. [ ] **Explore's other tabs** (large): Shorts and Movies & TV need new readers first (Learning deferred)
    (`features/home-page.md`).
-8. [ ] **Commenting in VR** (large): writing comments and replies with the VR keyboard (posting,
+9. [ ] **Commenting in VR** (large): writing comments and replies with the VR keyboard (posting,
    threads, typing into the Comments panel).
-9. [ ] **Chrome Web Store release, StreamXR 1.0** (last: it waits on the rest): the store
+10. [ ] **Chrome Web Store release, StreamXR 1.0** (last: it waits on the rest): the store
     listing, the privacy questions (the README's "Your privacy" covers them), review.
 
 Set aside: the Back button (0.73.0; comes back on demand). Deferred: Movies in Up Next (YouTube's

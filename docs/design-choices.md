@@ -311,3 +311,16 @@ even where they look like something to "fix".
   your perks with their emoji and loyalty badges, on the same page as the Join offer), **Videos**
   (the "Highlighted content for members", as the usual card grid) and **Posts** (the recent
   members-only posts, as the usual feed).
+- **A playlist's page (the maintainer, 2026-10-18):** clicking a playlist card opens the
+  playlist **inside the panel it's in** (not a hover popup: hover stays feedback only, and
+  large scrolling areas aren't raised, docs/Spatial-Layout.md): a back button, its picture,
+  title, author, stats and description, **Play all · Shuffle · Save**, then its videos as
+  compact rows (number, thumbnail, title, a grey line) rather than full cards, so more fit.
+  The panel keeps it open while you use other panels (like an opened post); Back, or its
+  tab again, returns to the list. A mix still plays at once (it has no page).
+  Up Next shows the same page for the playing playlist (its tab: Shuffle as an on / off toggle,
+  Save, every video as a row, the playing one brought into view), and opens a Recommended
+  playlist card the same way (the maintainer, 2026-10-18).
+  While a playlist is shuffled, the controls' Next shows a shuffle card ("A random video from
+  this playlist", the shuffle icon) instead of a video: the next one isn't known until it plays
+  (the maintainer, 2026-10-18).

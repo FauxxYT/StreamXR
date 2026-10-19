@@ -174,6 +174,7 @@
     const chipOf = { home: 'All' };                      // source id -> its chosen chip id
     const availOf = {};                                  // source id -> the fixed chips it turned out to have (p.tabs)
     let pager = null, page = 0, loading = false, error = '', ver = 0;
+    const playlist = ns.ytVr.playlist.create(actions);   // a playlist card opened in place of the list (playlist.js)
     const bump = () => { ver++; };
 
     const current = () => sources.find(s => s.id === source);
@@ -228,6 +229,11 @@
     }
 
     function event(ev) {
+      // An open playlist takes its own controls; a tab (the same one too) closes it.
+      if (playlist.isOpen()) {
+        if (ev.type === 'tab') { playlist.close(); if (ev.value === source) return; }
+        else if (playlist.event(ev)) return;
+      }
       if (ev.type === 'tab') {
         if (ev.value !== source && sources.some(x => x.id === ev.value)) { source = ev.value; startList(); }
       } else if (ev.type === 'pill') {
@@ -240,6 +246,7 @@
         if (it && current().pick) current().pick(host, it);
         // a creator card: their channel, on its Membership tab when its offer can be asked for
         else if (it && it.type === 'channel') showChannel(host, it, it.offerParams ? { tab: 'membership', offerParams: it.offerParams } : {});
+        else if (ns.ytVr.playlist.opens(it)) playlist.open(it);           // a playlist: its page, in place of the list
         else if (it) actions.openVideo(it.id, it.playlistId || current().list);
       }
     }
@@ -264,10 +271,11 @@
         emptyText: s.soon ? tr('yt.comingSoon') : loading ? tr('yt.loading') : message || tr('yt.nothingYet'),
         emptyIcon: s.soon ? 'construction' : null,
         now: frame.now / 1000,                                            // the loading indicator's clock
+        body: playlist.body(tr(`yt.browse.${source}`), host.style), scroll: playlist.scroll(),
       };
       // Redraw on any change, and ~30 times a second while the loading indicator shows.
-      const spinning = loading && !m.items.length;
-      return { model: m, key: `${ver}|${ns.youtubeData.thumbsVersion()}|${spinning ? Math.floor(frame.now / 33) : ''}` };
+      const spinning = m.body ? m.body.loading : loading && !m.items.length;
+      return { model: m, key: `${ver}|${playlist.version()}|${Math.round(playlist.scroll())}|${ns.youtubeData.thumbsVersion()}|${spinning ? Math.floor(frame.now / 33) : ''}` };
     }
 
     return { model, event };

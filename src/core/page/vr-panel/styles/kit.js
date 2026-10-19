@@ -16,6 +16,8 @@
 //     fit ('contain': the whole picture, letterboxed, e.g. a product; 'round': a round picture
 //          in the middle, e.g. a person or a channel (a letter until it loads); default:
 //          cropped to fill),
+//     icon (a Material Symbols name drawn in the middle of the thumbnail when there's no
+//           picture, e.g. 'shuffle'),
 //     inert (just to look at: not clickable, no hover highlight) }
 // Badges: a site registers its own (registerBadge); drawBadge(name) draws one if registered.
 (function (ns) {
@@ -179,6 +181,10 @@
         avatar(card.thumb, card.title, x + (W_ - s) / 2, y + (TH - s) / 2, s);
       } else if (img && card.fit === 'contain') { g.fillStyle = TC.n17; g.fillRect(x, y, W_, TH); drawImageContain(img, x, y, W_, TH); }
       else if (img) drawImageCover(img, x, y, W_, TH);
+      else if (card.icon) {                          // no picture, an icon instead (e.g. shuffle)
+        g.fillStyle = TC.n17; g.fillRect(x, y, W_, TH);
+        g.fillStyle = P.onSurfaceVariant; ns.vrSymbols.draw(g, card.icon, x + W_ / 2, y + TH / 2, Math.round(TH * 0.45), false);
+      }
       else {
         g.fillStyle = TC.n17; g.fillRect(x, y, W_, TH);
         g.fillStyle = TC.outlineVariant; const cx = x + W_ / 2, cy = y + TH / 2;

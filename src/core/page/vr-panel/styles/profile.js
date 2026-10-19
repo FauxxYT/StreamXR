@@ -32,6 +32,8 @@
 //                  button: { id, label, enabled } | null, note, items: [{ title, text, images:
 //                  [urls] }] }], footer, loading, emptyText } (plans or levels to join, e.g. a
 //                  channel's memberships: tiersPage)
+//                { kind: 'collection', back, ... } (a playlist or other list opened from a
+//                  card: collection.js, under a back button)
 //                { kind: 'post', post, back (the back button's label), thread (thread.js's
 //                  content: its pills and count sit on the bar beside the back button) }
 //              post: { at (the id posts' controls carry; default: the index in posts),
@@ -44,8 +46,9 @@
 //                footer (grey text, after the buttons) }
 //   Control ids: 'action:<id>', 'tab:<id>', 'pill:<id>', 'item:<index on page>', 'featured',
 //   'page:prev', 'page:next', 'post:<at>' (its card), 'vote:<at>.<choice>', '<name>:<at>'
-//   (its buttons), 'back' (an opened post, or searching), 'search', 'field:<id>' /
-//   'clear:<id>' / 'submit:<id>' (searching), the thread's own (thread.js), 'text' (anywhere
+//   (its buttons), 'back' (an opened post or collection, or searching), 'search', 'field:<id>' /
+//   'clear:<id>' / 'submit:<id>' (searching), 'row:<index>' (a collection's row; its buttons
+//   are 'action:<id>'), the thread's own (thread.js), 'text' (anywhere
 //   else on a scrolling body: a trigger drag can start there).
 //   Scrolling (a body): scrollAt(u, v), maxScroll(), shownScroll(), pxPerV.
 //   Also: hitTest(u, v) -> { id } | null, has(id), rectOf(id) -> { x, y, w, h } (px) | null
@@ -82,6 +85,7 @@
     const grid = ns.vrStyleGrid.createGrid(g, kit, W, H, GRID_TOP, 1);
     const slots = { threadFooter: f => f.x, ...(overrides.slots || {}) };
     const thread = ns.vrStyleThread.create(g, kit, { slots, fill: (id, ui, base) => ns.vrKit.buttonFill(id, ui, base) });
+    const collection = ns.vrStyleCollection.create(g, kit);
     let regions = [];                                     // clickable rectangles from the last draw
 
     // Banner across the top (or a dark strip), fading into the panel at its bottom edge.
@@ -475,6 +479,18 @@
       endScroll();
     }
 
+    // 'collection': the bar (back button 'back'), then the collection page (collection.js:
+    // a playlist's details, buttons and videos) scrolling under it.
+    function drawCollection(b, m, ui) {
+      g.font = `500 22px ${FONT}`;
+      const bw = g.measureText(b.back || '').width + 48 + 36;
+      ns.vrKit.button(g, regions, 'back', PAD, GRID_TOP - 4, bw, BAR_H, { icon: 'arrow_back', label: b.back || '' }, ui);
+      const lay = collection.layout(b, POST_VIEW.w);
+      const top = beginScroll({ scroll: collection.scrollFor(b, lay, POST_VIEW.h, m.scroll) }, lay.height + 12, POST_VIEW);
+      collection.draw(b, lay, m, ui, POST_VIEW.x, top, POST_VIEW, clipRegion);
+      endScroll();
+    }
+
     // The search button at the right end of the tab row ('search'): a magnifier on a round
     // button. Returns where it starts (x).
     function drawSearchButton(ui) {
@@ -519,6 +535,7 @@
         if (m.body.kind === 'feed') drawFeed(m.body, m, ui);
         else if (m.body.kind === 'post') drawOpenPost(m.body, m, ui);
         else if (m.body.kind === 'tiers') drawTiers(m.body, m, ui);
+        else if (m.body.kind === 'collection') drawCollection(m.body, m, ui);
         else drawPage(m.body, m);
         return;
       }

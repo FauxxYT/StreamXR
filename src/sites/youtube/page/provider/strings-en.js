@@ -84,6 +84,14 @@
     'yt.search.hint': 'Click the search box and type what to look for.',
     'yt.search.failed': 'Couldn’t search ({error}).',
     'yt.search.resultsFor': 'Results for “{query}”',
+    'yt.search.results': 'Results',
+    'yt.playlist.playAll': 'Play all',
+    'yt.playlist.shuffle': 'Shuffle',
+    'yt.playlist.save': 'Save',
+    'yt.playlist.saved': 'Saved',
+    'yt.playlist.failed': 'Couldn’t load this playlist ({error}).',
+    'yt.shuffle.next': 'A random video from this playlist',
+    'yt.shuffle.nextLine': 'Shuffle is on',
 
     // Browse.
     'yt.browse.home': 'Home',

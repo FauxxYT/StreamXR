@@ -87,6 +87,7 @@
     let member, memberAsk = null;             // your membership of it (undefined: not asked, null: none), and the request for it
     let gen = 0, ver = 0;                     // gen: ignore answers for a channel/list no longer shown
     const bump = () => { ver++; };
+    const playlist = ns.ytVr.playlist.create(actions);   // a playlist card opened in place of the list (playlist.js)
 
     const items = () => (pager ? pager.items : []);
     // The list shows as the posts feed (the Posts tab, or a membership's members-only posts).
@@ -261,7 +262,7 @@
     function openChannel(id, subscribedHint, bellHint) {
       if (!id || id === channelId) return;
       if (search) { searchFocus(false); search = null; }
-      channelId = id; header = null; error = ''; pager = null; page = 0; loading = false; featured = null; about = undefined; scroll = 0; opened = null; offerParams = null; offer = undefined; offerLoading = false; member = undefined; memberAsk = null;
+      channelId = id; header = null; error = ''; pager = null; page = 0; loading = false; featured = null; about = undefined; scroll = 0; opened = null; offerParams = null; offer = undefined; offerLoading = false; member = undefined; memberAsk = null; playlist.close();
       tab = 'videos'; sort = SORTS.videos[0].id;
       sub = subscribedHint == null ? 'unknown' : subscribedHint ? 'subscribed' : 'unsubscribed';
       bell = bellOf(bellHint);
@@ -391,6 +392,12 @@
 
     function event(ev) {
       if (!channelId) return;
+      // An open playlist takes its own controls; a tab (the same one too), a pill or the search
+      // button closes it.
+      if (playlist.isOpen()) {
+        if (ev.type === 'tab' || ev.type === 'pill' || ev.type === 'search') { playlist.close(); if (ev.type === 'tab' && ev.value === tab) return; }
+        else if (playlist.event(ev)) return;
+      }
       if (ev.type === 'action' && ev.value === 'bell') { if (bell) host.openMenu('action:bell'); return; }
       if (ev.type === 'menu' && ev.menu === 'action:bell') { chooseBell(ev.value); return; }
       // Searching: the search bar's controls and the typed keys.
@@ -432,7 +439,8 @@
         page = ev.value === 'next' ? Math.min(pageCount() - 1, page + 1) : Math.max(0, page - 1); bump();
       } else if (ev.type === 'item') {
         const it = tab === 'store' ? null : items()[page * perPage + +ev.value];    // products aren't clickable
-        if (it) actions.openVideo(it.id, it.playlistId);
+        if (ns.ytVr.playlist.opens(it)) playlist.open(it);               // a playlist: its page, in place of the list
+        else if (it) actions.openVideo(it.id, it.playlistId);
       } else if (ev.type === 'featured' && featured) actions.openVideo(featured.id);
       else if (ev.type === 'post') {                                      // a post's attached video
         const p = feedNow() ? items()[+ev.value] : null;
@@ -442,7 +450,7 @@
 
     // After a draw: keep the scroll where the style clamped it.
     function afterDraw() {
-      if (feedNow() || tab === 'about') scroll = host.style.shownScroll();
+      if (!playlist.isOpen() && (feedNow() || tab === 'about')) scroll = host.style.shownScroll();
     }
 
     // While shown: open the playing video's channel if none is shown yet,
@@ -456,7 +464,8 @@
       const h = header, f = tab === 'featured' ? featured : null;
       const isLoading = loading || (!!channelId && !header && !error);
       const message = error || (pager && pager.done ? tr('yt.nothingYet') : '');
-      const body = tab === 'about' ? aboutPage() : tab === 'membership' && !memberList() ? membershipPage()
+      const body = playlist.isOpen() ? playlist.body(search ? tr('yt.search.results') : tr(`yt.channel.${tab}`), host.style)
+        : tab === 'about' ? aboutPage() : tab === 'membership' && !memberList() ? membershipPage()
         : opened ? { kind: 'post', post: feedPost(opened.post, opened.i), back: tr('yt.channel.posts'), thread: opened.view.content(opened.post.comments) }
         : feedNow() ? { kind: 'feed', posts: items().map(feedPost), loading: isLoading, emptyText: message || tr('yt.channel.noPosts') }
         : null;
@@ -484,14 +493,14 @@
           : search && pager && pager.done && !items().length ? tr('yt.noResults', { query: search.query }) : message || tr('yt.nothingYet'),
         featured: f ? { thumb: f.thumb, flags: f.live ? [ns.ytVr.liveFlag()] : [], kicker: tr('yt.channel.featuredVideo'), title: f.title,
           stats: [f.views, f.age].filter(Boolean).join(' · '), description: f.description } : null,
-        body, scroll, now: frame.now / 1000,
+        body, scroll: playlist.isOpen() ? playlist.scroll() : scroll, now: frame.now / 1000,
       };
       // Redraw on any change, while scrolling, and ~30 times a second while the loading
       // indicator shows (a body loading, or the grid's first page).
       const spinning = body ? body.loading || (body.thread && (body.thread.loading || body.thread.threads.some(t => t.children && t.children.loading)))
         : isLoading && !m.items.length;
       const cv = opened ? opened.view.version() : '';
-      return { model: m, key: `${ver}|${cv}|${Math.round(scroll)}|${spinning ? Math.floor(frame.now / 33) : ''}` };
+      return { model: m, key: `${ver}|${cv}|${playlist.version()}|${Math.round(m.scroll)}|${spinning ? Math.floor(frame.now / 33) : ''}` };
     }
 
     // A subscription change made elsewhere (the controls' Subscribe button) for channel `id`.
@@ -515,6 +524,7 @@
       if (id !== channelId) openChannel(id, hint.subscribed, hint.notifications);
       if (hint.offerParams) offerParams = hint.offerParams;
       if (hint.offer) offer = hint.offer;
+      if (hint.tab) playlist.close();
       if (hint.tab && SORTS[hint.tab] && hint.tab !== tab) {
         closePost();
         tab = hint.tab; sort = firstSort(tab);
@@ -565,7 +575,7 @@
       if (!now || now === playing) return;
       const was = playing;
       playing = now;
-      if (was && channelId === was && !search && !opened) openCurrent();
+      if (was && channelId === was && !search && !opened && !playlist.isOpen()) openCurrent();
     }
 
     return { model, event, menu, tick, afterDraw, opened: openCurrent, openChannel, openCurrent, showCurrent, show, noteSubscribed, channelId: () => channelId };

@@ -147,16 +147,17 @@
   // (with no video id, e.g. a channel's show, its first video is looked up first: opened
   // without one, YouTube played a "not available on this device" placeholder instead).
   // index: the video's 0-based position in the playlist (tells YouTube which copy when a
-  // video is listed twice, and where to load the playlist window from).
+  // video is listed twice, and where to load the playlist window from). params: the watch
+  // request's params YouTube's own button sent (e.g. a playlist's Shuffle play: its order).
   // Returns true if it's opening (asynchronously when the first video had to be looked up).
-  function openVideo(id, playlistId, index) {
+  function openVideo(id, playlistId, index, params) {
     if (!id && !playlistId) return false;
     if (!id) {
       const go = first => { if (!openNow(first || '', playlistId)) console.warn('[streamxr] could not open playlist', playlistId); };
       firstVideoOf(playlistId).then(go, err => { console.warn('[streamxr] playlist lookup failed:', err); go(''); });
       return true;
     }
-    return openNow(id, playlistId, index);
+    return openNow(id, playlistId, index, params);
   }
 
   // The first video of a playlist, as YouTube's own "play all" picks it (the `next` request's
@@ -167,12 +168,12 @@
   }
 
   // openVideo's navigation itself (id may be '' with a playlist: YouTube picks the video).
-  function openNow(id, playlistId, index) {
+  function openNow(id, playlistId, index, params) {
     const sel = REC_ROOTS.split(',').map(s => `${s.trim()} a[href*="v=${id}"]`).join(', ');
-    const a = id && !playlistId && document.querySelector(sel);
+    const a = id && !playlistId && !params && document.querySelector(sel);
     const at = playlistId && index >= 0;
     const url = `/watch?${[id && `v=${id}`, playlistId && `list=${playlistId}`, at && `index=${index + 1}`].filter(Boolean).join('&')}`;
-    const endpoint = { ...(id ? { videoId: id } : {}), ...(playlistId ? { playlistId } : {}), ...(at ? { index } : {}) };
+    const endpoint = { ...(id ? { videoId: id } : {}), ...(playlistId ? { playlistId } : {}), ...(at ? { index } : {}), ...(params ? { params } : {}) };
     if (a) a.click();
     else if (!navigate(url, endpoint)) return false;
     recommendations.reset(); details.reset();
@@ -305,8 +306,45 @@
     });
   }
 
+  // ---------------------------------------------------------------- playlist shuffle
+  // The watch page's playlist panel has a Shuffle toggle (YouTube's own button, labelled
+  // "Shuffle playlist", aria-pressed when on). Opening a playlist with its Shuffle play params
+  // only picks a random first video; the toggle shuffles what plays next (works, checked in
+  // the headset with 0.96.1; docs/youtube.md).
+  function shuffleButton() {
+    return [...document.querySelectorAll('ytd-playlist-panel-renderer button, ytd-playlist-panel-renderer [role="button"]')]
+      .find(b => /shuffle/i.test(b.getAttribute('aria-label') || '') && b.getClientRects().length) || null;
+  }
+  // The playing playlist's shuffle: true / false, or null when the page shows no toggle.
+  function playlistShuffled() {
+    const b = shuffleButton();
+    return b ? b.getAttribute('aria-pressed') === 'true' : null;
+  }
+  // Turn it on or off by clicking the toggle; true if it was found.
+  function setPlaylistShuffle(on) {
+    const b = shuffleButton();
+    if (!b) return false;
+    if ((b.getAttribute('aria-pressed') === 'true') !== !!on) b.click();
+    return true;
+  }
+  // Once the watch page plays playlist `id` and shows its toggle (within `ms`), turn shuffle
+  // on: for a playlist just opened with Shuffle. Resolves true if it did.
+  function shuffleWhenReady(id, ms = 10000) {
+    const until = performance.now() + ms;
+    return new Promise(resolve => {
+      const tryNow = () => {
+        const list = D.dig(D.watchData(), 'contents', 'twoColumnWatchNextResults', 'playlist', 'playlist', 'playlistId');
+        if (list === id && setPlaylistShuffle(true)) { resolve(true); return; }
+        if (performance.now() > until) { console.warn('[streamxr] no shuffle toggle found for playlist', id); resolve(false); return; }
+        setTimeout(tryNow, 250);
+      };
+      setTimeout(tryNow, 500);
+    });
+  }
+
   ns.youtubePage = {
     recommendations, upNextPlaylists, loadMoreRecommendations, openVideo, navigate,
+    playlistShuffled, setPlaylistShuffle, shuffleWhenReady,
     details, subscribe, noteSubscription, like, dislike, logo,
     currentVideoId: D.currentVideoId, compactNumber, timeAgo,
   };

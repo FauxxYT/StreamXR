@@ -127,6 +127,25 @@ Channel, Home, Subscriptions); what matters from them is in this file and the ba
   (the recommendations carry such badges for other videos too). Right after switching videos
   the player still holds the previous video's data (for a members-only one, not naming its
   video), so the members-only state also needs that badge (`provider.js` `watchMembersOnly`).
+- **A playlist's own page** (browse `VL<id>`, signed in, 2026-10-18; read by
+  `youtube-content.js` `playlistDetails()`): the details sit in
+  `sidebar.playlistSidebarRenderer`: `playlistSidebarPrimaryInfoRenderer` (`title`, `stats[]`
+  ("24 videos", "1,234 views", "Updated …"), `description`, `navigationEndpoint.watchEndpoint`
+  = Play all's first video, and `menu.menuRenderer.topLevelButtons`: a `toggleButtonRenderer`
+  **Save playlist / Remove from Library**, and a `buttonRenderer` with icon `SHUFFLE` "Shuffle
+  play") and `playlistSidebarSecondaryInfoRenderer.videoOwner.videoOwnerRenderer` (the author).
+  The header (`pageHeaderViewModel`) repeats them as view models. **Save** is `like/like` with
+  `{ target: { playlistId } }` (`likeEndpoint` status LIKE), **remove** `like/removelike`
+  (status INDIFFERENT). Whether it's saved: the toggle's `isToggled` (true / false; the
+  header's `toggleButtonViewModel.isToggled` agrees; checked saved and unsaved). **Shuffle** is a
+  `watchEndpoint` { videoId (a random one), playlistId, `params` (e.g. "CKMLIAk%3D", different on
+  each load) }. Opened with those params (`youtube-page.js` `openVideo(id, list, index,
+  params)`), only the first video was random: the rest played in order. So StreamXR then
+  turns on the watch page's playlist Shuffle toggle (`shuffleWhenReady`; found by its
+  "Shuffle" aria-label in `ytd-playlist-panel-renderer`, aria-pressed: works, 0.96.1). With
+  shuffle on, the player's `getPlaylist()` stays in order, and YouTube's own Next preview shows
+  the in-order video too: the random next one isn't known until it plays, so StreamXR's Next
+  card says "A random video from this playlist" while shuffled (0.96.4, works in the headset).
 - **A channel you're a member of** (signed in, 2026-10-18): its header has
   no `ypcGetOffersEndpoint` (no Join button) and no "join"/"perks" text at all, but the tab
   list has a **"Membership"** tab (params `EgptZW1iZXJzaGlw8gYECgIiAA==`). For a member, that

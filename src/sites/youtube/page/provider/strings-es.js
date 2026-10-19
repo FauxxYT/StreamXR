@@ -74,6 +74,14 @@
     'yt.search.hint': 'Pulsa en el cuadro de búsqueda y escribe lo que buscas.',
     'yt.search.failed': 'No se pudo buscar ({error}).',
     'yt.search.resultsFor': 'Resultados de «{query}»',
+    'yt.search.results': 'Resultados',
+    'yt.playlist.playAll': 'Reproducir todo',
+    'yt.playlist.shuffle': 'Aleatorio',
+    'yt.playlist.save': 'Guardar',
+    'yt.playlist.saved': 'Guardada',
+    'yt.playlist.failed': 'No se pudo cargar esta lista ({error}).',
+    'yt.shuffle.next': 'Un video al azar de esta lista',
+    'yt.shuffle.nextLine': 'Aleatorio activado',
 
     // Browse.
     'yt.browse.home': 'Inicio',

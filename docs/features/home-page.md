@@ -60,6 +60,18 @@ are the extra work for each feature once the panel exists.
    - ~~Code: `suggestions(text)` -> YouTube's autocomplete~~ (verified Oct 2026: up to 12,
      about 0.2 s, works from the youtube.com page)
 
+7. [x] **A playlist's page before playing it** (0.96.0 to 0.96.2): clicking a
+   playlist card (not a mix: mixes have no page and still play at once) opens it in place of
+   the list, in Explore, You, Search and the Channel panel: its picture, title, author, stats
+   and description, **Play all**, **Shuffle**, **Save** (signed in, someone else's playlist),
+   then its videos as rows (a row plays from that video). Back, or the tab again, returns to
+   the list; leaving the panel keeps it open (0.96.0: details, rows, scrolling, Play all,
+   navigation, Save (not on your own playlists, as on YouTube) and Shuffle work in the headset).
+   Up Next (0.96.1, works in the headset): its playlist tab shows the
+   playing playlist the same way (Shuffle toggle, Save), and its Recommended playlist cards
+   open their page (untested: none showed up yet). Save shows at once on every open page
+   (0.96.2).
+
 ## Deferred
 
 Left out for now by the maintainer; each can come back if there is demand for it.

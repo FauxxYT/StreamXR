@@ -132,7 +132,10 @@
         { id: 'dislike', kind: 'icon', width: 104, icon: 'thumbDown', on: !!d.disliked, hidden: !d.canLike },
       ],
       queue: pl ? { hasPrev: pl.index > 0, hasNext: pl.index < pl.count - 1,
-        prev: pl.prev ? ns.ytVr.card(pl.prev) : null, next: pl.next ? ns.ytVr.card(pl.next) : null } : null,
+        prev: pl.prev ? ns.ytVr.card(pl.prev) : null,
+        // (shuffled: a card saying the next one is random, not a video)
+        next: pl.shuffled ? { title: tr('yt.shuffle.next'), icon: 'shuffle', thumb: '', flags: [], lines: [{ text: tr('yt.shuffle.nextLine') }], inert: true }
+          : pl.next ? ns.ytVr.card(pl.next) : null } : null,
     };
   }
 
@@ -214,7 +217,7 @@
         commentsOn: ci.on, commentCount: ci.count };
     }, 2000, null);
 
-    // The playlist being played, if any: { index, count, title, id, currentId, items,
+    // The playlist being played, if any: { index, count, title, id, currentId, items, shuffled,
     // prev, next, offset, windowLength } (re-read twice a second). For a long playlist the
     // player (and the page's sidebar) hold only a WINDOW of ~100-200 videos around the
     // playing one, and the player's index counts from the window's start; `offset` is the
@@ -274,7 +277,10 @@
       const items = Array.from({ length: count }, (_, i) => ({ ...(card(idAt(i)) || BLANK_CARD), plIndex: i }));
       return { index, count, title: plMemo.title, id: listId || '', currentId: pos.ids[pos.index], items,
         offset, windowLength: pos.ids.length,
-        prev: card(idAt(index - 1)), next: card(idAt(index + 1)) };
+        // With the page's shuffle on, no next video: YouTube picks it at random only when it
+        // gets there (its own Next preview shows the in-order one too); `shuffled` tells.
+        prev: card(idAt(index - 1)), shuffled: !!page.playlistShuffled(),
+        next: page.playlistShuffled() ? null : card(idAt(index + 1)) };
     }, 500, null);
     // Play the video at a position in the whole playlist: inside the player's window with the
     // player itself (stays in the list), else by opening it at that position.
@@ -373,7 +379,7 @@
       previousVideo: youtube.previousVideo,
       nextVideo: youtube.nextVideo,
       // YouTube's own panels (sites/youtube/page/provider/*.js).
-      openVideo: (id, playlistId) => { if (!page.openVideo(id, playlistId)) console.warn('[streamxr] couldn’t open that video'); },
+      openVideo: (id, playlistId, index, params) => { if (!page.openVideo(id, playlistId, index, params)) console.warn('[streamxr] couldn’t open that video'); },
       // Channel panel: any channel's header, tab lists and About page (youtube-channel.js), and
       // Subscribe / Unsubscribe confirmed by YouTube (youtube-subscriptions.js).
       channelHeader: id => ns.youtubeChannel.channel(id),
@@ -410,6 +416,14 @@
       browseSections: (name, tab) => ns.youtubeHome.feed(name, tab),  // an Explore page's sections, [{ title, items, viewAll }] per page (tab: its own tab)
       browseViewAll: v => ns.youtubeHome.viewAll(v),                  // everything a shelf's "View all" leads to
       browsePlaylist: id => ns.youtubeContent.playlistVideos(id),
+      // A playlist opened from its card (playlist.js): its details, saving it to your library.
+      playlistDetails: id => ns.youtubeContent.playlistDetails(id),
+      savePlaylist: (id, on) => ns.youtubeContent.savePlaylist(id, on),
+      // The playing playlist's shuffle (the watch page's toggle): state, set, and on once a
+      // playlist opened with Shuffle shows it.
+      playlistShuffled: () => page.playlistShuffled(),
+      setPlaylistShuffle: on => page.setPlaylistShuffle(on),
+      shuffleWhenReady: id => page.shuffleWhenReady(id),
       myChannelId: () => ns.youtubeHome.myChannelId(),                   // You: Your channel
       signedIn: () => ns.youtubeData.signedIn(),
       // Up Next and Settings.

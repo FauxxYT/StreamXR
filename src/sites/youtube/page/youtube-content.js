@@ -245,13 +245,63 @@
     };
   }
 
+  // A playlist's own page (browse "VL<id>"), asked once a minute at most: its details and its
+  // videos' first page come from the same answer.
+  const pageCache = new Map();                 // playlist id -> { at, promise }
+  function playlistPage(playlistId) {
+    const hit = pageCache.get(playlistId);
+    if (hit && performance.now() - hit.at < 60000) return hit.promise;
+    const promise = D.innertube('browse', { browseId: `VL${playlistId}` });
+    promise.catch(() => pageCache.delete(playlistId));
+    pageCache.set(playlistId, { at: performance.now(), promise });
+    return promise;
+  }
+
+  // playlistDetails(id) -> Promise of a playlist's details from its own page:
+  //   { id, title, author, authorId, stats: ["24 videos", "1,234 views", "Updated …"],
+  //   description, thumb (its first video's), firstVideo (Play all's), shuffle: { videoId,
+  //   params } | null (YouTube's Shuffle play), canSave (signed in, someone else's playlist),
+  //   saved (in your library) }. Read from the page's sidebar (playlistSidebarPrimaryInfoRenderer,
+  //   with Save as a toggleButtonRenderer of likeEndpoints and Shuffle as a SHUFFLE button's
+  //   watchEndpoint; seen signed in, 2026-10-18), else its header.
+  async function playlistDetails(playlistId) {
+    const r = await playlistPage(playlistId);
+    const pri = findKey(r.sidebar, 'playlistSidebarPrimaryInfoRenderer') || {};
+    const sec = findKey(r.sidebar, 'playlistSidebarSecondaryInfoRenderer') || {};
+    const ph = dig(r, 'header', 'pageHeaderRenderer', 'content', 'pageHeaderViewModel') || {};
+    const owner = dig(sec, 'videoOwner', 'videoOwnerRenderer') || {};
+    const buttons = dig(pri, 'menu', 'menuRenderer', 'topLevelButtons') || [];
+    const save = buttons.map(b => b.toggleButtonRenderer).find(t => t && findKey(t, 'likeEndpoint'));
+    const shuffleEp = dig(buttons.map(b => b.buttonRenderer).find(b => b && dig(b, 'icon', 'iconType') === 'SHUFFLE'), 'navigationEndpoint', 'watchEndpoint');
+    const firstVideo = dig(pri, 'navigationEndpoint', 'watchEndpoint', 'videoId') || dig(findKey(ph.actions, 'watchEndpoint'), 'videoId') || '';
+    return {
+      id: playlistId, title: strOf(pri.title) || strOf(dig(ph, 'title', 'dynamicTextViewModel', 'text')),
+      author: strOf(owner.title), authorId: dig(owner, 'navigationEndpoint', 'browseEndpoint', 'browseId') || '',
+      stats: (pri.stats || []).map(strOf).filter(Boolean),
+      description: strOf(pri.description) || strOf(dig(ph, 'description', 'descriptionPreviewViewModel', 'description')),
+      thumb: firstVideo ? D.thumbOf(firstVideo) : '', firstVideo,
+      shuffle: shuffleEp && shuffleEp.videoId ? { videoId: shuffleEp.videoId, params: shuffleEp.params || '' } : null,
+      canSave: !!save && D.signedIn() && !findKey(save, 'signInEndpoint'), saved: !!(save && save.isToggled),
+    };
+  }
+
+  // Save a playlist to your library (on) or remove it (YouTube's Save button: like/like and
+  // like/removelike with the playlist as the target) -> Promise of { ok, error }.
+  async function savePlaylist(playlistId, on) {
+    try {
+      await D.innertube(on ? 'like/like' : 'like/removelike', { target: { playlistId } });
+      pageCache.delete(playlistId);
+      return { ok: true };
+    } catch (err) { return { ok: false, error: String(err && err.message || err) }; }
+  }
+
   // A playlist's videos as its own page lists them (browse "VL<id>"), with the views, age and
   // badge the watch page's playlist sidebar leaves out. Pager of video items, 100 a page.
   // Also your own lists: 'WL' (Watch later), 'LL' (Liked videos). Mixes ("RD...") have no
   // such page; the request fails for them.
   function playlistVideos(playlistId) {
     return D.pager(async token => {
-      const r = await D.innertube('browse', token ? { continuation: token } : { browseId: `VL${playlistId}` });
+      const r = token ? await D.innertube('browse', { continuation: token }) : await playlistPage(playlistId);
       // Later pages also repeat `contents`, so their items are read from the append action
       // only. A first page's videos can follow other sections (Watch later puts its own
       // controls first), so every section of the list is read.
@@ -464,7 +514,7 @@
   }
 
   ns.youtubeContent = {
-    metadata, description, descriptionWithoutChapters, hasTranscript, owner, chapters, heatmap, mostReplayed, endScreen, cards, playlist, playlistVideos,
+    metadata, description, descriptionWithoutChapters, hasTranscript, owner, chapters, heatmap, mostReplayed, endScreen, cards, playlist, playlistVideos, playlistDetails, savePlaylist,
     comments, commentsInfo, replies, rateComment, readComments, sortTokens, transcript, search, saveTargets, setSaved, signedIn: D.signedIn,
   };
 })(globalThis.__streamxr = globalThis.__streamxr || {});
