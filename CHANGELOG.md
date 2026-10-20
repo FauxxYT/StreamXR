@@ -6,6 +6,34 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.98.2
+
+### Added
+- **The autoplay countdown in VR**: while YouTube counts down to the next video at a video's
+  end, the next video floats above the Autoplay button ("Up next in 5", its thumbnail, title
+  and channel), and hidden panels come back for it. Clicking it plays that video now;
+  switching Autoplay off cancels the countdown. Read from YouTube's own player (UNVERIFIED).
+
+## 0.98.1
+
+### Fixed
+- **The end screen didn't show with the panels hidden**: like a skippable ad, it now brings
+  hidden panels back (the shell's panels get `host.reveal()`).
+- **The previous video's end screen stayed on the next one**: just after a switch, the end
+  screen read a moment earlier (and the player's time) could still be the previous video's,
+  so the tab came straight back with the old tiles. The tiles now say which video they're
+  for, and a new video's end screen can only start once it has played for a moment.
+
+## 0.98.0
+
+### Added
+- **The end screen in Up Next**: when a video's end screen starts (its last seconds), Up Next
+  gets an **End screen** tab with the creator's suggested videos and playlists, and other
+  channels, as cards; it switches to the tab, and opens if it was closed. The tab stays until
+  another video starts. A video plays, a playlist opens its page, a channel opens in the
+  Channel panel. The video's own channel and Subscribe tiles are left out (the controls panel
+  has both), as are links to other sites.
+
 ## 0.97.4
 
 ### Fixed

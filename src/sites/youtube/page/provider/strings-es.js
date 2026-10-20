@@ -30,6 +30,8 @@
     'yt.cards.link': 'Un enlace: se abre en el escritorio',
     'yt.autoplay.on': 'Sí',
     'yt.autoplay.off': 'No',
+    'yt.autoplay.upNext': 'A continuación',
+    'yt.autoplay.upNextIn': 'A continuación en {n}',
     'yt.save.signIn': 'Inicia sesión en YouTube para guardar vídeos',
     'yt.save.none': 'Aún no hay listas',
     'yt.save.busy': 'Actualizando…',
@@ -72,6 +74,7 @@
     'yt.recs.title': 'A continuación',
     'yt.recs.empty': 'Aún no hay sugerencias en esta página.',
     'yt.recs.recommended': 'Recomendados',
+    'yt.recs.endScreen': 'Pantalla final',
     'yt.recs.playlist': 'Lista · {index} / {count}',
 
     // Search.

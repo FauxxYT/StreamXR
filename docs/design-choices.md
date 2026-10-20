@@ -315,6 +315,15 @@ even where they look like something to "fix".
   of the right part (before Save; YouTube's own switch, On / Off under its icon). The teaser
   is clickable (plays its card) and, like Skip ad, brings hidden panels back while it shows; the
   Cards menu shows each card as a video row (thumbnail, length, title, channel · views · age).
+- **The end screen goes in Up Next (the maintainer, 2026-10-19, 0.98.0):** not a raised row
+  over the controls (a large raised area, reaching into the video) nor on the video (YouTube's
+  way: over the picture, and no screen for 360° / 180°). When it starts, an **End screen** tab
+  appears in Up Next with its videos, playlists and other channels as cards; Up Next switches
+  to it and opens if it was closed; it stays until another video starts. The video's own
+  channel and Subscribe tiles are left out: the controls panel already has both.
+  With Autoplay on, YouTube's countdown to the next video shows as a card above the Autoplay
+  button ("Up next in 5": the next video, clickable to play it now; switching Autoplay off
+  cancels it), bringing hidden panels back like a teaser.
 - **The Membership tab for a member (the maintainer, 2026-10-18):** on a channel you're a
   member of, the Membership tab has three pills: **Perks** (your level, "Member · 3 months" and
   your perks with their emoji and loyalty badges, on the same page as the Join offer), **Videos**

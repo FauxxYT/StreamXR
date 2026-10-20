@@ -40,6 +40,8 @@
     'yt.cards.link': 'A link: opens on desktop',
     'yt.autoplay.on': 'On',
     'yt.autoplay.off': 'Off',
+    'yt.autoplay.upNext': 'Up next',
+    'yt.autoplay.upNextIn': 'Up next in {n}',
     'yt.save.signIn': 'Sign in on YouTube to save videos',
     'yt.save.none': 'No playlists yet',
     'yt.save.busy': 'Updating…',
@@ -82,6 +84,7 @@
     'yt.recs.title': 'Up next',
     'yt.recs.empty': 'No suggestions on this page yet.',
     'yt.recs.recommended': 'Recommended',
+    'yt.recs.endScreen': 'End screen',
     'yt.recs.playlist': 'Playlist · {index} / {count}',
 
     // Search.

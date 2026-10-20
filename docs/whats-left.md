@@ -2,7 +2,7 @@
 
 One list of what's still open, gathered from the feature backlogs (`docs/features/`) and
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
-Last updated for 0.97.4.
+Last updated for 0.98.2.
 
 ## Top priority: before the first release
 
@@ -103,7 +103,7 @@ list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps 
    Shuffle, Save, and its videos (`features/home-page.md`).
 4. [x] **Info cards** (0.97.0 to 0.97.4, work in the headset; with an Autoplay button): YouTube's cards as they come up during a video
    (`features/video-page.md`).
-5. [ ] **End screen** (medium): the suggested videos and channel links when a video ends
+5. [x] **End screen** (0.98.0 to 0.98.2, works in the headset; with the autoplay countdown): the suggested videos and channel links when a video ends
    (`features/video-page.md`).
 6. [x] **News tabs** (0.94.x, work in the headset): Top stories, Sports ... as pills on Explore's
    News tab. Also done along the way: Gaming's game shelves as pills (0.96.5 to 0.96.6).
@@ -165,7 +165,7 @@ movies are copy-protected, so they can't play in VR yet: `features/video-page.md
   pills) in 0.82.0 and chat replays in 0.87.0 (all work in the headset). Other viewers' floating
   reactions are deferred (`features/video-page.md`, "Deferred"). Left: the unverified items in `known-issues.md`, which the
   README's "How you can help" asks users to check (`features/video-page.md`).
-- [ ] **End screen**, **Info cards** (`features/video-page.md`).
+- [x] **End screen** (0.98.0 to 0.98.2) and **Info cards** (0.97.0 to 0.97.4) done (`features/video-page.md`).
 - [ ] **Back button**: set aside (0.73.0); comes back on demand.
 
 ## Known quirks (`known-issues.md`)

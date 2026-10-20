@@ -136,6 +136,9 @@
         // controller's menu(local) each frame; a choice arrives as { type: 'menu', value:
         // item id, menu: local }.
         openMenu: local => { const id = `p:${reg.id}${SEP}${local}`; menu = menu === id ? null : id; lastActivity = performance.now(); },
+        // Bring the panels back if auto-hide (or the left D-pad) hid them, as a skippable ad
+        // does: for something that just came up in this panel (e.g. an end screen).
+        reveal: () => { visible = true; lastActivity = performance.now(); dismissedAt = -1; },
         confirm: d => confirm(d),
         typeInto: (on, opts) => typeInto(p, on, opts),
       });

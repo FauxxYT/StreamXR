@@ -17,7 +17,8 @@
 //   when it goes), stays (optional: it doesn't fade with the rest while you watch),
 //   create(host) -> controller }.
 // host (given by vr-panel.js): { actions (the session's: provider + shell), style (this panel's style instance:
-//   maxScroll(), shownScroll() ...), perPage (cards / rows per page), open(), close(),
+//   maxScroll(), shownScroll() ...), perPage (cards / rows per page), open(), close(), reveal()
+//   (bring hidden panels back, e.g. for an end screen that just started),
 //   isOpen() (this panel), closeMenu() (the controls panel's open menu), openMenu(control)
 //   (a floating menu on one of this panel's controls, e.g. 'action:bell': its items from the
 //   controller's menu(control) -> { items: [{ id, text, on, disabled, icons }], note, stay },

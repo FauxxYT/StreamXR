@@ -1,8 +1,11 @@
-// YouTube's "Up Next" panel (Queue style): Recommended, and in a playlist a second tab with
-// the playlist as a page (playlist.js, 'live': its details, Shuffle as an on / off toggle,
-// Save, and its videos as rows, the playing one brought into view). A newly started playlist
-// opens on its tab, and whenever the playing video changes that tab brings it into view.
-// A playlist card in Recommended opens that playlist as a page in Recommended's place (a
+// YouTube's "Up Next" panel (Queue style): Recommended; in a playlist a tab with the playlist
+// as a page (playlist.js, 'live': its details, Shuffle as an on / off toggle, Save, and its
+// videos as rows, the playing one brought into view); and once a video's end screen starts,
+// an End screen tab with its tiles as cards (suggested videos and playlists, other channels:
+// provider.js endScreen()). A newly started playlist opens on its tab, and whenever the
+// playing video changes that tab brings it into view; an end screen starting switches to its
+// tab and opens the panel if it's closed; the tab stays until another video starts. A playlist
+// card (in Recommended or the end screen) opens that playlist as a page in the tab's place (a
 // back button returns). Endless Up Next: once you reach the next-to-last page of
 // Recommended, YouTube's next batch is fetched in the background (what scrolling its sidebar
 // does), so the Next arrow stays available; one request at a time, stopping when YouTube has
@@ -12,15 +15,25 @@
   'use strict';
 
   const tr = (key, vars) => ns.i18n.t(key, vars);   // words in the interface language (strings-en.js)
+  const SETTLE_MS = 1500;                            // after a video switch, wait this long before its end screen can start
+
+  // An end screen tile as an item for a card (cards.js): a video, a playlist or a channel.
+  function tileItem(t) {
+    if (t.type === 'channel') return { type: 'channel', id: t.channelId, title: t.title, thumb: t.image };
+    if (t.type === 'playlist') return { type: 'playlist', playlistId: t.playlistId, id: t.videoId || '', title: t.title, channel: t.subtitle, thumb: t.image };
+    return { type: 'video', id: t.videoId, title: t.title, views: t.subtitle, thumb: t.image };
+  }
 
   function create(host) {
     const { actions } = host;
     const per = host.perPage;
-    // tab: 'recs' | 'playlist'; Recommended's page; seen: "<playlist id>|<playing video id>".
-    let tab = 'recs', recsPage = 0, seen = '';
+    // tab: 'recs' | 'playlist' | 'end'; Recommended's and the end screen's pages; seen:
+    // "<playlist id>|<playing video id>".
+    let tab = 'recs', recsPage = 0, endPage = 0, seen = '';
     let list = null, shown = [];                    // the last frame's playlist, and this page's items
+    let ends = [], endFor = null, endOn = false, endSince = 0;   // the end screen's items, the video they're for (since when), whether it has started
     let moreLoading = false, moreDone = false, moreKey = '';
-    const opened = ns.ytVr.playlist.create(actions);   // a Recommended playlist card, as a page
+    const opened = ns.ytVr.playlist.create(actions);   // a playlist card, as a page
     const playing = ns.ytVr.playlist.create(actions);  // the playing playlist (its tab)
     // The playing playlist for its page, and playing one of its rows: at its place in the
     // playlist (keeps playing the list).
@@ -38,30 +51,47 @@
         .finally(() => { moreLoading = false; });
     }
 
-    // Every frame (shown or not): follow the playlist, so a new one opens on its tab, and a
-    // new video is brought into view.
+    // Every frame (shown or not): the end screen (its tab once it starts, until another video
+    // starts), and follow the playlist, so a new one opens on its tab, and a new video is
+    // brought into view.
     function tick(frame) {
       const st = frame.st;
+      const vid = ns.youtubeData.currentVideoId();
+      if (vid !== endFor) {                       // another video: no end screen until its own starts
+        endFor = vid; endSince = frame.now; endOn = false; ends = []; endPage = 0;
+        if (tab === 'end') { tab = 'recs'; opened.close(); }
+      }
+      // Only this video's tiles, and only once it has settled (just after a switch the
+      // player's time can still be the previous video's).
+      const es = st.endScreen || {}, tiles = es.videoId === vid ? es.tiles || [] : [];
+      if (!endOn && tiles.length && frame.now - endSince > SETTLE_MS && st.time >= Math.min(...tiles.map(t => t.start))) {
+        endOn = true; ends = tiles.map(tileItem); tab = 'end'; opened.close();
+        if (!host.isOpen()) host.open();
+        if (host.reveal) host.reveal();           // (panels hidden by auto-hide come back for it)
+      }
       list = st.playlist && st.playlist.items && st.playlist.items.length ? st.playlist : null;
-      if (!list) { tab = 'recs'; seen = ''; playing.close(); return; }
+      if (!list) { if (tab === 'playlist') tab = 'recs'; seen = ''; playing.close(); return; }
       if (playing.id() !== list.id) playing.open({ playlistId: list.id, title: list.title }, live);
-      if (list.id !== seen.split('|')[0]) tab = 'playlist';
+      if (list.id !== seen.split('|')[0] && !endOn) tab = 'playlist';
       if (`${list.id}|${list.currentId}` !== seen) { seen = `${list.id}|${list.currentId}`; playing.follow(); }
     }
 
     function model(frame) {
-      const onPlaylist = tab === 'playlist' && !!list;
-      const all = onPlaylist ? [] : frame.st.recommendations || [];
+      const onPlaylist = tab === 'playlist' && !!list, onEnd = tab === 'end' && endOn;
+      const all = onPlaylist ? [] : onEnd ? ends : frame.st.recommendations || [];
       const view = onPlaylist ? playing : opened.isOpen() ? opened : null;
       const pageCount = view ? 1 : Math.max(1, Math.ceil(all.length / per));
-      if (!view) { recsPage = Math.min(recsPage, pageCount - 1); loadMore(all, recsPage, pageCount); }
-      const page = view ? 0 : recsPage;
+      if (!view && onEnd) endPage = Math.min(endPage, pageCount - 1);
+      else if (!view) { recsPage = Math.min(recsPage, pageCount - 1); loadMore(all, recsPage, pageCount); }
+      const page = view ? 0 : onEnd ? endPage : recsPage;
       shown = view ? [] : all.slice(page * per, page * per + per);
       const m = {
-        title: tr('yt.recs.title'), page, pageCount, emptyText: tr('yt.recs.empty'), tab: onPlaylist ? 'playlist' : 'recs',
-        tabs: list ? [{ id: 'recs', label: tr('yt.recs.recommended') }, { id: 'playlist', label: tr('yt.recs.playlist', { index: list.index + 1, count: list.count }) }] : null,
+        title: tr('yt.recs.title'), page, pageCount, emptyText: tr('yt.recs.empty'), tab: onPlaylist ? 'playlist' : onEnd ? 'end' : 'recs',
+        tabs: list || endOn ? [{ id: 'recs', label: tr('yt.recs.recommended') },
+          ...(list ? [{ id: 'playlist', label: tr('yt.recs.playlist', { index: list.index + 1, count: list.count }) }] : []),
+          ...(endOn ? [{ id: 'end', label: tr('yt.recs.endScreen') }] : [])] : null,
         items: shown.map(it => ns.ytVr.card(it)),
-        body: view ? view.body(onPlaylist ? null : tr('yt.recs.recommended'), host.style) : null,
+        body: view ? view.body(onPlaylist ? null : tr(onEnd ? 'yt.recs.endScreen' : 'yt.recs.recommended'), host.style) : null,
         scroll: view ? view.scroll() : 0, now: frame.now / 1000,
       };
       const spinning = m.body && m.body.loading;
@@ -78,22 +108,27 @@
     }
 
     function event(ev) {
-      const onPlaylist = tab === 'playlist' && !!list;
+      const onPlaylist = tab === 'playlist' && !!list, onEnd = tab === 'end' && endOn;
       if (ev.type === 'tab') {
-        const t = ev.value === 'playlist' ? 'playlist' : 'recs';
-        if (t === 'recs' && tab === 'recs') opened.close();              // Recommended again: back to its cards
-        tab = t;
+        opened.close();                                                  // (any tab, the same one too: back to its cards)
+        tab = ev.value === 'playlist' || ev.value === 'end' ? ev.value : 'recs';
         if (tab === 'playlist') playing.follow();
         return;
       }
       if (onPlaylist) { playing.event(ev); return; }
       if (opened.isOpen() && opened.event(ev)) return;
       if (ev.type === 'page') {
-        recsPage = Math.max(0, recsPage + (ev.value === 'next' ? 1 : -1));   // clamped at the next frame
+        const d = ev.value === 'next' ? 1 : -1;                         // clamped at the next frame
+        if (onEnd) endPage = Math.max(0, endPage + d); else recsPage = Math.max(0, recsPage + d);
       } else if (ev.type === 'item') {
         const it = shown[+ev.value];
         if (!it) return;
         if (ns.ytVr.playlist.opens(it)) { opened.open(it); return; }       // a playlist: its page, in place of the cards
+        if (it.type === 'channel') {                                     // another channel (the end screen): the Channel panel
+          const ch = host.panel && host.panel('channel');
+          if (ch && ch.show) ch.show(it.id, {});
+          return;
+        }
         if (it.playlistId) actions.openVideo(it.id, it.playlistId);       // a mix plays from its first video
         else actions.openVideo(it.id);
         recsPage = 0;

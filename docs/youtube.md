@@ -468,6 +468,21 @@ snippets); read by `youtube-chat.js` since 0.79.0:
   So `mostReplayed()` reads the page's data and otherwise asks `next` once per video
   (checked Oct 2026 on a very popular music video). Newer or less watched videos have none.
 
+## End screen
+
+- In the player's data: `playerResponse.endscreen.endscreenRenderer` (`startMs`, `elements[]`
+  of `endscreenElementRenderer`: `style` VIDEO / PLAYLIST / CHANNEL / WEBSITE ..., `title`,
+  `metadata` (a video's views; a channel's description), `image`, `startMs` / `endMs`, its
+  place on the video (`left`, `top`, `width`, `aspectRatio`), `endpoint`; a channel tile also
+  `isSubscribe`, `callToAction`, `hovercardButton`). Probed 2026-10-19 (NVVvAH6cd6k: a channel
+  tile for the video's own channel and two video tiles, 1231.6 s to the end), read as is by
+  `youtube-content.js` `endScreen()`. Shown since 0.98.0 as Up Next's End screen tab.
+- **Autoplay's countdown** ("Up next in 5" at a video's end): read from the player's own overlay,
+  `.ytp-autonav-endscreen-countdown-overlay` (the next video's link, `.ytp-autonav-endscreen-upnext-title`
+  / `-author`, the seconds in `.ytp-autonav-endscreen-countdown`), cancelled with its
+  `.ytp-autonav-endscreen-upnext-cancel-button` (`youtube-player.js` `autoplayCountdown()`,
+  `cancelAutoplay()`; works, 0.98.2).
+
 ## Info cards
 
 - The player's data has a card list, `playerResponse.cards.cardCollectionRenderer.cards[]`,

@@ -66,7 +66,7 @@ published; what matters from them is in this file and docs/youtube.md).
   - ~~Code: `youtube.captions()`, `youtube.setCaptions(track)`, `youtube.captionLines()`~~
   - Note: YouTube draws captions on the page, not into the video picture, so VR never sees
     them; StreamXR reads the lines as they appear (captions-overlay.js draws them).
-- [ ] **End screen**
+- [x] **End screen** (0.98.0 to 0.98.2, works in the headset: an End screen tab in Up Next when it starts, panels coming back for it; with the autoplay countdown as a card above Autoplay)
   - Code: `youtubeContent.endScreen()`
   - VR idea: show the suggested videos and channel links when a video ends.
 - [x] ~~**Description panel**~~ DONE (v0.29.0: "Description" tab: views · date, the text

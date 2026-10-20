@@ -436,7 +436,22 @@
       extra: (id, itemId) => extras.extra(id, itemId),
     };
 
-    // Captions and Save (extras.js): the buttons, and the caption lines the shell draws.
+    // The playing video's end screen tiles for Up Next's End screen tab (youtube-content.js
+    // endScreen(), re-read once a second): its suggested videos and playlists, and other
+    // channels; the video's own channel and its Subscribe tile are left out (the controls
+    // panel has both), and so are links to other sites. None while the player's data is still
+    // the previous video's. -> { videoId (the video they're for), tiles }
+    const NO_END = { videoId: null, tiles: [] };
+    const endScreen = ns.youtubeData.cached(() => {
+      const vd = ns.youtubeData.playerResponse().videoDetails || {}, id = ns.youtubeData.currentVideoId();
+      if (!id || vd.videoId !== id) return NO_END;
+      const own = ns.youtubeChannel.currentChannelId();
+      return { videoId: id, tiles: ns.youtubeContent.endScreen().filter(t => (t.type === 'video' && t.videoId) || (t.type === 'playlist' && t.playlistId)
+        || (t.type === 'channel' && t.channelId && t.channelId !== own)) };
+    }, 1000, NO_END);
+
+    // Captions, Info cards, Autoplay, Save and Jump ahead (extras.js): the buttons, and the
+    // caption lines the shell draws.
     const extras = ns.ytVr.extras.create();
 
     function state() {
@@ -456,7 +471,7 @@
           ? { videoId: ns.youtubeData.currentVideoId(), channelId: ns.youtubeChannel.currentChannelId(), offerParams: ns.youtubeChannel.videoOfferParams() } : null,
         // For YouTube's panels:
         channelId: ns.youtubeChannel.currentChannelId(), details, playlist: pl, description: description(),
-        recommendations: page.recommendations(),
+        recommendations: page.recommendations(), endScreen: endScreen(),
         playback: { loop: youtube.loop(), autoplay: !!youtube.autoplay() }, audio: audioTracks(),
         extras: extras.state({ ad: ad(), paused: youtube.isPaused(), live: !!l }),
         liveChat: chatFor(l),                                        // a live stream's chat, or a finished one's chat replay (live-chat.js)
@@ -467,7 +482,7 @@
       if (watching()) return st;
       return { ...st, title: tr('yt.noVideo'), time: 0, duration: 0, paused: true, live: null, buffered: null, chapters: [], heatmap: [], ad: null, liveChat: null,
         nowPlaying: { info: [{ text: tr('yt.noVideoHint'), color: 'onSurfaceVariant' }], creator: null, actions: [], queue: null },
-        channelId: null, details: {}, playlist: null, description: null, recommendations: [], extras: extras.state({ ad: null, noVideo: true }) };
+        channelId: null, details: {}, playlist: null, description: null, recommendations: [], endScreen: NO_END, extras: extras.state({ ad: null, noVideo: true }) };
     }
 
     // While YouTube won't play the video (blocked): its thumbnail on the screen, largest first
