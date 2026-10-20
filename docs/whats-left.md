@@ -2,7 +2,7 @@
 
 One list of what's still open, gathered from the feature backlogs (`docs/features/`) and
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
-Last updated for 0.99.2.
+Last updated for 0.101.0.
 
 ## Top priority: before the first release
 
@@ -92,7 +92,7 @@ The roadmap's items before the Chrome Web Store release and the smaller open ite
 list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps its own order
 (what users see). Details in the sections below and `features/`.
 
-1. [x] **Cubemap seams** (0.93.4, works in the headset): the glass look's mipmaps (confirmed: gone with the glass off);
+1. [x] **Cubemap seams** (0.93.4, works in the headset; reported by [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack) on Reddit and [@MinuteHistoryX](https://x.com/MinuteHistoryX) on X): the glass look's mipmaps (confirmed: gone with the glass off);
    the cubemap is now read at full resolution (see "Next" below).
 2. [x] **Explore's "Coming Soon" tabs, the ready ones** (0.94.0 to 0.95.6, work in the headset): Live, Gaming, Music,
    Hype, Courses, Podcasts, Memberships, each with its sections as pills
@@ -107,12 +107,12 @@ list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps 
    (`features/video-page.md`).
 6. [x] **News tabs** (0.94.x, work in the headset): Top stories, Sports ... as pills on Explore's
    News tab. Also done along the way: Gaming's game shelves as pills (0.96.5 to 0.96.6).
-7. [x] **Follow your head on a 2D video** (0.99.0 to 0.99.2, works in the headset, with Delay / Speed sliders and scrolling Settings tabs; requested by u/boatOV on Reddit, 2026-10-19):
+7. [x] **Follow your head on a 2D video** (0.99.0 to 0.99.2, works in the headset, with Delay / Speed sliders and scrolling Settings tabs; requested by [u/boatOV](https://www.reddit.com/user/boatOV) on Reddit, 2026-10-19):
    a setting (on / off) that keeps the cinema screen, and the panels with it, in front of you
    as you turn your head, so it never needs recentering. Decided: a lazy follow (35° away for
    1 s, then easing round; not while using a panel), the panels coming along, a switch in
    Settings → 2D Cinema (off by default), 2D videos only.
-8. [ ] **Add to queue** (medium to large): probe how desktop YouTube's queue can be driven, then
+8. [x] **Add to queue** (0.100.0 to 0.100.1, works in the headset): probe how desktop YouTube's queue can be driven, then
    a way to add from cards, the queue in Up Next, and what plays when a video ends
    (`features/video-page.md`).
 9. [ ] **Explore's other tabs** (large): Shorts and Movies & TV need new readers first (Learning deferred)
@@ -127,7 +127,7 @@ movies are copy-protected, so they can't play in VR yet: `features/video-page.md
 
 ## Next: from u/TehSuperFruitSnack's Reddit feedback (after 0.88.1)
 
-1. [x] **Cubemap seams** (0.93.4, works in the headset; the cause: the glass look's mipmaps): thin lines along the cube's edges on 360° cubemap ("MESH")
+1. [x] **Cubemap seams** (0.93.4, works in the headset; also reported by [@MinuteHistoryX](https://x.com/MinuteHistoryX) on X; the cause: the glass look's mipmaps): thin lines along the cube's edges on 360° cubemap ("MESH")
    videos; regular (equirectangular) 360° videos don't have them. Likely cause: the glass look
    (on by default) builds mipmaps of the video (`gl-utils.js` `videoMipmaps`), and the
    sphere's cubemap lookup (`video-sphere.js` `eacUv`) jumps across the texture where two faces

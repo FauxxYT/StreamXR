@@ -20,6 +20,19 @@
   const tr = (key, vars) => ns.i18n.t(key, vars);   // words in the interface language (strings-en.js)
   const liveFlag = () => ({ text: tr('yt.card.live'), bg: 'primary', fg: 'onSurface', dot: true });   // streaming now
 
+  // The videos in YouTube's queue (Add to queue): those added from VR, plus the queue's own
+  // (the provider tells each frame: setQueued, [] with no queue), and a version that bumps on
+  // every change (redraw keys).
+  const queue = { added: new Set(), inList: new Set(), ver: 0 };
+  const queued = id => queue.added.has(id) || queue.inList.has(id);
+  function noteQueued(id) { if (id && !queue.added.has(id)) { queue.added.add(id); queue.ver++; } }
+  function setQueued(ids) {
+    const key = ids.join(' ');
+    if (key === queue.key) return;
+    queue.key = key; queue.inList = new Set(ids); queue.ver++;
+    if (ids.length) queue.added.clear();          // (the queue's own list covers them now)
+  }
+
   // A card for `item`. opts.showChannel: false leaves the channel line out (on a channel's
   // own page); opts.current: the item playing now (outlined, "Now playing" as its flag).
   function card(item, opts = {}) {
@@ -37,6 +50,8 @@
       corner: item.duration || (playlist && item.videoCount ? tr(podcast ? 'yt.card.episodes' : 'yt.card.videos', { n: item.videoCount }) : ''),
       flags: [kind, ...(item.live ? [liveFlag()] : []), ...(item.membersOnly ? [{ text: tr('yt.card.membersOnly'), bg: 'chatMember', fg: 'onChatMember' }] : [])],
       progress: (item.watched || 0) / 100,
+      // a video (not a Short, a playlist or a live stream): Add to queue on its thumbnail (a check once queued)
+      quick: !playlist && !item.short && !item.live && item.id ? { icon: 'add_to_queue', on: queued(item.id) } : null,
       lines: [...(opts.showChannel === false ? [] : [{ text: item.channel || '', badge: item.badge || null }]),
         ...(stats ? [{ text: stats }] : [])],
     };
@@ -44,5 +59,6 @@
 
   ns.ytVr = ns.ytVr || {};
   ns.ytVr.card = card;
+  ns.ytVr.queue = { noteQueued, setQueued, queued, version: () => queue.ver };   // (what's in YouTube's queue: cards' Add to queue)
   ns.ytVr.liveFlag = liveFlag;          // the LIVE flag, for cards made elsewhere (a channel's featured video)
 })(globalThis.__streamxr = globalThis.__streamxr || {});

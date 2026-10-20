@@ -72,7 +72,9 @@
       list = st.playlist && st.playlist.items && st.playlist.items.length ? st.playlist : null;
       if (!list) { if (tab === 'playlist') tab = 'recs'; seen = ''; playing.close(); return; }
       if (playing.id() !== list.id) playing.open({ playlistId: list.id, title: list.title }, live);
-      if (list.id !== seen.split('|')[0] && !endOn) tab = 'playlist';
+      // A new playlist opens on its tab; YouTube's queue doesn't (it starts when you add to it:
+      // jumping there would be jarring), its tab just appears.
+      if (list.id !== seen.split('|')[0] && !endOn && !list.queue) tab = 'playlist';
       if (`${list.id}|${list.currentId}` !== seen) { seen = `${list.id}|${list.currentId}`; playing.follow(); }
     }
 
@@ -88,7 +90,7 @@
       const m = {
         title: tr('yt.recs.title'), page, pageCount, emptyText: tr('yt.recs.empty'), tab: onPlaylist ? 'playlist' : onEnd ? 'end' : 'recs',
         tabs: list || endOn ? [{ id: 'recs', label: tr('yt.recs.recommended') },
-          ...(list ? [{ id: 'playlist', label: tr('yt.recs.playlist', { index: list.index + 1, count: list.count }) }] : []),
+          ...(list ? [{ id: 'playlist', label: tr(list.queue ? 'yt.recs.queue' : 'yt.recs.playlist', { index: list.index + 1, count: list.count }) }] : []),   // (YouTube's queue takes the playlist's place)
           ...(endOn ? [{ id: 'end', label: tr('yt.recs.endScreen') }] : [])] : null,
         items: shown.map(it => ns.ytVr.card(it)),
         body: view ? view.body(onPlaylist ? null : tr(onEnd ? 'yt.recs.endScreen' : 'yt.recs.recommended'), host.style) : null,
@@ -120,6 +122,9 @@
       if (ev.type === 'page') {
         const d = ev.value === 'next' ? 1 : -1;                         // clamped at the next frame
         if (onEnd) endPage = Math.max(0, endPage + d); else recsPage = Math.max(0, recsPage + d);
+      } else if (ev.type === 'quick') {                                   // a card's Add to queue
+        const it = shown[+ev.value];
+        if (it && it.id) actions.addToQueue(it.id);
       } else if (ev.type === 'item') {
         const it = shown[+ev.value];
         if (!it) return;

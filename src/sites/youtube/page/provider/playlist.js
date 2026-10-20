@@ -60,7 +60,7 @@
       scroll = live ? null : 0;
       const my = ++gen, id = it.playlistId;
       pager = live ? null : actions.browsePlaylist(id);
-      if (isMix(id)) details = null;
+      if (isMix(id) || /^TLPQ/.test(id)) details = null;             // (a mix or YouTube's queue: no page of its own)
       else Promise.resolve(actions.playlistDetails(id)).then(d => { if (my === gen) { details = d || null; bump(); } },
         err => { if (my === gen) { details = null; console.warn('[streamxr] playlist details unavailable:', err && err.message || err); bump(); } });
       bump(); loadMore();

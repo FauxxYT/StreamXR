@@ -246,7 +246,7 @@
       if (!pos) return null;
       const pl = ns.youtubeContent.playlist();
       const listId = pl ? pl.id : plMemo && plMemo.id;
-      if (pl && !pl.infinite) loadPlaylistDetails(pl.id);
+      if (pl && !pl.infinite && !pl.queue) loadPlaylistDetails(pl.id);   // (the queue has no page of its own)
       const d = plDetails && plDetails.id === listId ? plDetails : null;
       // Where the player's window starts in the whole playlist: from the page's data when it
       // describes the same window (same first video), else by finding the playing video in
@@ -275,7 +275,7 @@
       const count = Math.max(total, offset + pos.ids.length, d ? d.order.length : 0);
       // Every position in playlist order, with that position (plIndex) for playing it.
       const items = Array.from({ length: count }, (_, i) => ({ ...(card(idAt(i)) || BLANK_CARD), plIndex: i }));
-      return { index, count, title: plMemo.title, id: listId || '', currentId: pos.ids[pos.index], items,
+      return { index, count, title: plMemo.title, id: listId || '', queue: !!(pl && pl.queue), currentId: pos.ids[pos.index], items,
         offset, windowLength: pos.ids.length,
         // With the page's shuffle on, no next video: YouTube picks it at random only when it
         // gets there (its own Next preview shows the in-order one too); `shuffled` tells.
@@ -417,6 +417,8 @@
       browseViewAll: v => ns.youtubeHome.viewAll(v),                  // everything a shelf's "View all" leads to
       browsePlaylist: id => ns.youtubeContent.playlistVideos(id),
       // A playlist opened from its card (playlist.js): its details, saving it to your library.
+      // Add to queue (a card's quick button): YouTube's own queue (youtube-page.js addToQueue).
+      addToQueue: id => { if (page.addToQueue(id)) ns.ytVr.queue.noteQueued(id); else console.warn('[streamxr] couldn’t add to the queue'); },
       playlistDetails: id => ns.youtubeContent.playlistDetails(id),
       savePlaylist: (id, on) => ns.youtubeContent.savePlaylist(id, on),
       // The playing playlist's shuffle (the watch page's toggle): state, set, and on once a
@@ -456,6 +458,7 @@
 
     function state() {
       const l = liveNow(), pl = playlist(), details = page.details(), title = youtube.title(), channel = youtube.channel();
+      ns.ytVr.queue.setQueued(pl && pl.queue ? pl.items.map(it => it.id).filter(Boolean) : []);   // (the cards' Add to queue checks)
       const q = youtube.quality() || { current: null, levels: [] };
       const st = {
         title, time: l ? l.current - l.start : youtube.currentTime(), duration: l ? l.end - l.start : youtube.duration(),

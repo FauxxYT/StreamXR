@@ -18,6 +18,9 @@
 //          cropped to fill),
 //     icon (a Material Symbols name drawn in the middle of the thumbnail when there's no
 //           picture, e.g. 'shuffle'),
+//     quick: { icon, on } (a round button on the thumbnail's bottom-left while the card is
+//            pointed at, e.g. Add to queue; region 'quick:<n>' for a card 'item:<n>'; on: done,
+//            a check),
 //     inert (just to look at: not clickable, no hover highlight) }
 // Badges: a site registers its own (registerBadge); drawBadge(name) draws one if registered.
 (function (ns) {
@@ -158,9 +161,16 @@
     // clickable region `id` pushed onto `regions`; ui: { hover, pressed }.
     function drawCard(card, x, y, box, ui, regions, id) {
       const W_ = box.w, TH = box.thumbH, T = ns.vrTokens, P = T.m3;
+      // Its quick button (card.quick, e.g. Add to queue): 'quick:<n>' for a card 'item:<n>', in the
+      // thumbnail's bottom-left corner (the flags take the top), shown while the card or it is
+      // pointed at; pushed first so it wins over the card under it.
+      const quickId = card.quick && !card.inert ? `quick:${String(id).slice(String(id).indexOf(':') + 1)}` : null, QS = 48;
+      const quickR = quickId ? { x: x + 8, y: y + TH - QS - (card.progress > 0 ? 14 : 8), w: QS, h: QS } : null;
+      if (quickR) regions.push({ id: quickId, ...quickR });
       if (!card.inert) regions.push({ id, x, y, w: W_, h: box.h });
       // How far it's pointed at / pressed (motion.js: eased; 0 for a card just to look at).
-      const { h: hv, p: pv } = card.inert ? { h: 0, p: 0 } : ns.vrMotion.of(ui, id);
+      const own = card.inert ? { h: 0, p: 0 } : ns.vrMotion.of(ui, id), qm = quickId ? ns.vrMotion.of(ui, quickId) : { h: 0, p: 0 };
+      const hv = Math.max(own.h, qm.h), pv = own.p;                 // (pointing at its quick button counts as pointing at it)
       const tileA = Math.min(1, Math.max(hv, pv));
       const tile = { x: x - 8, y: y - 8, w: W_ + 16, h: box.h + 16, r: Math.max(4, ns.vrMotion.lerp(T.shape.large, T.shape.medium, pv)) };
       if (tileA > 0.01) {
@@ -220,6 +230,18 @@
           g.textAlign = 'left'; g.fillText(f.text, fx + 23, y + 22);
         } else { g.textAlign = 'center'; g.fillText(f.text, fx + fw / 2, y + 22); }
         fx += fw + 6;
+      }
+      // The quick button, while the card is pointed at: a round dark button with its icon
+      // (filled in the brand colour once done, card.quick.on); itself pointed at: lighter, ringed.
+      if (quickR && hv > 0.01) {
+        const a0 = g.globalAlpha, cx = quickR.x + QS / 2, cy = quickR.y + QS / 2, on = !!card.quick.on;
+        g.globalAlpha = a0 * Math.min(1, hv);
+        g.fillStyle = on ? P.brand : qm.h > 0.01 ? 'rgba(40,40,40,0.92)' : 'rgba(0,0,0,0.75)';
+        g.beginPath(); g.arc(cx, cy, QS / 2, 0, Math.PI * 2); g.fill();
+        g.fillStyle = on ? P.onBrand : '#FFFFFF';
+        ns.vrSymbols.draw(g, on ? 'check' : card.quick.icon, cx, cy, 28, on);
+        g.globalAlpha = a0;
+        hoverRing(g, quickR.x, quickR.y, QS, QS, QS / 2, qm.h);
       }
 
       // Title (2 lines), then the grey lines (each with an optional badge after its text)

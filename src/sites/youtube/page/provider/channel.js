@@ -437,6 +437,9 @@
         if (ev.value !== sort) { sort = ev.value; startList(); }
       } else if (ev.type === 'page') {
         page = ev.value === 'next' ? Math.min(pageCount() - 1, page + 1) : Math.max(0, page - 1); bump();
+      } else if (ev.type === 'quick') {                                   // a card's Add to queue
+        const it = tab === 'store' ? null : items()[page * perPage + +ev.value];
+        if (it && it.id) actions.addToQueue(it.id);
       } else if (ev.type === 'item') {
         const it = tab === 'store' ? null : items()[page * perPage + +ev.value];    // products aren't clickable
         if (ns.ytVr.playlist.opens(it)) playlist.open(it);               // a playlist: its page, in place of the list
@@ -500,7 +503,7 @@
       const spinning = body ? body.loading || (body.thread && (body.thread.loading || body.thread.threads.some(t => t.children && t.children.loading)))
         : isLoading && !m.items.length;
       const cv = opened ? opened.view.version() : '';
-      return { model: m, key: `${ver}|${cv}|${playlist.version()}|${Math.round(m.scroll)}|${spinning ? Math.floor(frame.now / 33) : ''}` };
+      return { model: m, key: `${ver}|${cv}|${playlist.version()}|${ns.ytVr.queue.version()}|${Math.round(m.scroll)}|${spinning ? Math.floor(frame.now / 33) : ''}` };
     }
 
     // A subscription change made elsewhere (the controls' Subscribe button) for channel `id`.

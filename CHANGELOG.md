@@ -6,6 +6,35 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.101.0
+
+The release after v0.93.3 (everything from 0.93.4 to 0.100.1 below), with no code changes of
+its own.
+
+### Changed
+- The README's "What's new" now describes this release; its feature list, roadmap and known
+  issues are brought up to date.
+
+## 0.100.1
+
+### Fixed
+- **Adding to the queue jumped Up Next to the Queue tab**: the tab now just appears (a newly
+  started playlist still opens on its tab).
+- **The pointing ring round a playlist's (or the queue's) rows was cut off at the sides**: the
+  rows are a little narrower, so the ring fits inside the page.
+
+## 0.100.0
+
+### Added
+- **Add to queue**: pointing at a video card (in Explore, You, Search, the Channel panel and
+  Up Next) shows a round **Add to queue** button on its thumbnail's bottom-left corner;
+  clicking it adds the video to YouTube's own queue (a check shows it's queued), clicking the
+  rest of the card still plays it. Shorts, playlists and live streams have none.
+- **The queue in Up Next**: YouTube's queue gets its own **Queue · 1 / 4** tab, the same page
+  as a playlist (the playing video marked, a row plays it). As on YouTube, the queued videos
+  play after the current one.
+- The shell: a card can have a `quick` button (`styles/kit.js`); the `add_to_queue` icon.
+
 ## 0.99.2
 
 ### Added
@@ -29,7 +58,7 @@ developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 ## 0.99.0
 
 ### Added
-- **Follow your head** (Settings → 2D Cinema; off by default; requested by u/boatOV on
+- **Follow your head** (Settings → 2D Cinema; off by default; requested by [u/boatOV](https://www.reddit.com/user/boatOV) on
   Reddit): on a 2D video, once you've turned more than 35° away from the screen for a second,
   the screen and the panels glide round to where you're facing, so you never need to
   recenter. A lazy follow: glances don't move anything, and nothing moves while you're
@@ -360,7 +389,8 @@ developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 ## 0.93.4
 
 ### Fixed
-- **Seams on 360° cubemap videos:** thin lines along the cube's edges on YouTube's 360° "mesh"
+- **Seams on 360° cubemap videos** (reported by [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack) on Reddit and [@MinuteHistoryX](https://x.com/MinuteHistoryX) on X):
+  thin lines along the cube's edges on YouTube's 360° "mesh"
   videos, with the glass look on. The cubemap is now read at full resolution (the glass's
   blurred copies of the video made the edges pick up their smallest one); regular 360° videos
   never had them.

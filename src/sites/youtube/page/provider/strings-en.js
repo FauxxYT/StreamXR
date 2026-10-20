@@ -86,6 +86,7 @@
     'yt.recs.recommended': 'Recommended',
     'yt.recs.endScreen': 'End screen',
     'yt.recs.playlist': 'Playlist · {index} / {count}',
+    'yt.recs.queue': 'Queue · {index} / {count}',
 
     // Search.
     'yt.search.placeholder': 'Search YouTube',

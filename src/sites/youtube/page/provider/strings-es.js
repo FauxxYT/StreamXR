@@ -76,6 +76,7 @@
     'yt.recs.recommended': 'Recomendados',
     'yt.recs.endScreen': 'Pantalla final',
     'yt.recs.playlist': 'Lista · {index} / {count}',
+    'yt.recs.queue': 'Cola · {index} / {count}',
 
     // Search.
     'yt.search.placeholder': 'Buscar en YouTube',

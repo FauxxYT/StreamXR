@@ -99,6 +99,9 @@
       else if (ev.type === 'key') { if (focused) key(ev.value); }
       else if (ev.type === 'page') {
         page = ev.value === 'next' ? Math.min(pageCount() - 1, page + 1) : Math.max(0, page - 1); bump();
+      } else if (ev.type === 'quick') {                                   // a card's Add to queue
+        const it = items()[page * perPage + +ev.value];
+        if (it && it.id) actions.addToQueue(it.id);
       } else if (ev.type === 'item') {
         const it = items()[page * perPage + +ev.value];
         if (ns.ytVr.playlist.opens(it)) playlist.open(it);               // a playlist: its page, in place of the results
@@ -126,7 +129,7 @@
         suggestions: focused && suggestFor === text.trim() ? suggestions : [] };
       // Redraw on any change, and ~30 times a second while the loading indicator shows.
       const spinning = m.body ? m.body.loading : loading && !m.items.length;
-      return { model: m, key: `${ver}|${playlist.version()}|${Math.round(playlist.scroll())}|${ns.youtubeData.thumbsVersion()}|${spinning ? Math.floor(frame.now / 33) : ''}`, bar, open: !!query };
+      return { model: m, key: `${ver}|${playlist.version()}|${Math.round(playlist.scroll())}|${ns.ytVr.queue.version()}|${ns.youtubeData.thumbsVersion()}|${spinning ? Math.floor(frame.now / 33) : ''}`, bar, open: !!query };
     }
 
     return { model, event, tick };

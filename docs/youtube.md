@@ -468,13 +468,29 @@ snippets); read by `youtube-chat.js` since 0.79.0:
   So `mostReplayed()` reads the page's data and otherwise asks `next` once per video
   (checked Oct 2026 on a very popular music video). Newer or less watched videos have none.
 
+## The queue (Add to queue)
+
+- A card's ⋮ menu item "Add to queue" is a client-side command (2026-10-19, signed in):
+  `signalServiceEndpoint` { signal CLIENT_SIGNAL, actions: [{ `addToPlaylistCommand`: {
+  `openMiniplayer`, `videoId`, `videoIds`, `listType: PLAYLIST_EDIT_LIST_TYPE_QUEUE`,
+  `onCreateListCommand` (a `createPlaylistServiceEndpoint` { videoIds, params "CAQ%3D" }:
+  `playlist/create`, for the first one) and `videoCommand` (its watchEndpoint) } }] }.
+  StreamXR builds the same command and hands it to the page's own command handler,
+  `document.querySelector('ytd-app').handleCommandWithCommandHandler(cmd)` (works; a
+  `yt-action` event with `yt-execute-innertube-command` did nothing). `youtube-page.js` `addToQueue()`.
+- The queue then shows where a playlist does: a `ytd-playlist-panel-renderer` titled "Queue",
+  list id `TLPQ…`, its items in the element's own `data` (not in the watch page's data, nor on
+  a `VL…` page); the player's `getPlaylist()` lists them too (`getPlaylistId()` is null). When
+  the current video ends the first queued one plays, and the finished one leaves the queue.
+  `youtube-content.js` `playlist()` reads the panel's data for it (`queue: true`).
+
 ## End screen
 
 - In the player's data: `playerResponse.endscreen.endscreenRenderer` (`startMs`, `elements[]`
   of `endscreenElementRenderer`: `style` VIDEO / PLAYLIST / CHANNEL / WEBSITE ..., `title`,
   `metadata` (a video's views; a channel's description), `image`, `startMs` / `endMs`, its
   place on the video (`left`, `top`, `width`, `aspectRatio`), `endpoint`; a channel tile also
-  `isSubscribe`, `callToAction`, `hovercardButton`). Probed 2026-10-19 (NVVvAH6cd6k: a channel
+  `isSubscribe`, `callToAction`, `hovercardButton`). Probed 2026-10-19 (a video with a channel
   tile for the video's own channel and two video tiles, 1231.6 s to the end), read as is by
   `youtube-content.js` `endScreen()`. Shown since 0.98.0 as Up Next's End screen tab.
 - **Autoplay's countdown** ("Up next in 5" at a video's end): read from the player's own overlay,

@@ -307,6 +307,25 @@
     });
   }
 
+  // ---------------------------------------------------------------- the queue
+  // Add a video to YouTube's queue the way its own card menu does ("Add to queue"): the same
+  // command (an addToPlaylistCommand of list type QUEUE; YouTube's page creates the queue the
+  // first time, a playlist "TLPQ…" that plays after the current video), run by the page's own
+  // command handler (ytd-app handleCommandWithCommandHandler; seen working 2026-10-19).
+  // Returns true if the page took it.
+  function addToQueue(videoId) {
+    const app = document.querySelector('ytd-app');
+    if (!videoId || !app || typeof app.handleCommandWithCommandHandler !== 'function') return false;
+    const watch = { commandMetadata: { webCommandMetadata: { url: `/watch?v=${videoId}`, webPageType: 'WEB_PAGE_TYPE_WATCH', rootVe: 3832 } }, watchEndpoint: { videoId } };
+    const cmd = { signalServiceEndpoint: { signal: 'CLIENT_SIGNAL', actions: [{ addToPlaylistCommand: {
+      openMiniplayer: false, videoId, videoIds: [videoId], listType: 'PLAYLIST_EDIT_LIST_TYPE_QUEUE',
+      onCreateListCommand: { commandMetadata: { webCommandMetadata: { sendPost: true, apiUrl: '/youtubei/v1/playlist/create' } },
+        createPlaylistServiceEndpoint: { videoIds: [videoId], params: 'CAQ%3D' } },
+      videoCommand: watch } }] } };
+    try { app.handleCommandWithCommandHandler(cmd); return true; }
+    catch (err) { console.warn('[streamxr] adding to the queue failed:', err); return false; }
+  }
+
   // ---------------------------------------------------------------- playlist shuffle
   // The watch page's playlist panel has a Shuffle toggle (YouTube's own button, labelled
   // "Shuffle playlist", aria-pressed when on). Opening a playlist with its Shuffle play params
@@ -345,7 +364,7 @@
 
   ns.youtubePage = {
     recommendations, upNextPlaylists, loadMoreRecommendations, openVideo, navigate,
-    playlistShuffled, setPlaylistShuffle, shuffleWhenReady,
+    playlistShuffled, setPlaylistShuffle, shuffleWhenReady, addToQueue,
     details, subscribe, noteSubscription, like, dislike, logo,
     currentVideoId: D.currentVideoId, compactNumber, timeAgo,
   };

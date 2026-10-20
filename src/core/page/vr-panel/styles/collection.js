@@ -100,9 +100,9 @@
         const ry = y + i * CL.rowH;
         if (!shows(ry, CL.rowH)) return;
         const id = `row:${i}`;
-        clipRegion(id, x - 8, ry, width + 16, CL.rowH - 8);
-        if (r.current) { g.fillStyle = PA('onSurface', 0.08); roundRect(g, x - 8, ry, width + 16, CL.rowH - 8, 14); g.fill(); }
-        ns.vrKit.hoverArea(g, id, ui, x - 8, ry, width + 16, CL.rowH - 8, 14);
+        clipRegion(id, x - 2, ry, width + 4, CL.rowH - 8);
+        if (r.current) { g.fillStyle = PA('onSurface', 0.08); roundRect(g, x - 2, ry, width + 4, CL.rowH - 8, 14); g.fill(); }
+        ns.vrKit.hoverArea(g, id, ui, x - 2, ry, width + 4, CL.rowH - 8, 14);
         g.textAlign = 'center'; g.textBaseline = 'middle';
         g.fillStyle = P.onSurfaceVariant; g.font = `18px ${FONT}`;
         if (r.current) { g.fillStyle = P.onSurface; ns.vrSymbols.draw(g, 'play_arrow', x + CL.num / 2 - 4, ry + (CL.rowH - 8) / 2, 24, true); }

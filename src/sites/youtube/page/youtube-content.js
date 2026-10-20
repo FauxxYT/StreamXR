@@ -233,17 +233,25 @@
   }
 
   // ---------------------------------------------------------------- playlist being played
-  // { id, title, channel, index, total, localIndex, infinite, items: [video items] } or null
-  // when not in a playlist. A long playlist's sidebar (and the player) hold only a window of
-  // ~100-200 videos around the playing one: `index` is the playing video's position in the
-  // WHOLE playlist (0-based), `localIndex` its position in that window (= items), `total`
-  // the playlist's length (0 if not given). `infinite`: a mix, with no fixed length.
+  // YouTube's queue (Add to queue) lives only in the page: its playlist panel's own data
+  // (a list "TLPQ…" titled "Queue"), not in the watch page's. That panel's data, or null.
+  function queuePanel() {
+    const p = [...document.querySelectorAll('ytd-playlist-panel-renderer')].map(e => e.data || (e.__data && e.__data.data)).find(d => d && /^TLPQ/.test(d.playlistId || ''));
+    return p || null;
+  }
+
+  // { id, title, channel, queue (it's YouTube's queue), index, total, localIndex, infinite,
+  // items: [video items] } or null when not in a playlist (or the queue). A long playlist's
+  // sidebar (and the player) hold only a window of ~100-200 videos around the playing one:
+  // `index` is the playing video's position in the WHOLE playlist (0-based), `localIndex`
+  // its position in that window (= items), `total` the playlist's length (0 if not given).
+  // `infinite`: a mix, with no fixed length.
   function playlist() {
-    const pl = dig(results(), 'playlist', 'playlist');
+    const pl = queuePanel() || dig(results(), 'playlist', 'playlist');
     if (!pl) return null;
     return {
-      id: pl.playlistId, title: strOf(pl.title), channel: strOf(pl.ownerName),
-      index: pl.currentIndex || 0, total: +pl.totalVideos || 0,
+      id: pl.playlistId, title: strOf(pl.title), channel: strOf(pl.ownerName), queue: /^TLPQ/.test(pl.playlistId || ''),
+      index: pl.currentIndex || 0, total: +pl.totalVideos || (pl.contents || []).length,
       localIndex: pl.localCurrentIndex != null ? pl.localCurrentIndex : null, infinite: !!pl.isInfinite,
       items: D.collectItems(pl.contents || []),
     };
