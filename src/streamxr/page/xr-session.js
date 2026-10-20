@@ -102,7 +102,7 @@
       // null): that picture on the screen instead (posterCanvas), uploaded once per view.
       let poster = { key: '', canvas: null, for: null };
       placeholderCanvas(provider).then(c => { placeholder = c; }, () => {});
-      let lastHead = null;                    // where you were (and faced) at the last recenter: { position, yaw }
+      let lastHead = null;                    // where you were (and faced) at the last recenter: { position, yaw, pitch }
 
       // Formats offered in the VR panel, named in the interface language (asked each frame,
       // so a language change shows at once).
@@ -116,7 +116,7 @@
         if (!ns.formats.isFormat(next) || next === fmt) return;
         const old = view;
         view = ns.videoView.create(gl, next);
-        if (view.place && lastHead) view.place(lastHead.position, lastHead.yaw);
+        if (view.place && lastHead) view.place(lastHead.position, lastHead.yaw, lastHead.pitch || 0);
         old.dispose();
         panelSafely('targets', () => panel.setTargets([view.interaction]));
         fmt = next;
@@ -197,9 +197,16 @@
         return { glow: g.on, glowStrength: g.strength, defaultGlowStrength: S.glowStrength,
           glowReach: { value: g.reach, min: S.minGlowReach, max: S.maxGlowReach, default: S.glowReach } };
       };
+      // Follow your head's, as the 2D Cinema tab wants them: { on, after, rate } with each
+      // slider's { value, min, max, default }.
+      const followView = () => {
+        const f = ns.cinemaScreen.followPrefs(), S = ns.cinemaScreen.SETTINGS;
+        return { on: f.on, after: { value: f.after, min: S.minFollowAfter, max: S.maxFollowAfter, default: S.followAfter },
+          rate: { value: f.rate, min: S.minFollowRate, max: S.maxFollowRate, default: S.followRate } };
+      };
       const viewSettings = () => ({
         distance: view.distance ? view.distance() : null,
-        cinema: { active: ns.formats.isFlat(fmt), ...ns.cinemaScreen.curvePrefs(), defaultAmount: ns.cinemaScreen.SETTINGS.curveAmount,
+        cinema: { active: ns.formats.isFlat(fmt), follow: followView(), ...ns.cinemaScreen.curvePrefs(), defaultAmount: ns.cinemaScreen.SETTINGS.curveAmount,
           ...glowSettings(),
           format: ns.formats.label(fmt) },
       });
@@ -224,6 +231,7 @@
           setFormat: next => setFormat(next, true),
           setDistance: metres => { if (view.setDistance) view.setDistance(metres, headNow); },
           setCurve, setGlow,
+          setFollow: patch => { ns.cinemaScreen.saveFollow(patch); followPrefAt = 0; },   // (Follow your head { on?, after?, rate? }: read again at once)
           state: () => ({ ...siteSide.state(), viewSettings: viewSettings(),
             format: { current: fmt, options: formatOptions() } }),            // what's on screen (cinema during ads)
         }, siteSide.site) : null;
@@ -282,6 +290,44 @@
         } catch (_) { /* no haptics */ }
       };
 
+      // Follow your head (Settings → 2D Cinema, on a 2D video only): a lazy follow. While you
+      // face more than followStart sideways (or followStartUp up or down) away from where the
+      // layout faces, for the Delay setting's seconds (not while using a panel: pointing at
+      // one, holding or dragging something, nor while looking at one), the screen and the
+      // panels turn to where you face, easing in at the Speed setting, until within
+      // followDone; glances don't move anything. Turns `yaw` and `pitch` (and lastHead) as a
+      // recenter would, keeping where you were standing at the last one. (cinema-screen.js
+      // SETTINGS: the numbers.) A recenter sets the pitch back to level.
+      const D2R = Math.PI / 180;
+      let awaySince = 0, following = false, lastFollowAt = 0, followPrefAt = 0, pitch = 0;
+      let follow = { on: false, after: 1, rate: 2 };
+      const wrapAngle = a => Math.atan2(Math.sin(a), Math.cos(a));
+      function followHead(pose) {
+        const now = performance.now(), dt = lastFollowAt ? Math.min(0.1, (now - lastFollowAt) / 1000) : 0;
+        lastFollowAt = now;
+        const S = ns.cinemaScreen.SETTINGS, videoFmt = adFmt !== null ? adFmt : fmt;
+        if (now - followPrefAt > 500) { follow = ns.cinemaScreen.followPrefs(); followPrefAt = now; }   // (the settings, twice a second)
+        const m = pose.transform.matrix, gaze = { origin: [m[12], m[13], m[14]], dir: [-m[8], -m[9], -m[10]] };
+        if (!lastHead || videoFmt !== 'flat' || !follow.on || (panel && panel.engaged(gaze))) {
+          awaySince = 0; following = false; return;
+        }
+        const offYaw = wrapAngle(M.yawOf(pose.transform.orientation) - yaw);
+        const offPitch = Math.asin(Math.max(-1, Math.min(1, gaze.dir[1]))) - pitch;
+        if (!following) {
+          if (Math.abs(offYaw) < S.followStart * D2R && Math.abs(offPitch) < S.followStartUp * D2R) { awaySince = 0; return; }
+          if (!awaySince) awaySince = now;
+          if (now - awaySince < follow.after * 1000) return;
+          following = true;
+        }
+        const k = 1 - Math.exp(-follow.rate * dt);
+        yaw = wrapAngle(yaw + offYaw * k); pitch += offPitch * k;
+        if (Math.abs(offYaw) < S.followDone * D2R && Math.abs(offPitch) < S.followDone * D2R) { following = false; awaySince = 0; }
+        lastHead = { position: lastHead.position, yaw, pitch };
+        try { if (view.place) view.place(lastHead.position, yaw, pitch); } catch (err) { console.warn('[streamxr] placing the video failed:', err); }
+        panelSafely('placement', () => panel.place(lastHead.position, yaw, pitch));
+      }
+
+
       // Opening another video (from a panel, or the site's autoplay) happens inside the page,
       // so the session keeps running. Re-check the format for the new video. (If an ad plays
       // first, the check runs again when it ends.)
@@ -312,10 +358,12 @@
         if (wantRecenter) {
           yaw = M.yawOf(pose.transform.orientation);
           wantRecenter = false;
-          lastHead = { position: pose.transform.position, yaw };
+          pitch = 0;
+          lastHead = { position: pose.transform.position, yaw, pitch };
           try { if (view.place) view.place(lastHead.position, yaw); } catch (err) { console.warn('[streamxr] placing the video failed:', err); }
           panelSafely('placement', () => panel.place(pose.transform.position, yaw));
         }
+        followHead(pose);
         panelSafely('update', () => panel.update(frame, refSpace, session.inputSources, performance.now(), pose.transform.position));
 
         // Copy the video's newest frame to the GPU (only when there is one, and the video

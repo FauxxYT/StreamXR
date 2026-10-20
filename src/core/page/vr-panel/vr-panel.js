@@ -47,7 +47,10 @@
 //   Which side panels are open is remembered. Each panel is a style (styles/) filled by its
 //   controller; its control ids are '<panel id>|<style id>' here, and a used control
 //   reaches the controller as an event { type, value } (ARCHITECTURE.md).
-//   panel.place(headPosition, yaw)        lay it out around you (on enter and recenter)
+//   panel.place(headPosition, yaw, pitch)  lay it out around you (on enter, recenter, and the lazy follow:
+//                                         pitch, radians up, 0 otherwise)
+//   panel.engaged(gaze) -> bool            a laser on a panel or handle, a grab / drag going on, or
+//                                         (gaze: { origin, dir }) looking at a shown panel
 //   panel.resetSettings()                 the global reset: keyboard size back to default, panels shown
 //   panel.toggleVisible()
 //   panel.toggleKeyboard()                swap the in-VR keyboard (keyboard.js) and the controls panel, in the same place
@@ -545,10 +548,10 @@
     // (the controls panel, the sides) comes along: its move is turned and shifted as the
     // recenter turned and shifted the layout, so it stays where it was relative to you. (With
     // Settings → Safe zone → "Recenter resets panels" on, the moves are dropped instead.)
-    const anchorFrame = () => { const a = ns.vrSafeZone.anchor; return M.multiply(M.translation(a.pos[0], a.pos[1], a.pos[2]), M.rotationY(a.yaw)); };
-    function place(head, yaw) {
+    const anchorFrame = () => { const a = ns.vrSafeZone.anchor; return M.multiply(M.translation(a.pos[0], a.pos[1], a.pos[2]), M.multiply(M.rotationY(a.yaw), M.axisAngle(1, 0, 0, a.pitch || 0))); };
+    function place(head, yaw, pitch = 0) {
       const before = anchorFrame();
-      ns.vrSafeZone.setAnchor(head, yaw);
+      ns.vrSafeZone.setAnchor(head, yaw, pitch);
       const turn = M.multiply(anchorFrame(), M.invertRigid(before));   // the old anchor's frame -> the new one's
       const drop = ns.vrSafeZoneOptions && ns.vrSafeZoneOptions.recenterResets();
       const carry = mv => (mv && !drop ? M.multiply(turn, M.multiply(mv, M.invertRigid(turn))) : null);
@@ -1392,7 +1395,16 @@
       for (const p of panels.values()) p.pass.dispose();
     }
 
-    return { place, resetSettings, toggleVisible, toggleKeyboard, claimsGrip, stickScrolls, stickPages, stickPage, iconSwaps, setTargets, update, drawPanel, drawLasers, dispose,
+    // Is something being used now: a laser on a panel or a handle, a grab, a drag or the seek bar
+    // held, or (gaze: { origin, dir }, your head's forward ray) are you looking at a shown panel?
+    // (The cinema screen's lazy follow waits meanwhile: xr-session.js.)
+    const onIt = r => !!(r && r.u >= 0 && r.u <= 1 && r.v >= 0 && r.v <= 1);
+    const engaged = gaze => !!(grab || sideGrab || kbGrab || targetGrab || setDrag || textDrag || menuDrag || scrub
+      || [...hands.values()].some(h => h.hover || h.targetHit)
+      || (gaze && ((visible && !kbShown && onIt(intersect(gaze.origin, gaze.dir)))
+        || [...panels.values()].some(p => shown(p) && onIt(intersect(gaze.origin, gaze.dir, panelModel(p), p.size))))));
+
+    return { place, engaged, resetSettings, toggleVisible, toggleKeyboard, claimsGrip, stickScrolls, stickPages, stickPage, iconSwaps, setTargets, update, drawPanel, drawLasers, dispose,
       isVisible: () => visible, isKeyboardShown: () => kbShown };
   }
 

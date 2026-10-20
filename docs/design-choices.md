@@ -324,6 +324,12 @@ even where they look like something to "fix".
   With Autoplay on, YouTube's countdown to the next video shows as a card above the Autoplay
   button ("Up next in 5": the next video, clickable to play it now; switching Autoplay off
   cancels it), bringing hidden panels back like a teaser.
+- **Follow your head on 2D videos (the maintainer, 2026-10-19, 0.99.0; asked for by u/boatOV):**
+  a lazy follow, not a head lock (XR guidelines advise against content locked to the head):
+  once you've faced more than 35° sideways or 25° up / down away for the Delay, the screen and the panels ease round to
+  where you face at the Speed (both sliders, 0.99.2); glances don't move anything, and nothing
+  moves while you're using or looking at a panel.
+  A switch in Settings → 2D Cinema, off by default; 2D videos only (not 3D, 180° or 360°).
 - **The Membership tab for a member (the maintainer, 2026-10-18):** on a channel you're a
   member of, the Membership tab has three pills: **Perks** (your level, "Member · 3 months" and
   your perks with their emoji and loyalty badges, on the same page as the Join offer), **Videos**

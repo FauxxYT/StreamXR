@@ -117,7 +117,7 @@ Measured from `config.js` (the mock-up prints these):
 | Whole stack | +10° to −43° tall | primary content in the central 41° |
 
 Already as the guides ask: one panel at a time; panels fixed in the room with Recenter (no
-head lock); move / resize; hover, pressed and selected states and the white ring; motion;
+head lock; since 0.99.0 an optional lazy follow on 2D videos, Settings → 2D Cinema); move / resize; hover, pressed and selected states and the white ring; motion;
 controls in their own panel (not over the video); a dark surround; frames within the
 budget (smooth in the headset); text at or above 14 dp; **haptics on hover and click**
 (`config.js haptics`, no off switch yet); a passthrough option for when browsers offer it.

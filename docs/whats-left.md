@@ -2,7 +2,7 @@
 
 One list of what's still open, gathered from the feature backlogs (`docs/features/`) and
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
-Last updated for 0.98.2.
+Last updated for 0.99.2.
 
 ## Top priority: before the first release
 
@@ -107,14 +107,19 @@ list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps 
    (`features/video-page.md`).
 6. [x] **News tabs** (0.94.x, work in the headset): Top stories, Sports ... as pills on Explore's
    News tab. Also done along the way: Gaming's game shelves as pills (0.96.5 to 0.96.6).
-7. [ ] **Add to queue** (medium to large): probe how desktop YouTube's queue can be driven, then
+7. [x] **Follow your head on a 2D video** (0.99.0 to 0.99.2, works in the headset, with Delay / Speed sliders and scrolling Settings tabs; requested by u/boatOV on Reddit, 2026-10-19):
+   a setting (on / off) that keeps the cinema screen, and the panels with it, in front of you
+   as you turn your head, so it never needs recentering. Decided: a lazy follow (35° away for
+   1 s, then easing round; not while using a panel), the panels coming along, a switch in
+   Settings → 2D Cinema (off by default), 2D videos only.
+8. [ ] **Add to queue** (medium to large): probe how desktop YouTube's queue can be driven, then
    a way to add from cards, the queue in Up Next, and what plays when a video ends
    (`features/video-page.md`).
-8. [ ] **Explore's other tabs** (large): Shorts and Movies & TV need new readers first (Learning deferred)
+9. [ ] **Explore's other tabs** (large): Shorts and Movies & TV need new readers first (Learning deferred)
    (`features/home-page.md`).
-9. [ ] **Commenting in VR** (large): writing comments and replies with the VR keyboard (posting,
-   threads, typing into the Comments panel).
-10. [ ] **Chrome Web Store release, StreamXR 1.0** (last: it waits on the rest): the store
+10. [ ] **Commenting in VR** (large): writing comments and replies with the VR keyboard (posting,
+    threads, typing into the Comments panel).
+11. [ ] **Chrome Web Store release, StreamXR 1.0** (last: it waits on the rest): the store
     listing, the privacy questions (the README's "Your privacy" covers them), review.
 
 Set aside: the Back button (0.73.0; comes back on demand). Deferred: Movies in Up Next (YouTube's

@@ -6,6 +6,35 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.99.2
+
+### Added
+- **Follow your head follows up and down too**: looking more than 25° up or down for the
+  delay turns the screen and the panels up or down with you (a recenter levels them again).
+- **Follow delay and Follow speed sliders** (Settings → 2D Cinema, each with Default): the
+  defaults are now a shorter delay (0.6 s, was 1 s) and a gentler speed.
+- **Settings tabs scroll**: a tab with more rows than fit (2D Cinema now has nine) scrolls,
+  with the stick or by dragging, with a bar on the right; each tab keeps its place.
+
+### Fixed
+- **Follow your head crept after you while you read a side panel without pointing at it**:
+  looking at a panel now counts as using it, so nothing follows.
+
+## 0.99.1
+
+### Fixed
+- **The Follow your head switch never showed as on**: the setting was saved, but the switch
+  wasn't told, so it always drew as off (and each click saved "on" again).
+
+## 0.99.0
+
+### Added
+- **Follow your head** (Settings → 2D Cinema; off by default; requested by u/boatOV on
+  Reddit): on a 2D video, once you've turned more than 35° away from the screen for a second,
+  the screen and the panels glide round to where you're facing, so you never need to
+  recenter. A lazy follow: glances don't move anything, and nothing moves while you're
+  pointing at a panel, holding or dragging something. 180°/360° and 3D videos stay put.
+
 ## 0.98.2
 
 ### Added
