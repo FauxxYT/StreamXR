@@ -245,6 +245,8 @@
       const pos = youtube.playlistPosition();
       if (!pos) return null;
       const pl = ns.youtubeContent.playlist();
+      // (a queue that ended, cleared from VR: no list any more, though the player still holds it)
+      if (!pl && plMemo && /^TLPQ/.test(plMemo.id || '')) return null;
       const listId = pl ? pl.id : plMemo && plMemo.id;
       if (pl && !pl.infinite && !pl.queue) loadPlaylistDetails(pl.id);   // (the queue has no page of its own)
       const d = plDetails && plDetails.id === listId ? plDetails : null;
@@ -419,6 +421,17 @@
       // A playlist opened from its card (playlist.js): its details, saving it to your library.
       // Add to queue (a card's quick button): YouTube's own queue (youtube-page.js addToQueue).
       addToQueue: id => { if (page.addToQueue(id)) ns.ytVr.queue.noteQueued(id); else console.warn('[streamxr] couldn’t add to the queue'); },
+      // The queue's Clear (the Queue box's own command) and Save: where it can go (Watch later and
+      // your playlists), adding all its videos to one, and a new playlist of them.
+      clearQueue: () => {
+        const C = ns.youtubeContent, id = C.queueId();
+        const ok = page.runCommand(C.queueClearCommand());
+        if (ok) { C.queueEnded(id); playlist.reset(); }          // (its tab goes at once)
+        return ok;
+      },
+      queueSaveTargets: listId => ns.youtubeContent.queueSaveTargets(listId),
+      addToPlaylist: (id, ids) => ns.youtubeContent.addToPlaylist(id, ids),
+      createPlaylist: (title, ids) => ns.youtubeContent.createPlaylist(title, ids),
       playlistDetails: id => ns.youtubeContent.playlistDetails(id),
       savePlaylist: (id, on) => ns.youtubeContent.savePlaylist(id, on),
       // The playing playlist's shuffle (the watch page's toggle): state, set, and on once a

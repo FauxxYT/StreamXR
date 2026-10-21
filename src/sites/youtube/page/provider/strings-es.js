@@ -77,6 +77,14 @@
     'yt.recs.endScreen': 'Pantalla final',
     'yt.recs.playlist': 'Lista · {index} / {count}',
     'yt.recs.queue': 'Cola · {index} / {count}',
+    'yt.queue.clear': 'Borrar',
+    'yt.queue.clearTitle': '¿Borrar la cola?',
+    'yt.queue.clearText': 'Sus videos salen de la cola; el video que se reproduce sigue.',
+    'yt.queue.newPlaylist': 'Nueva lista…',
+    'yt.queue.newTitle': 'Nueva lista con la cola',
+    'yt.queue.namePlaceholder': 'Nombre de la lista',
+    'yt.queue.create': 'Crear',
+    'yt.queue.created': 'Guardada en una nueva lista privada',
 
     // Search.
     'yt.search.placeholder': 'Buscar en YouTube',

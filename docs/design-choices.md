@@ -335,6 +335,10 @@ even where they look like something to "fix".
   at; one click queues (a check once queued), the rest of the card still plays. The queue has
   its own **Queue** tab in Up Next, which appears without Up Next switching to it (YouTube's queue takes the playing playlist's place, so
   it's that tab, named Queue). It drives YouTube's own queue, the command its card menu sends.
+  The Queue tab has **Clear** (a dialog asks first, as YouTube's Undo can't be reached) and
+  **Save** (a menu: New playlist… named on the VR keyboard, then Watch later and your playlists;
+  the maintainer, 2026-10-20). While its menu or dialogs are up, the button is filled in
+  YouTube's red; the Save menu drops down under its button (Material menus open below their control), kept clear of the side toolbar.
 - **The Membership tab for a member (the maintainer, 2026-10-18):** on a channel you're a
   member of, the Membership tab has three pills: **Perks** (your level, "Member · 3 months" and
   your perks with their emoji and loyalty badges, on the same page as the Join offer), **Videos**

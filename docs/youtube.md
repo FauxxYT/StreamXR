@@ -483,6 +483,16 @@ snippets); read by `youtube-chat.js` since 0.79.0:
   a `VL…` page); the player's `getPlaylist()` lists them too (`getPlaylistId()` is null). When
   the current video ends the first queued one plays, and the finished one leaves the queue.
   `youtube-content.js` `playlist()` reads the panel's data for it (`queue: true`).
+- The Queue box's data (2026-10-20) has `menu.menuRenderer.topLevelButtons[0]`: **Clear**
+  ("Clear queue"), a `signalServiceEndpoint` of an `endPlaylistCommand` { closeListPanel,
+  listId (the queue), listType QUEUE } and a "Queue cleared" toast with Undo (a
+  `recoverPlaylistCommand`); StreamXR runs that command as is (`queueClearCommand()`,
+  `youtube-page.js` `runCommand()`). And `playlistButtons`: **Save**, a `showSheetCommand` for
+  the "Save to playlist" sheet (`PAadd_to_playlist`, params naming the queue); StreamXR asks
+  `playlist/get_add_to_playlist` with `{ playlistId: <the queue> }` instead (with several
+  `videoIds` it answers HTTP 400; one video, or the list id, work), adds them with
+  `browse/edit_playlist` (ACTION_ADD_VIDEO each), and makes a new one with `playlist/create`
+  { title, videoIds, privacyStatus PRIVATE } (works: seen 0.101.1, the playlist made with the queued videos).
 
 ## End screen
 

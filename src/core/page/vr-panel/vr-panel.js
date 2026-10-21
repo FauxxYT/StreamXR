@@ -138,11 +138,13 @@
         // (`local`, e.g. 'action:bell'; the style needs rectOf). Its items come from the
         // controller's menu(local) each frame; a choice arrives as { type: 'menu', value:
         // item id, menu: local }.
-        openMenu: local => { const id = `p:${reg.id}${SEP}${local}`; menu = menu === id ? null : id; lastActivity = performance.now(); },
+        // opts.below: a dropdown under the control instead of a menu rising above it.
+        openMenu: (local, opts) => { const id = `p:${reg.id}${SEP}${local}`; menu = menu === id ? null : id; menuBelow = !!(menu && opts && opts.below); lastActivity = performance.now(); },
         // Bring the panels back if auto-hide (or the left D-pad) hid them, as a skippable ad
         // does: for something that just came up in this panel (e.g. an end screen).
         reveal: () => { visible = true; lastActivity = performance.now(); dismissedAt = -1; },
         confirm: d => confirm(d),
+        prompt: d => prompt(d),            // a line of text typed into a dialog -> Promise of text | null
         typeInto: (on, opts) => typeInto(p, on, opts),
       });
       panels.set(reg.id, p);
@@ -159,7 +161,7 @@
     let typing = null;                    // the panel being typed into, or null
     const TYPING_KEYS = /^(Backspace|Enter|Escape)$/;
     // (Typing into the top panel's bar needs only the panels shown: the bar is always there.)
-    const typingNow = () => !!typing && (typing.zone === 'top' ? visible : shown(typing));
+    const typingNow = () => !!typing && (typing.zone === 'dialog' ? !!dialog : typing.zone === 'top' ? visible : shown(typing));
     // A panel asks for the keys (on) or gives them back. Asking also brings up the in-VR
     // keyboard if it isn't up; giving them back (with no other panel typing) puts it away again
     // if it came up that way. A panel asking while another has the keys takes them over, and
@@ -234,16 +236,38 @@
     // true for confirm, false for cancel or a click anywhere else (a new dialog cancels the
     // one before). The panels show (and stay) while it's up.
     function confirm(d) {
-      if (dialog) dialog.resolve(false);
+      if (dialog) closeDialog(false);                      // (a new dialog cancels the one before)
       return new Promise(resolve => {
         dialog = { d: { cancel: tr('dialog.cancel'), ...d }, resolve };
         dialogShown = dialog.d; visible = true; menu = null; lastActivity = performance.now();
       });
     }
+    // Ask for a line of text in a dialog: d = { title, text, placeholder, value (to start
+    // with), confirm (its button's label), cancel }. The dialog has a text field that takes
+    // the keys (the in-VR keyboard comes up for it; Enter confirms, Escape cancels). Resolves
+    // the text (trimmed) for confirm, or null for cancel or a click anywhere else.
+    const dialogTyping = {
+      zone: 'dialog', reg: { id: 'dialog', label: () => (dialog && dialog.d.title) || '' },
+      ctrl: { event(ev) {
+        const f = dialog && dialog.d.field;
+        if (!f || ev.type !== 'key') return;
+        const k = ev.value;
+        if (k === 'Enter') { if (f.text.trim()) closeDialog(true); }
+        else if (k === 'Escape') closeDialog(false);
+        else if (k === 'Backspace') dialog.d = { ...dialog.d, field: { ...f, text: f.text.slice(0, -1) } };
+        else if (k.length === 1 && f.text.length < 150) dialog.d = { ...dialog.d, field: { ...f, text: f.text + k } };
+      } },
+    };
+    function prompt(d) {
+      const p = confirm({ ...d, field: { text: d.value || '', placeholder: d.placeholder || '' } });
+      typeInto(dialogTyping, true);
+      return p;
+    }
     function closeDialog(answer) {
       if (!dialog) return;
-      const r = dialog.resolve; dialog = null; lastActivity = performance.now();
-      r(answer);
+      const r = dialog.resolve, f = dialog.d.field; dialog = null; lastActivity = performance.now();
+      if (f) typeInto(dialogTyping, false);
+      r(f ? (answer && f.text.trim() ? f.text.trim() : null) : answer);
     }
     // Where the menu goes: its bottom middle just above the button that opened it (centred
     // on it, kept from reaching far past the panel's sides), in the controls panel's tilt,
@@ -252,6 +276,24 @@
     // that panel's pose.
     function menuModel(id) {
       const pm = panelMenu(id);
+      if (pm && menuBelow) {
+        // A dropdown: the menu's card (at the bottom of its canvas, centred across it) with its
+        // top edge 12 px under the control, centred on it, 32 dp in front. Kept inside the
+        // panel's width, and clear of the side's toolbar, which stands over the panel's inner
+        // edge (half its bar over the panel) and would sit behind the card.
+        const r = pm.p.style.rectOf && pm.p.style.rectOf(pm.local), c = pm.p.style.canvas, sz = pm.p.size;
+        if (!r) return null;
+        const card = menuUi.cardRect(), mw = menuUi.canvas.width, mh = menuUi.canvas.height;
+        const k = menuSize[1] / mh, cardW = (card ? card.w : mw) * k;
+        const o = orbiters[pm.p.zone], bar = o ? (o.ui.barWidth / 2) * MPX + dp(8) : 0;
+        const lo = -sz[0] / 2 + cardW / 2 + (pm.p.zone === 'right' ? bar : 0);
+        const hi = sz[0] / 2 - cardW / 2 - (pm.p.zone === 'left' ? bar : 0);
+        const want = ((r.x + r.w / 2) / c.width - 0.5) * sz[0];
+        const x = lo <= hi ? Math.max(lo, Math.min(hi, want)) : (lo + hi) / 2;
+        const below = (0.5 - (r.y + r.h) / c.height) * sz[1] - 12 * MPX;
+        const top = (mh / 2 - (card ? card.y : 0)) * k;   // the card's top edge, up from the canvas's centre
+        return M.multiply(panelModel(pm.p), M.translation(x, below - top, dp(32)));
+      }
       if (pm) {
         const r = pm.p.style.rectOf && pm.p.style.rectOf(pm.local), c = pm.p.style.canvas, sz = pm.p.size;
         if (!r) return null;
@@ -429,6 +471,7 @@
     let grab = null;                  // { hand, local } while moving the panel by its grab bar
     let sideGrab = null;              // { hand, side, local, at } while moving a side by its toolbar's handle (moveSide)
     let menu = null;                  // null | 'quality' | 'speed' | 'format' | 'volume' | 'x:<id>' (a site button's)
+    let menuBelow = false;            // a panel's menu opened as a dropdown under its control (host.openMenu opts.below)
     let extrasNow = null;             // the site's own buttons, from the latest state (st.extras)
     let menuDrag = null;              // { hand, v, scroll, moved } while a trigger drags a scrolling menu
     let muted = false;                // last seen mute state (for the Mute/Unmute button)
@@ -889,10 +932,12 @@
           const r = intersect(origin, dir, kbModel(), kbSize());
           if (inside(r) && kb.solidAt(r.u, r.v)) hits.keyboard = r;
         }
-        if (dialog) {                                        // a dialog is modal: only it can be pointed at
+        if (dialog) {                                        // a dialog is modal: only it (and the keyboard, for its text field) can be pointed at
+          const kbHit = dialog.d.field ? hits.keyboard : null;
           for (const k of Object.keys(hits)) delete hits[k];
           const r = intersect(origin, dir, dialogModel(dp(56)), dialogSize);
           if (inside(r)) hits.dialog = r;
+          if (kbHit) hits.keyboard = kbHit;
         }
         let surface = null;
         for (const [name, r] of Object.entries(hits)) {

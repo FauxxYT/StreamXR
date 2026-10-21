@@ -131,10 +131,12 @@
         kind: 'collection', back, image: d.thumb || item.thumb || (videos[0] && videos[0].thumb) || '',
         title: d.title || (now && now.title) || item.title || '',
         lines: [d.author || (now && now.channel) || item.channel || '',
-          now && now.total ? tr('yt.recs.playlist', { index: now.index + 1, count: now.total }) : (d.stats || []).slice(0, 2).join(' · ')],
+          now && now.total ? tr(now.queue ? 'yt.recs.queue' : 'yt.recs.playlist', { index: now.index + 1, count: now.total }) : (d.stats || []).slice(0, 2).join(' · ')],
         text: d.description || '',
         buttons: now
-          ? [...(shuffled != null ? [{ id: 'shuffle', label: tr('yt.playlist.shuffle'), icon: 'shuffle', kind: shuffled ? 'filled' : 'tonal' }] : []), ...save]
+          ? [...(shuffled != null ? [{ id: 'shuffle', label: tr('yt.playlist.shuffle'), icon: 'shuffle', kind: shuffled ? 'filled' : 'tonal' }] : []),
+            // YouTube's queue: Save (a menu of where to: the panel's) and Clear (the panel asks first)
+            ...(now.queue ? [{ id: 'saveQueue', label: tr('yt.playlist.save'), icon: 'playlist_add' }, { id: 'clearQueue', label: tr('yt.queue.clear'), icon: 'clear_all' }] : save)]
           : [{ id: 'playAll', label: tr('yt.playlist.playAll'), icon: 'play_arrow', kind: 'filled', enabled: !!(d.firstVideo || videos.length) },
             { id: 'shuffle', label: tr('yt.playlist.shuffle'), icon: 'shuffle', enabled: !!d.shuffle }, ...save],
         rows: rowsOf(videos, playing),

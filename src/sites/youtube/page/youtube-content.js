@@ -235,8 +235,10 @@
   // ---------------------------------------------------------------- playlist being played
   // YouTube's queue (Add to queue) lives only in the page: its playlist panel's own data
   // (a list "TLPQ…" titled "Queue"), not in the watch page's. That panel's data, or null.
+  const ended = new Set();                     // queues cleared from VR (the page may keep their data a while)
   function queuePanel() {
-    const p = [...document.querySelectorAll('ytd-playlist-panel-renderer')].map(e => e.data || (e.__data && e.__data.data)).find(d => d && /^TLPQ/.test(d.playlistId || ''));
+    const p = [...document.querySelectorAll('ytd-playlist-panel-renderer')].map(e => e.data || (e.__data && e.__data.data))
+      .find(d => d && /^TLPQ/.test(d.playlistId || '') && !ended.has(d.playlistId) && (d.contents || []).length);
     return p || null;
   }
 
@@ -478,6 +480,48 @@
     } catch (err) { return { ok: false, error: String(err && err.message || err) }; }
   }
 
+  // ---------------------------------------------------------------- the queue: clear, save
+  // The Queue box's own Clear command (its menu's "Clear" button: an endPlaylistCommand for
+  // the queue, then YouTube's "Queue cleared" toast; seen 2026-10-20), for the page to run;
+  // null with no queue.
+  function queueClearCommand() {
+    const q = queuePanel();
+    const b = q && (dig(q, 'menu', 'menuRenderer', 'topLevelButtons') || []).map(x => x.buttonRenderer)
+      .find(x => x && findKey(x.command, 'endPlaylistCommand'));
+    return b ? b.command : null;
+  }
+  // The queue's list id (or ''), and forgetting a queue once it's cleared (its tab goes at once,
+  // while the page and the player may still hold it until the next video).
+  const queueId = () => { const q = queuePanel(); return q ? q.playlistId : ''; };
+  const queueEnded = id => { if (id) ended.add(id); };
+  // queueSaveTargets(listId) -> Promise of [{ id, title, saved }]: Watch later and your
+  // playlists, `saved` when one already holds all of the queue (playlist/get_add_to_playlist
+  // asked with the queue's own list id: asked with its videos' ids, more than one, YouTube answers
+  // HTTP 400; seen 2026-10-20). [] signed out.
+  async function queueSaveTargets(listId) {
+    if (!D.signedIn() || !listId) return [];
+    const r = await D.innertube('playlist/get_add_to_playlist', { playlistId: listId, excludeWatchLater: false });
+    return ns.youtubeChannel.findKeyAll(r, 'playlistAddToOptionRenderer').map(o => ({
+      id: o.playlistId, title: strOf(o.title), saved: o.containsSelectedVideos === 'ALL',
+    })).filter(o => o.id);
+  }
+  // addToPlaylist(playlistId, videoIds) -> Promise of { ok, error }: every video added to the
+  // playlist, in order (browse/edit_playlist, one ACTION_ADD_VIDEO each).
+  async function addToPlaylist(playlistId, videoIds) {
+    try {
+      const r = await D.innertube('browse/edit_playlist', { playlistId, actions: videoIds.map(addedVideoId => ({ action: 'ACTION_ADD_VIDEO', addedVideoId })) });
+      return r && r.status === 'STATUS_SUCCEEDED' ? { ok: true } : { ok: false, error: (r && r.status) || 'no answer' };
+    } catch (err) { return { ok: false, error: String(err && err.message || err) }; }
+  }
+  // createPlaylist(title, videoIds) -> Promise of { ok, id, error }: a new private playlist
+  // with the videos (playlist/create, as YouTube's "New playlist" does; works, 0.101.1).
+  async function createPlaylist(title, videoIds) {
+    try {
+      const r = await D.innertube('playlist/create', { title, videoIds, privacyStatus: 'PRIVATE' });
+      return r && r.playlistId ? { ok: true, id: r.playlistId } : { ok: false, error: 'no playlist made' };
+    } catch (err) { return { ok: false, error: String(err && err.message || err) }; }
+  }
+
   // ---------------------------------------------------------------- transcript
   // [{ start (s), text }] for the current video, or [] if it has none. YouTube refuses
   // direct transcript requests, so this opens the page's own transcript panel (the
@@ -526,7 +570,7 @@
   }
 
   ns.youtubeContent = {
-    metadata, description, descriptionWithoutChapters, hasTranscript, owner, chapters, heatmap, mostReplayed, endScreen, cards, playlist, playlistVideos, playlistDetails, savePlaylist,
+    metadata, description, descriptionWithoutChapters, hasTranscript, owner, chapters, heatmap, mostReplayed, endScreen, cards, playlist, playlistVideos, playlistDetails, savePlaylist, queueClearCommand, queueId, queueEnded, queueSaveTargets, addToPlaylist, createPlaylist,
     comments, commentsInfo, replies, rateComment, readComments, sortTokens, transcript, search, saveTargets, setSaved, signedIn: D.signedIn,
   };
 })(globalThis.__streamxr = globalThis.__streamxr || {});

@@ -314,16 +314,21 @@
   // command handler (ytd-app handleCommandWithCommandHandler; seen working 2026-10-19).
   // Returns true if the page took it.
   function addToQueue(videoId) {
-    const app = document.querySelector('ytd-app');
-    if (!videoId || !app || typeof app.handleCommandWithCommandHandler !== 'function') return false;
+    if (!videoId) return false;
     const watch = { commandMetadata: { webCommandMetadata: { url: `/watch?v=${videoId}`, webPageType: 'WEB_PAGE_TYPE_WATCH', rootVe: 3832 } }, watchEndpoint: { videoId } };
-    const cmd = { signalServiceEndpoint: { signal: 'CLIENT_SIGNAL', actions: [{ addToPlaylistCommand: {
+    return runCommand({ signalServiceEndpoint: { signal: 'CLIENT_SIGNAL', actions: [{ addToPlaylistCommand: {
       openMiniplayer: false, videoId, videoIds: [videoId], listType: 'PLAYLIST_EDIT_LIST_TYPE_QUEUE',
       onCreateListCommand: { commandMetadata: { webCommandMetadata: { sendPost: true, apiUrl: '/youtubei/v1/playlist/create' } },
         createPlaylistServiceEndpoint: { videoIds: [videoId], params: 'CAQ%3D' } },
-      videoCommand: watch } }] } };
+      videoCommand: watch } }] } });
+  }
+  // Run one of YouTube's own commands (e.g. its Queue box's Clear) with the page's command
+  // handler, as clicking its button would. Returns true if the page took it.
+  function runCommand(cmd) {
+    const app = document.querySelector('ytd-app');
+    if (!cmd || !app || typeof app.handleCommandWithCommandHandler !== 'function') return false;
     try { app.handleCommandWithCommandHandler(cmd); return true; }
-    catch (err) { console.warn('[streamxr] adding to the queue failed:', err); return false; }
+    catch (err) { console.warn('[streamxr] YouTube\'s command failed:', err); return false; }
   }
 
   // ---------------------------------------------------------------- playlist shuffle
@@ -364,7 +369,7 @@
 
   ns.youtubePage = {
     recommendations, upNextPlaylists, loadMoreRecommendations, openVideo, navigate,
-    playlistShuffled, setPlaylistShuffle, shuffleWhenReady, addToQueue,
+    playlistShuffled, setPlaylistShuffle, shuffleWhenReady, addToQueue, runCommand,
     details, subscribe, noteSubscription, like, dislike, logo,
     currentVideoId: D.currentVideoId, compactNumber, timeAgo,
   };

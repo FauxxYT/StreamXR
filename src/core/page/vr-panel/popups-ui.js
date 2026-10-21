@@ -29,7 +29,9 @@
 //   const dlg = ns.vrPopupsUI.createDialog();
 //   dlg.draw(d, { hover, pressed })   d: { title, text (up to four lines: the card grows to fit), cancel (null: no
 //     cancel button, for a dialog that only informs), confirm, danger (the confirm button in
-//     the error colour) }; ids 'dialog:cancel', 'dialog:confirm'
+//     the error colour), field: null | { text, placeholder } (a text field under the text, typed
+//     into with the keyboard: its text, a caret, a grey placeholder while empty; the confirm
+//     button greyed while it's empty) }; ids 'dialog:cancel', 'dialog:confirm'
 //   dlg.hitTest(u, v) -> { id } | null; dlg.solidAt(u, v) (on the card); dlg.moving()
 (function (ns) {
   'use strict';
@@ -103,9 +105,10 @@
       list = { x: card.x, y: card.y + PAD + noteH, w: listW, h: shownRows * rowH };
       maxScroll = m.scroll ? Math.max(0, items.length * rowH - list.h) : 0;
       scroll = Math.min(maxScroll, Math.max(0, scroll));
-      // Clipped to the rows, plus the card's padding when nothing scrolls (so the hover ring
-      // round the first and last rows, drawn just outside them, isn't cut).
-      const bleed = maxScroll ? 0 : PAD;
+      // Clipped to the rows plus the card's padding, so the pointing ring round the first and
+      // last rows (drawn just outside them) isn't cut; a scrolling list's rows can show that far
+      // past its ends too.
+      const bleed = PAD;
       g.save(); g.beginPath(); g.rect(list.x, list.y - bleed, list.w, list.h + bleed * 2); g.clip();
       const rings = [];                                      // [row, radius, amount] to ring after the rows
       items.forEach((it, i) => {
@@ -194,12 +197,14 @@
     const scrollAt = (u, v) => maxScroll > 0 && !!list && inside(list, u * W, v * H);
     const scrollBy = px => { scroll = Math.min(maxScroll, Math.max(0, scroll + px)); };
     return { canvas, aspect: H / W, draw, hitTest, solidAt, moving: motion.moving, volumeFraction, bottomCentre: { x: W / 2, y: H },
+      cardRect: () => card,                              // the last drawn card { x, y, w, h } (px), or null
       scrollAt, scrollBy, scrollTo: px => { scroll = Math.min(maxScroll, Math.max(0, px)); }, shownScroll: () => scroll, pxPerV: H };
   }
 
   function createDialog() {
     const W = 720, PAD = 32, BTN_H = 56, LINE = 30, MAX_LINES = 4;   // the title, up to four lines of text, the buttons
     const TEXT_TOP = PAD + 50;                               // where the text starts in the card
+    const FIELD_H = 60;                                      // a text field's height (with a field, the text gets at most two lines)
     const H = TEXT_TOP + MAX_LINES * LINE + 20 + BTN_H + PAD;   // room for the tallest card
     const canvas = document.createElement('canvas');
     canvas.width = W; canvas.height = H;
@@ -216,19 +221,35 @@
       regions = [];
       g.clearRect(0, 0, W, H);
       g.font = T.font('bodyMedium', 22);
-      const lines = d.text ? ns.vrKit.wrap(g, d.text, W - PAD * 2, MAX_LINES) : [];
-      const cardH = (lines.length ? TEXT_TOP + lines.length * LINE : TEXT_TOP - 10) + 20 + BTN_H + PAD;
+      const lines = d.text ? ns.vrKit.wrap(g, d.text, W - PAD * 2, d.field ? 2 : MAX_LINES) : [];
+      const fieldRoom = d.field ? FIELD_H + 20 : 0;
+      const cardH = (lines.length ? TEXT_TOP + lines.length * LINE : TEXT_TOP - 10) + fieldRoom + 20 + BTN_H + PAD;
       const y0 = Math.round((H - cardH) / 2);
       g.fillStyle = T.panelFill(); roundRect(g, 0, y0, W, cardH, T.shape.extraLarge); g.fill();   // the panels' glass (or solid)
       g.fillStyle = P.onSurface; g.textAlign = 'left'; g.textBaseline = 'top';
       g.fillText(fitFont(g, d.title || '', W - PAD * 2, 32, '500 '), PAD, y0 + PAD);
       g.fillStyle = P.onSurfaceVariant; g.font = T.font('bodyMedium', 22);
       lines.forEach((line, i) => g.fillText(line, PAD, y0 + TEXT_TOP + i * LINE));
+      if (d.field) {                                         // the text field: outlined in the brand colour (it has the keys)
+        const fy = y0 + (lines.length ? TEXT_TOP + lines.length * LINE : TEXT_TOP - 10) + 12, fw = W - PAD * 2;
+        g.fillStyle = P.surfaceContainerHighest; roundRect(g, PAD, fy, fw, FIELD_H, T.shape.small); g.fill();
+        g.strokeStyle = P.brand; g.lineWidth = 2.5; roundRect(g, PAD + 1, fy + 1, fw - 2, FIELD_H - 2, T.shape.small); g.stroke();
+        const t = d.field.text || '';
+        g.font = T.font('bodyMedium', 24); g.textBaseline = 'middle';
+        let shown = t;                                       // (the end of a long name)
+        while (shown.length > 1 && g.measureText(shown).width > fw - 48) shown = shown.slice(1);
+        g.fillStyle = t ? P.onSurface : P.onSurfaceVariant;
+        g.fillText(t ? shown : d.field.placeholder || '', PAD + 18, fy + FIELD_H / 2 + 1);
+        const cx = PAD + 18 + (t ? g.measureText(shown).width + 2 : 0);
+        g.fillStyle = P.brand; g.fillRect(cx, fy + 14, 2.5, FIELD_H - 28);   // the caret
+        g.textBaseline = 'top';
+      }
       g.font = T.font('labelLarge', 22);
       const bw = t => Math.max(140, g.measureText(t).width + 56);
       const cw = bw(d.confirm || ''), kw = bw(d.cancel || '');
       const by = y0 + cardH - PAD - BTN_H;
-      button(g, regions, 'dialog:confirm', W - PAD - cw, by, cw, BTN_H, { label: d.confirm, kind: d.danger ? 'danger' : 'filled' }, ui);
+      button(g, regions, 'dialog:confirm', W - PAD - cw, by, cw, BTN_H, { label: d.confirm, kind: d.danger ? 'danger' : 'filled',
+        enabled: !d.field || !!(d.field.text || '').trim() }, ui);
       if (d.cancel != null) button(g, regions, 'dialog:cancel', W - PAD - cw - 16 - kw, by, kw, BTN_H, { label: d.cancel, kind: 'tonal' }, ui);
     }
     function hitTest(u, v) { const x = u * W, y = v * H; const r = regions.find(q => inside(q, x, y)); return r ? { id: r.id } : null; }

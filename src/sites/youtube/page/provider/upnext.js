@@ -37,7 +37,7 @@
     const playing = ns.ytVr.playlist.create(actions);  // the playing playlist (its tab)
     // The playing playlist for its page, and playing one of its rows: at its place in the
     // playlist (keeps playing the list).
-    const live = () => ({ items: list ? list.items : [], currentId: list && list.currentId, localIndex: list ? list.index : null,
+    const live = () => ({ items: list ? list.items : [], queue: !!(list && list.queue), currentId: list && list.currentId, localIndex: list ? list.index : null,
       index: list ? list.index : 0, total: list ? list.count : 0, title: list ? list.title : '' });
     live.play = it => { if (it.plIndex >= 0) actions.playlistAt(it.plIndex); else if (it.id) actions.openVideo(it.id, list && list.id); };
 
@@ -96,12 +96,81 @@
         body: view ? view.body(onPlaylist ? null : tr(onEnd ? 'yt.recs.endScreen' : 'yt.recs.recommended'), host.style) : null,
         scroll: view ? view.scroll() : 0, now: frame.now / 1000,
       };
+      // (the queue's Save or Clear filled while its menu or dialog is up; Save's menu, once
+      // gone, isn't asked for any more)
+      if (inUse === 'saveQueue' && !asking && performance.now() - menuSeenAt > 300) inUse = null;
+      if (m.body && inUse) m.body.buttons = m.body.buttons.map(b => (b.id === inUse ? { ...b, kind: 'filled' } : b));
       const spinning = m.body && m.body.loading;
       // (a playlist page's key: what changes it, not its rows: a long playlist has thousands)
-      const key = view ? [tab, view.version(), Math.round(view.scroll() || 0), list && list.currentId, list && list.items.length,
+      const key = view ? [tab, inUse, view.version(), Math.round(view.scroll() || 0), list && list.currentId, list && list.items.length,
         list && list.items.filter(it => it.views).length, onPlaylist && actions.playlistShuffled(), ns.youtubeData.thumbsVersion(),
         JSON.stringify(m.tabs), spinning ? Math.floor(frame.now / 33) : ''].join('|') : JSON.stringify(m);
       return { model: m, key };
+    }
+
+    // ---- the queue's Clear and Save (its tab's buttons)
+    // inUse: the button whose menu or dialogs are up ('saveQueue' | 'clearQueue'), drawn filled
+    // in the site's colour meanwhile; menuSeenAt: when the Save menu was last asked for (it
+    // closes by itself on a click elsewhere); asking: a dialog of Save's still up.
+    let inUse = null, menuSeenAt = 0, asking = false;
+    // Clear: asked first (no Undo here), then the Queue box's own Clear.
+    function clearQueue() {
+      inUse = 'clearQueue';
+      Promise.resolve(host.confirm({ title: tr('yt.queue.clearTitle'), text: tr('yt.queue.clearText'), confirm: tr('yt.queue.clear'), danger: true }))
+        .then(yes => { if (yes && !actions.clearQueue()) console.warn('[streamxr] couldn’t clear the queue'); })
+        .finally(() => { inUse = null; });
+    }
+    // Save: a menu (on the Save button) of "New playlist…", then Watch later and your playlists
+    // (ticked when one holds all of the queue already); a choice adds every queued video.
+    // qsave: { ids (the queue's videos it's for), list: [{ id, title, saved, busy }] | null,
+    // loading, note }.
+    let qsave = { ids: [], list: null, loading: false, note: '' };
+    const queueIds = () => (list && list.queue ? list.items.map(it => it.id).filter(Boolean) : []);
+    function openSave() {
+      const ids = queueIds();
+      qsave = { ids, list: null, loading: true, note: '' }; inUse = 'saveQueue'; menuSeenAt = performance.now();
+      host.openMenu('action:saveQueue', { below: true });   // (a dropdown under the button)
+      Promise.resolve(actions.queueSaveTargets(list && list.id)).then(l => {
+        if (qsave.ids !== ids) return;
+        qsave = { ...qsave, list: l.map(o => ({ ...o, busy: false })), loading: false, note: l.length ? '' : tr('yt.save.signIn') };
+      }, err => { if (qsave.ids === ids) qsave = { ...qsave, loading: false, note: tr('yt.save.failed', { error: err && err.message || err }) }; });
+    }
+    function chooseSave(id) {
+      const ids = qsave.ids;
+      if (id === 'new') {                                 // a new playlist: its name typed in a dialog
+        host.closeMenu();
+        let name = ''; asking = true;
+        Promise.resolve(host.prompt({ title: tr('yt.queue.newTitle'), placeholder: tr('yt.queue.namePlaceholder'), confirm: tr('yt.queue.create') }))
+          .then(n => { name = n || ''; return name && actions.createPlaylist(name, ids); })
+          .then(res => {
+            if (!res) return null;
+            // How it went, in a dialog that only informs (OK closes it).
+            return host.confirm({ title: res.ok ? tr('yt.queue.created') : tr('yt.save.failed', { error: res.error || '' }),
+              text: res.ok ? name : '', confirm: tr('yt.members.ok'), cancel: null });
+          })
+          .finally(() => { asking = false; inUse = null; });
+        return;
+      }
+      const row = qsave.list && qsave.list.find(o => o.id === id);
+      if (!row || row.busy || row.saved) return;
+      row.busy = true; qsave = { ...qsave, note: '' };
+      Promise.resolve(actions.addToPlaylist(id, ids)).then(res => {
+        row.busy = false;
+        if (res && res.ok) row.saved = true;
+        else qsave = { ...qsave, note: tr('yt.save.failed', { error: res && res.error || '' }) };
+        qsave = { ...qsave };
+      });
+    }
+    // The Save menu's items, each frame while it's open (host.openMenu).
+    function menu(local) {
+      if (local !== 'action:saveQueue') return null;
+      menuSeenAt = performance.now();
+      const rows = qsave.list || [];
+      return {
+        items: [{ id: 'new', text: tr('yt.queue.newPlaylist'), icons: ['playlist_add'] },
+          ...rows.map(o => ({ id: o.id, text: o.busy ? `${o.title}\n${tr('yt.save.busy')}` : o.title, on: o.saved, disabled: o.busy || o.saved, icons: [] }))],
+        note: qsave.loading && !rows.length ? tr('yt.loading') : qsave.note || null, scroll: true, width: 520, stay: true,
+      };
     }
 
     function afterDraw() {
@@ -117,6 +186,9 @@
         if (tab === 'playlist') playing.follow();
         return;
       }
+      if (ev.type === 'menu' && ev.menu === 'action:saveQueue') { chooseSave(ev.value); return; }
+      if (onPlaylist && list.queue && ev.type === 'action' && ev.value === 'saveQueue') { openSave(); return; }
+      if (onPlaylist && list.queue && ev.type === 'action' && ev.value === 'clearQueue') { clearQueue(); return; }
       if (onPlaylist) { playing.event(ev); return; }
       if (opened.isOpen() && opened.event(ev)) return;
       if (ev.type === 'page') {
@@ -141,7 +213,7 @@
       }
     }
 
-    return { tick, model, event, afterDraw };
+    return { tick, model, event, menu, afterDraw };
   }
 
   ns.ytVr = ns.ytVr || {};

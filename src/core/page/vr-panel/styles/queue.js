@@ -15,7 +15,8 @@
 //   Control ids: 'tab:<id>', 'page:prev', 'page:next', 'item:<index on page>'; with a
 //   collection: 'back', 'action:<id>', 'row:<index>', 'text' (the page: a drag can start there).
 //   Scrolling (a collection): scrollAt(u, v), maxScroll(), shownScroll(), pxPerV.
-//   Also: hitTest(u, v) -> { id } | null, has(id), imagesReady(), perPage, canvas, aspect.
+//   Also: hitTest(u, v) -> { id } | null, has(id), rectOf(id) -> { x, y, w, h } (px) | null,
+//   imagesReady(), perPage, canvas, aspect.
 (function (ns) {
   'use strict';
 
@@ -126,10 +127,12 @@
 
     const hitTest = (u, v) => { const r = regionAt(regions, u, v, W, H); return r ? { id: r.id } : null; };
     const has = id => regions.some(r => r.id === id);    // an enabled control from the last draw?
+    // A control's place in the last draw (px; for a menu opening from it, e.g. a page's button), or null.
+    const rectOf = id => { const r = regions.find(x => x.id === id); return r ? { x: r.x, y: r.y, w: r.w, h: r.h } : null; };
     // Is (u, v) on the scrolling collection page of the last draw?
     const scrollAt = (u, v) => scrollable && !!view && u * W >= view.x - 8 && u * W <= W - 16 && v * H >= view.y && v * H <= view.y + view.h;
 
-    return { canvas, aspect: H / W, draw, hitTest, has, scrollAt, imagesReady: kit.imagesReady, perPage: PER_PAGE, animating: motion.moving,
+    return { canvas, aspect: H / W, draw, hitTest, has, rectOf, scrollAt, imagesReady: kit.imagesReady, perPage: PER_PAGE, animating: motion.moving,
       maxScroll: () => maxScrollPx, shownScroll: () => scrollPx, pxPerV: H };   // (a collection page's scrolling)
   }
 

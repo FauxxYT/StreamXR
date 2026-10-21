@@ -6,6 +6,53 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.101.5
+
+### Changed
+- **The queue's Save menu drops down under its button** (as Material menus do) instead of
+  opening in the middle of the view: centred on Save, inside the Up Next panel's width and
+  clear of the side toolbar over the panel's edge. The shell: `host.openMenu(control,
+  { below: true })` replaces `{ centred: true }`.
+
+## 0.101.4
+
+### Changed
+- **The queue's Save and Clear buttons fill in YouTube's red** while their menu or dialogs are
+  up, so you can see which one you're in.
+- **The queue's Save menu opens in the middle of the view** (where a dialog goes), not up at
+  its button. The shell: `host.openMenu(control, { centred: true })`.
+
+### Fixed
+- **The pointing ring round a scrolling menu's first and last rows was cut off.**
+
+## 0.101.3
+
+### Fixed
+- **The queue's Save menu said "Couldn't save (… HTTP 400)"** instead of listing your
+  playlists: YouTube refuses that list asked for several videos at once; it's now asked for
+  the queue itself (its list id).
+
+## 0.101.2
+
+### Fixed
+- **Clearing the queue left an empty Queue tab** (its rows blank) until another video played:
+  YouTube's page and player keep the cleared queue a while, so a queue cleared from VR is now
+  forgotten at once, and its tab goes.
+- **After making a new playlist, the Save menu stayed open**: a short dialog now says it's
+  made (OK closes it).
+
+## 0.101.1
+
+### Added
+- **Clear the queue**: a **Clear** button on Up Next's Queue tab; a dialog asks first, then
+  YouTube's own Clear runs (as its Queue box's button does).
+- **Save the queue**: a **Save** button on the Queue tab opens a menu: **New playlist…** (name
+  it on the VR keyboard; a private playlist of the queued videos), then Watch later and your
+  playlists (ticked when one already holds the whole queue; a choice adds every queued video).
+- The shell: `host.prompt()`, a dialog with a text field typed into on the VR keyboard (Enter
+  creates, Escape cancels); the Queue style's `rectOf` (menus opening from its page's buttons);
+  the `clear_all` icon.
+
 ## 0.101.0
 
 The release after v0.93.3 (everything from 0.93.4 to 0.100.1 below), with no code changes of

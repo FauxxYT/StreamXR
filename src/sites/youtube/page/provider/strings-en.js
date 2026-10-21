@@ -87,6 +87,14 @@
     'yt.recs.endScreen': 'End screen',
     'yt.recs.playlist': 'Playlist · {index} / {count}',
     'yt.recs.queue': 'Queue · {index} / {count}',
+    'yt.queue.clear': 'Clear',
+    'yt.queue.clearTitle': 'Clear the queue?',
+    'yt.queue.clearText': 'Its videos leave the queue; the video playing now keeps playing.',
+    'yt.queue.newPlaylist': 'New playlist…',
+    'yt.queue.newTitle': 'New playlist from the queue',
+    'yt.queue.namePlaceholder': 'Playlist name',
+    'yt.queue.create': 'Create',
+    'yt.queue.created': 'Saved to a new private playlist',
 
     // Search.
     'yt.search.placeholder': 'Search YouTube',

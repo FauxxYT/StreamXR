@@ -2,7 +2,7 @@
 
 One list of what's still open, gathered from the feature backlogs (`docs/features/`) and
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
-Last updated for 0.101.0.
+Last updated for 0.101.5.
 
 ## Top priority: before the first release
 
@@ -112,7 +112,9 @@ list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps 
    as you turn your head, so it never needs recentering. Decided: a lazy follow (35° away for
    1 s, then easing round; not while using a panel), the panels coming along, a switch in
    Settings → 2D Cinema (off by default), 2D videos only.
-8. [x] **Add to queue** (0.100.0 to 0.100.1, works in the headset): probe how desktop YouTube's queue can be driven, then
+8. [ ] **Add to queue** (0.100.0 to 0.100.1, works in the headset; Clear and Save added in 0.101.1, untested:
+   **Clear the queue** and **Save the queue as a playlist**, as YouTube's own Queue box offers,
+   the maintainer, 2026-10-19): probe how desktop YouTube's queue can be driven, then
    a way to add from cards, the queue in Up Next, and what plays when a video ends
    (`features/video-page.md`).
 9. [ ] **Explore's other tabs** (large): Shorts and Movies & TV need new readers first (Learning deferred)
