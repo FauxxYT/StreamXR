@@ -28,7 +28,10 @@
 //   state(): polled every frame: { title, nowPlaying (see nowPlaying below), time, duration,
 //            live, paused, quality: { current, currentLabel, icons, levels: [{ id, label, icons }] }, speed,
 //            speeds, volume, chapters, heatmap, ad, extras (its own controls panel buttons:
-//            vr-panel.js; used through actions.extra), ...whatever this site's panels read },
+//            vr-panel.js; used through actions.extra), playable (false: the site won't play this
+//            video, Play greys out), ...whatever this site's panels read },
+//   poster() -> null | [urls]  (optional) while the site won't play the video: pictures to show
+//                              on the screen in its place, best first (xr-session.js)
 //   ad() -> null | { ... }     the ad playing now (the shell shows ads on the cinema screen)
 //   captions() -> [text]       the caption lines to draw over the video now (optional; [] for none)
 //   site: { name, panels (the chevron panels, panels.js), onControl(id, panel, shell) (controls
@@ -119,7 +122,8 @@
     const sub = ui === 'busy' ? { look: 'busy', label: '…' }
       : d.subscribed ? { look: 'secondary', label: tr('yt.subscribed') } : { look: 'primary', label: tr('yt.subscribe') };
     return {
-      info: [{ text: stats, color: 'onSurfaceVariant' },
+      // (A video YouTube won't play: why, in the error colour, in place of the stats.)
+      info: raw.blocked ? [{ text: raw.blocked, color: 'error' }] : [{ text: stats, color: 'onSurfaceVariant' },
         ...(pl ? [{ text: `${stats ? '  ·  ' : ''}${tr('yt.playlistPosition', { index: pl.index + 1, count: pl.count })}${pl.title ? `  ·  ${pl.title}` : ''}`, color: 'secondary' }] : [])],
       creator: { name: raw.channel || '', badge: d.badge || null, stats: d.subscribers ? tr('yt.subscribers', { n: d.subscribers }) : '' },
       actions: [
@@ -128,7 +132,10 @@
         { id: 'dislike', kind: 'icon', width: 104, icon: 'thumbDown', on: !!d.disliked, hidden: !d.canLike },
       ],
       queue: pl ? { hasPrev: pl.index > 0, hasNext: pl.index < pl.count - 1,
-        prev: pl.prev ? ns.ytVr.card(pl.prev) : null, next: pl.next ? ns.ytVr.card(pl.next) : null } : null,
+        prev: pl.prev ? ns.ytVr.card(pl.prev) : null,
+        // (shuffled: a card saying the next one is random, not a video)
+        next: pl.shuffled ? { title: tr('yt.shuffle.next'), icon: 'shuffle', thumb: '', flags: [], lines: [{ text: tr('yt.shuffle.nextLine') }], inert: true }
+          : pl.next ? ns.ytVr.card(pl.next) : null } : null,
     };
   }
 
@@ -137,6 +144,48 @@
     // Ads: Skip ad in VR needs the optional Skip Helper extension; checked at the start and
     // at every ad (it may get installed meanwhile).
     const adNow = cached(() => youtube.ad(), 200, null);
+    // Like youtubeData.cached (re-read at most every `ms`), but also re-read at once when the
+    // playing video changes: a cached answer belongs to the video it was read for (else, right
+    // after a switch, the new video got the previous one's answers: seen 2026-10-18).
+    function perVideo(fn, ms, fallback) {
+      let at = -Infinity, video = null, val = fallback;
+      return () => {
+        const now = performance.now(), id = ns.youtubeData.currentVideoId();
+        if (id !== video || now - at > ms) { try { val = fn(); } catch (_) { val = fallback; } at = now; video = id; }
+        return val;
+      };
+    }
+
+    // Does the watch page mark the playing video as members only? Its main info box carries a
+    // "Members only" badge (videoPrimaryInfoRenderer badges: BADGE_STYLE_TYPE_MEMBERS_ONLY,
+    // seen 2026-10-18; the recommendations' badges don't count). watchData() is null while the
+    // page's data is still the previous video's.
+    const watchMembersOnly = perVideo(() => {
+      const D = ns.youtubeData, w = D.watchData();
+      const primary = w && D.findKey(D.dig(w, 'contents', 'twoColumnWatchNextResults', 'results'), 'videoPrimaryInfoRenderer');
+      return !!primary && /BADGE_STYLE_TYPE_MEMBERS_ONLY/.test(JSON.stringify(primary.badges || []));
+    }, 500, false);
+
+    // Why YouTube won't play the video ('' when it will): its playability status's reason; a
+    // members-only video (YouTube's "Join this channel to get access to members-only
+    // content ...") gets our own short line, since joining happens on desktop. Only the
+    // player's data for the video playing now counts: right after switching it still holds
+    // the previous video's for a moment, which may not even name its video, so the data last
+    // seen with the previous video is remembered when the video changes (stale) and ignored
+    // until the player has the new one.
+    let seenVideo = null, seenResponse = null, staleResponse = null;
+    const blocked = perVideo(() => {
+      const pr = ns.youtubeData.playerResponse() || {}, now = ns.youtubeData.currentVideoId();
+      if (now !== seenVideo) { staleResponse = seenResponse; seenVideo = now; }
+      seenResponse = pr;
+      if (pr === staleResponse) return '';
+      const vid = pr.videoDetails && pr.videoDetails.videoId;
+      if (vid && vid !== now) return '';
+      const ps = pr.playabilityStatus || {};
+      if (!ps.status || ps.status === 'OK') return '';
+      const why = ps.reason || ns.youtubeData.strOf(ns.youtubeData.findKey(ps.errorScreen, 'title')) || ps.status;
+      return /members?-only|join this channel/i.test(why) ? tr('yt.membersOnlyVideo') : why;
+    }, 500, '');
     let skipHelper = false, adSeen = false;
     const checkSkipHelper = () => youtube.skipHelperInstalled().then(v => { skipHelper = v; }, () => {});
     checkSkipHelper();
@@ -168,7 +217,7 @@
         commentsOn: ci.on, commentCount: ci.count };
     }, 2000, null);
 
-    // The playlist being played, if any: { index, count, title, id, currentId, items,
+    // The playlist being played, if any: { index, count, title, id, currentId, items, shuffled,
     // prev, next, offset, windowLength } (re-read twice a second). For a long playlist the
     // player (and the page's sidebar) hold only a WINDOW of ~100-200 videos around the
     // playing one, and the player's index counts from the window's start; `offset` is the
@@ -193,11 +242,22 @@
     }
     const BLANK_CARD = { type: 'video', id: '', title: '', channel: '', views: '', age: '', duration: '', kind: '2D', thumb: '' };
     const playlist = cached(() => {
-      const pos = youtube.playlistPosition();
-      if (!pos) return null;
+      const raw = youtube.playlistPosition();
+      if (!raw) return null;
+      // The player's index can be one ahead for a moment (seen just after adding to the queue):
+      // when its video isn't the one this tab is on, the nearest copy of that one is the
+      // position instead.
+      const pos = { ids: raw.ids, index: raw.index }, onId = ns.youtubeData.currentVideoId();
+      if (onId && raw.ids[raw.index] !== onId) {
+        let best = -1;
+        raw.ids.forEach((id, i) => { if (id === onId && (best < 0 || Math.abs(i - raw.index) < Math.abs(best - raw.index))) best = i; });
+        if (best >= 0) pos.index = best;
+      }
       const pl = ns.youtubeContent.playlist();
+      // (a queue that ended, cleared from VR: no list any more, though the player still holds it)
+      if (!pl && plMemo && /^TLPQ/.test(plMemo.id || '')) return null;
       const listId = pl ? pl.id : plMemo && plMemo.id;
-      if (pl && !pl.infinite) loadPlaylistDetails(pl.id);
+      if (pl && !pl.infinite && !pl.queue) loadPlaylistDetails(pl.id);   // (the queue has no page of its own)
       const d = plDetails && plDetails.id === listId ? plDetails : null;
       // Where the player's window starts in the whole playlist: from the page's data when it
       // describes the same window (same first video), else by finding the playing video in
@@ -226,9 +286,12 @@
       const count = Math.max(total, offset + pos.ids.length, d ? d.order.length : 0);
       // Every position in playlist order, with that position (plIndex) for playing it.
       const items = Array.from({ length: count }, (_, i) => ({ ...(card(idAt(i)) || BLANK_CARD), plIndex: i }));
-      return { index, count, title: plMemo.title, id: listId || '', currentId: pos.ids[pos.index], items,
+      return { index, count, title: plMemo.title, id: listId || '', queue: !!(pl && pl.queue), currentId: pos.ids[pos.index], items,
         offset, windowLength: pos.ids.length,
-        prev: card(idAt(index - 1)), next: card(idAt(index + 1)) };
+        // With the page's shuffle on, no next video: YouTube picks it at random only when it
+        // gets there (its own Next preview shows the in-order one too); `shuffled` tells.
+        prev: card(idAt(index - 1)), shuffled: !!page.playlistShuffled(),
+        next: page.playlistShuffled() ? null : card(idAt(index + 1)) };
     }, 500, null);
     // Play the video at a position in the whole playlist: inside the player's window with the
     // player itself (stays in the list), else by opening it at that position.
@@ -275,7 +338,7 @@
     function setSubscribed(id, on) {
       return ns.youtubeSubscriptions
         ? ns.youtubeSubscriptions[on ? 'subscribe' : 'unsubscribe'](id).then(res => {
-          if (res && res.ok) page.noteSubscription(id, on);
+          if (res && res.ok) { page.noteSubscription(id, on); ns.youtubeChannel.forget(id); }
           return res;
         })
         : Promise.resolve({ ok: false, error: 'subscriptions module missing' });
@@ -327,7 +390,7 @@
       previousVideo: youtube.previousVideo,
       nextVideo: youtube.nextVideo,
       // YouTube's own panels (sites/youtube/page/provider/*.js).
-      openVideo: (id, playlistId) => { if (!page.openVideo(id, playlistId)) console.warn('[streamxr] couldn’t open that video'); },
+      openVideo: (id, playlistId, index, params) => { if (!page.openVideo(id, playlistId, index, params)) console.warn('[streamxr] couldn’t open that video'); },
       // Channel panel: any channel's header, tab lists and About page (youtube-channel.js), and
       // Subscribe / Unsubscribe confirmed by YouTube (youtube-subscriptions.js).
       channelHeader: id => ns.youtubeChannel.channel(id),
@@ -342,6 +405,8 @@
       setSubscribed,
       // A channel's notification bell: one of its notifications.options (youtube-subscriptions.js
       // setNotifications -> { ok, confirmed, state, error }), and which choice a state means.
+      channelOffer: params => ns.youtubeChannel.offer(params),          // a channel's membership offer (levels, perks)
+      channelMembership: id => ns.youtubeChannel.membership(id),        // your membership of a channel (level, perks, members-only videos and posts)
       setBell: option => ns.youtubeSubscriptions.setNotifications(option),
       bellMatches: (label, state) => ns.youtubeSubscriptions.bellMatches(label, state),
       // Description panel: the transcript (opens and reads YouTube's transcript panel), the
@@ -359,7 +424,30 @@
       browseSubscriptions: () => ns.youtubeSubscriptions.feed(),
       browseChannels: sort => ns.youtubeSubscriptions.channels(sort), // You: Channels (sort: one of p.sorts' texts)
       browseFeed: name => ns.youtubeHome.feedVideos(name),
+      browseSections: (name, tab) => ns.youtubeHome.feed(name, tab),  // an Explore page's sections, [{ title, items, viewAll }] per page (tab: its own tab)
+      browseViewAll: v => ns.youtubeHome.viewAll(v),                  // everything a shelf's "View all" leads to
       browsePlaylist: id => ns.youtubeContent.playlistVideos(id),
+      // A playlist opened from its card (playlist.js): its details, saving it to your library.
+      // Add to queue (a card's quick button): YouTube's own queue (youtube-page.js addToQueue).
+      addToQueue: id => { if (page.addToQueue(id)) ns.ytVr.queue.noteQueued(id); else console.warn('[streamxr] couldn’t add to the queue'); },
+      // The queue's Clear (the Queue box's own command) and Save: where it can go (Watch later and
+      // your playlists), adding all its videos to one, and a new playlist of them.
+      clearQueue: () => {
+        const C = ns.youtubeContent, id = C.queueId();
+        const ok = page.runCommand(C.queueClearCommand());
+        if (ok) { C.queueEnded(id); playlist.reset(); }          // (its tab goes at once)
+        return ok;
+      },
+      queueSaveTargets: listId => ns.youtubeContent.queueSaveTargets(listId),
+      addToPlaylist: (id, ids) => ns.youtubeContent.addToPlaylist(id, ids),
+      createPlaylist: (title, ids) => ns.youtubeContent.createPlaylist(title, ids),
+      playlistDetails: id => ns.youtubeContent.playlistDetails(id),
+      savePlaylist: (id, on) => ns.youtubeContent.savePlaylist(id, on),
+      // The playing playlist's shuffle (the watch page's toggle): state, set, and on once a
+      // playlist opened with Shuffle shows it.
+      playlistShuffled: () => page.playlistShuffled(),
+      setPlaylistShuffle: on => page.setPlaylistShuffle(on),
+      shuffleWhenReady: id => page.shuffleWhenReady(id),
       myChannelId: () => ns.youtubeHome.myChannelId(),                   // You: Your channel
       signedIn: () => ns.youtubeData.signedIn(),
       // Up Next and Settings.
@@ -372,11 +460,27 @@
       extra: (id, itemId) => extras.extra(id, itemId),
     };
 
-    // Captions and Save (extras.js): the buttons, and the caption lines the shell draws.
+    // The playing video's end screen tiles for Up Next's End screen tab (youtube-content.js
+    // endScreen(), re-read once a second): its suggested videos and playlists, and other
+    // channels; the video's own channel and its Subscribe tile are left out (the controls
+    // panel has both), and so are links to other sites. None while the player's data is still
+    // the previous video's. -> { videoId (the video they're for), tiles }
+    const NO_END = { videoId: null, tiles: [] };
+    const endScreen = ns.youtubeData.cached(() => {
+      const vd = ns.youtubeData.playerResponse().videoDetails || {}, id = ns.youtubeData.currentVideoId();
+      if (!id || vd.videoId !== id) return NO_END;
+      const own = ns.youtubeChannel.currentChannelId();
+      return { videoId: id, tiles: ns.youtubeContent.endScreen().filter(t => (t.type === 'video' && t.videoId) || (t.type === 'playlist' && t.playlistId)
+        || (t.type === 'channel' && t.channelId && t.channelId !== own)) };
+    }, 1000, NO_END);
+
+    // Captions, Info cards, Autoplay, Save and Jump ahead (extras.js): the buttons, and the
+    // caption lines the shell draws.
     const extras = ns.ytVr.extras.create();
 
     function state() {
       const l = liveNow(), pl = playlist(), details = page.details(), title = youtube.title(), channel = youtube.channel();
+      ns.ytVr.queue.setQueued(pl && pl.queue ? pl.items.map(it => it.id).filter(Boolean) : []);   // (the cards' Add to queue checks)
       const q = youtube.quality() || { current: null, levels: [] };
       const st = {
         title, time: l ? l.current - l.start : youtube.currentTime(), duration: l ? l.end - l.start : youtube.duration(),
@@ -384,10 +488,15 @@
         buffered: l || ad() ? null : youtube.bufferedEnd(),           // the seek bar's loaded part (not on live streams or ads)
         quality: qualityState(q),
         speed: youtube.speed(), speeds: youtube.speeds(), volume: youtube.volume(), chapters: chapters(), heatmap: l ? [] : heatmap(), ad: ad(),
-        nowPlaying: nowPlaying({ title, channel, details, playlist: pl, subscribeUi: subscribeUi() }),
+        nowPlaying: nowPlaying({ title, channel, details, playlist: pl, subscribeUi: subscribeUi(), blocked: watching() ? blocked() : '' }),
+        playable: !(watching() && blocked()),                      // (false: Play greys out)
+        // A members-only video YouTube won't play: its channel and membership offer params (the
+        // Channel panel offers its perks: channel.js).
+        membersOnly: watching() && blocked() === tr('yt.membersOnlyVideo') && watchMembersOnly()
+          ? { videoId: ns.youtubeData.currentVideoId(), channelId: ns.youtubeChannel.currentChannelId(), offerParams: ns.youtubeChannel.videoOfferParams() } : null,
         // For YouTube's panels:
         channelId: ns.youtubeChannel.currentChannelId(), details, playlist: pl, description: description(),
-        recommendations: page.recommendations(),
+        recommendations: page.recommendations(), endScreen: endScreen(),
         playback: { loop: youtube.loop(), autoplay: !!youtube.autoplay() }, audio: audioTracks(),
         extras: extras.state({ ad: ad(), paused: youtube.isPaused(), live: !!l }),
         liveChat: chatFor(l),                                        // a live stream's chat, or a finished one's chat replay (live-chat.js)
@@ -398,10 +507,17 @@
       if (watching()) return st;
       return { ...st, title: tr('yt.noVideo'), time: 0, duration: 0, paused: true, live: null, buffered: null, chapters: [], heatmap: [], ad: null, liveChat: null,
         nowPlaying: { info: [{ text: tr('yt.noVideoHint'), color: 'onSurfaceVariant' }], creator: null, actions: [], queue: null },
-        channelId: null, details: {}, playlist: null, description: null, recommendations: [], extras: extras.state({ ad: null, noVideo: true }) };
+        channelId: null, details: {}, playlist: null, description: null, recommendations: [], endScreen: NO_END, extras: extras.state({ ad: null, noVideo: true }) };
     }
 
-    return { actions, state, ad, captions: () => (ad() || !watching() ? [] : extras.lines()), site: { name: 'YouTube', panels: ns.ytVr.panels, onControl } };
+    // While YouTube won't play the video (blocked): its thumbnail on the screen, largest first
+    // (not every video has every size).
+    function poster() {
+      const id = watching() && blocked() ? ns.youtubeData.currentVideoId() : '';
+      return id ? ['maxresdefault', 'hq720', 'sddefault', 'hqdefault'].map(n => `https://i.ytimg.com/vi/${id}/${n}.jpg`) : null;
+    }
+
+    return { actions, state, ad, poster, captions: () => (ad() || !watching() ? [] : extras.lines()), site: { name: 'YouTube', panels: ns.ytVr.panels, onControl } };
   }
 
   ns.ytVr = ns.ytVr || {};

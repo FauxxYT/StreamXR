@@ -300,6 +300,28 @@
   // age, duration, kind ('2D'|'180'|'360'), live (streaming now), watched (0-100: percent
   // you've watched, 0 if none or signed out), thumb } (+ playlistId, videoCount for playlists).
   const thumbOf = id => `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
+  // An image URL the panels can draw ('' if not): their canvases go to WebGL, so images must
+  // load with CORS, which i.ytimg.com allows and i9.ytimg.com (mixes' art) refuses (checked
+  // 2026-10-18).
+  const corsImage = url => (/^https:\/\/i\.ytimg\.com\//.test(url || '') ? url : '');
+
+  // playlistThumb(id) -> the thumbnail of a playlist's first video, '' until known: the first
+  // call looks it up (the next request, as YouTube's "play all" picks it) and thumbsVersion()
+  // changes when it arrives, so a panel showing it redraws.
+  const playlistThumbs = new Map();          // playlist id -> url ('' while looking or if none)
+  let thumbsVer = 0;
+  function playlistThumb(id) {
+    if (!id) return '';
+    if (!playlistThumbs.has(id)) {
+      playlistThumbs.set(id, '');
+      innertube('next', { playlistId: id }).then(r => {
+        const v = dig(r, 'currentVideoEndpoint', 'watchEndpoint', 'videoId');
+        if (v) { playlistThumbs.set(id, thumbOf(v)); thumbsVer++; }
+      }, () => {});
+    }
+    return playlistThumbs.get(id);
+  }
+  const thumbsVersion = () => thumbsVer;
 
   // A view count as "26M views" / "1.2K watching". Takes the visible text, and the hidden
   // accessibility label as a fallback for the newer cards that show only "26M".
@@ -323,7 +345,7 @@
   // 4 days ago") or short ("7.4K • 4d ago", Watch later): { views: "7.4K views", age:
   // "4 days ago" }, '' for what's missing.
   function statsFromInfo(info) {
-    const parts = strOf(info).split('•').map(s => s.trim()).filter(Boolean);
+    const parts = strOf(info).split(/[•·]/).map(s => s.trim()).filter(Boolean);
     let views = '', age = '';
     for (const p of parts) {
       if (!views && (viewsText(p) || /^[\d.,]+\s*[KMB]?$/i.test(p))) views = viewsText(p) || `${p} views`;
@@ -359,12 +381,42 @@
     };
   }
 
+  // A creator to join (the Memberships page's "Popular creators", "Up-and-coming": a lockup of
+  // LOCKUP_CONTENT_TYPE_TV_NETWORK, seen 2026-10-18 signed out) -> { type: 'channel', id,
+  // channelId, title, thumb (its round picture), banner, price ("$4.99" a month) }, or null
+  // without a channel id. The id isn't a field: it's in the card's links, or base64-encoded in
+  // the "surlp" parameter of the membership page it opens.
+  function fromCreator(r) {
+    const s = JSON.stringify(r);
+    let m = /"(UC[\w-]{22})"/.exec(s) || /\/channel\/(UC[\w-]{22})/.exec(s);
+    // Else inside an encoded parameter: the "surlp" of the membership page (signed out), or any
+    // other base64 value the card's commands carry (signed in, its tap opens the membership
+    // offer instead).
+    const decoded = v => {
+      try {
+        for (let i = 0; i < 4 && /%/.test(v); i++) v = decodeURIComponent(v);
+        return atob(v.replace(/-/g, '+').replace(/_/g, '/'));
+      } catch (_) { return ''; }   // (not base64)
+    };
+    const candidates = [...s.matchAll(/surlp(?:%3D|=)([^"&\\]+)/g), ...s.matchAll(/"(?:params|[a-zA-Z]*Params)":"([A-Za-z0-9%_\-+/=]{16,})"/g)].map(x => x[1]);
+    for (const v of candidates) { if (m) break; m = /(UC[\w-]{22})/.exec(decoded(v)); }
+    if (!m) return null;
+    const md = r.metadata && r.metadata.lockupMetadataViewModel || {};
+    const rows = dig(md, 'metadata', 'contentMetadataViewModel', 'metadataRows') || [];
+    const price = rows.flatMap(row => row.metadataParts || []).map(p => strOf(p.text)).find(Boolean) || '';
+    // (Signed in, its tap asks for the membership offer: those params, for youtubeChannel.offer.)
+    const offerParams = dig(findKey(r.rendererContext, 'ypcGetOffersEndpoint'), 'params') || null;
+    return { type: 'channel', id: m[1], channelId: m[1], title: strOf(md.title), price, offerParams,
+      thumb: bestImage(findKey(md.image, 'avatarViewModel')), banner: bestImage(r.contentImage) };
+  }
+
   // Newer shape: lockupViewModel (Up next, feeds, channel tabs). Videos (also SHORT, MOVIE)
   // and playlists (also SHOW, PODCAST, ALBUM, and STATION = mixes); content types as listed
   // by YouTube.js. Newer cards show just "26M" / "1y ago"; the accessibility label has the
   // long form.
   function fromLockup(r) {
     if (!r || !r.contentId) return null;
+    if (r.contentType === 'LOCKUP_CONTENT_TYPE_TV_NETWORK') return fromCreator(r);
     const isPlaylist = /PLAYLIST|SHOW|PODCAST|ALBUM|STATION/.test(r.contentType || '');
     if (r.contentType && !isPlaylist && !/VIDEO|SHORT|MOVIE/.test(r.contentType)) return null;
     const md = r.metadata && r.metadata.lockupMetadataViewModel || {};
@@ -389,6 +441,8 @@
     if (!channelId) channelId = dig(findKey(md.image, 'browseEndpoint'), 'browseId') || '';
     const title = strOf(md.title);
     const firstVideo = isPlaylist ? (dig(findKey(r, 'watchEndpoint'), 'videoId') || '') : r.contentId;
+    // A podcast's own art is square (studio_square_thumbnail on i.ytimg.com, seen 2026-10-18).
+    const podcast = /PODCAST/.test(r.contentType || ''), squareArt = podcast ? corsImage(bestImage(r.contentImage)) : '';
     return {
       type: isPlaylist ? 'playlist' : 'video',
       id: isPlaylist ? firstVideo : r.contentId,
@@ -397,9 +451,15 @@
       title, channel, channelId, badge, views, age,
       duration: durM ? durM[1] : '',
       kind: badgeKind(md) || kindOf(title), live,
+      // For channel members only (a "Members only" badge: badgeStyle BADGE_MEMBERS_ONLY).
+      membersOnly: /BADGE_MEMBERS_ONLY|BADGE_STYLE_TYPE_MEMBERS_ONLY/.test(JSON.stringify(md)),
       // Percent of it you've watched (signed in; the thumbnail's progress bar overlay).
       watched: isPlaylist ? 0 : +dig(findKey(r.contentImage, 'thumbnailOverlayProgressBarViewModel'), 'startPercent') || 0,
-      thumb: firstVideo ? thumbOf(firstVideo) : bestImage(r.contentImage),
+      thumb: squareArt || (firstVideo ? thumbOf(firstVideo) : corsImage(bestImage(r.contentImage))),
+      square: !!squareArt,                     // its picture is square (a podcast's cover)
+      // A playlist whose own art can't be drawn (a mix's, on i9.ytimg.com) and that names no
+      // first video: its first video's thumbnail is looked up when shown (playlistThumb).
+      thumbFrom: isPlaylist && !firstVideo && !corsImage(bestImage(r.contentImage)) ? r.contentId : undefined,
     };
   }
 
@@ -426,6 +486,6 @@
     compactNumber, timeAgo, longAgo, parseClock, VIEWS_RE, AGO_RE, kindOf, badgeKind, channelBadge, badgeFromData,
     onNavigate, watchData, playerResponse, signedIn,
     innertube, sidAuth, runEndpoint, continuationOf, nextPageToken, pager,
-    fromCompact, fromLockup, collectItems, thumbOf, AD_KEY_RE,
+    fromCompact, fromLockup, collectItems, thumbOf, playlistThumb, thumbsVersion, AD_KEY_RE,
   };
 })(globalThis.__streamxr = globalThis.__streamxr || {});

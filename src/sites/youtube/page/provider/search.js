@@ -24,6 +24,7 @@
     let suggestions = [], suggestFor = '';     // the list, and the text it's for
     let typedAt = 0, asked = '';               // when the text last changed; the text last asked about
     const bump = () => { ver++; };
+    const playlist = ns.ytVr.playlist.create(actions);   // a playlist result opened in place of the results (playlist.js)
 
     // The text changed: suggestions are asked for once typing pauses (see `tick`); no text,
     // no suggestions.
@@ -69,7 +70,7 @@
       const q = text.trim();
       focus(false);
       if (!q) return;
-      query = q; error = ''; page = 0; loading = false;
+      query = q; error = ''; page = 0; loading = false; playlist.close();
       try { pager = actions.search(q); } catch (err) { pager = null; error = String(err && err.message || err); }
       bump();
       loadNext();
@@ -84,9 +85,10 @@
     }
 
     function event(ev) {
+      if (playlist.event(ev)) return;                                  // an open playlist's own controls
       if (ev.type === 'field') focus(true);
       else if (ev.type === 'clear') {                                    // start over: no text, no results, not typing
-        text = ''; query = ''; pager = null; page = 0; loading = false; error = '';
+        text = ''; query = ''; pager = null; page = 0; loading = false; error = ''; playlist.close();
         textChanged(); focus(false); bump();
       }
       else if (ev.type === 'submit') submit();
@@ -97,9 +99,13 @@
       else if (ev.type === 'key') { if (focused) key(ev.value); }
       else if (ev.type === 'page') {
         page = ev.value === 'next' ? Math.min(pageCount() - 1, page + 1) : Math.max(0, page - 1); bump();
+      } else if (ev.type === 'quick') {                                   // a card's Add to queue
+        const it = items()[page * perPage + +ev.value];
+        if (it && it.id) actions.addToQueue(it.id);
       } else if (ev.type === 'item') {
         const it = items()[page * perPage + +ev.value];
-        if (it) actions.openVideo(it.id, it.playlistId);
+        if (ns.ytVr.playlist.opens(it)) playlist.open(it);               // a playlist: its page, in place of the results
+        else if (it) actions.openVideo(it.id, it.playlistId);
       }
     }
 
@@ -116,13 +122,14 @@
         page, pageCount: pageCount(), more: !!pager && !done, loading,
         emptyText: loading ? tr('yt.searching') : error || (query ? tr('yt.noResults', { query }) : tr('yt.search.hint')),
         now: frame.now / 1000,                                            // the loading indicator's clock
+        body: playlist.body(tr('yt.search.results'), host.style), scroll: playlist.scroll(),
       };
       const bar = { id: 'query', text, placeholder: tr('yt.search.placeholder'), focused, button: tr('yt.search'), clearable: !!text || !!pager,
         // Only while typing, and only for what's typed now.
         suggestions: focused && suggestFor === text.trim() ? suggestions : [] };
       // Redraw on any change, and ~30 times a second while the loading indicator shows.
-      const spinning = loading && !m.items.length;
-      return { model: m, key: `${ver}|${spinning ? Math.floor(frame.now / 33) : ''}`, bar, open: !!query };
+      const spinning = m.body ? m.body.loading : loading && !m.items.length;
+      return { model: m, key: `${ver}|${playlist.version()}|${Math.round(playlist.scroll())}|${ns.ytVr.queue.version()}|${ns.youtubeData.thumbsVersion()}|${spinning ? Math.floor(frame.now / 33) : ''}`, bar, open: !!query };
     }
 
     return { model, event, tick };

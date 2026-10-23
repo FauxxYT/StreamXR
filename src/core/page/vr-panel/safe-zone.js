@@ -17,8 +17,8 @@
 //   ns.vrSafeZone.angles()      the zone's edges in degrees from straight ahead:
 //                               { left, right, top, bottom, mid (its middle height) }
 //                               (right and up positive)
-//   ns.vrSafeZone.setAnchor(head, yaw)  where you were and faced at the recenter (anchor:
-//                               { pos: [x, y, z] (your eyes), yaw })
+//   ns.vrSafeZone.setAnchor(head, yaw, pitch)  where you were and faced at the recenter (anchor:
+//                               { pos: [x, y, z] (your eyes), yaw, pitch (radians up; 0 but for the lazy follow) })
 //   ns.vrSafeZone.point(yaw, pitch, r)  the world point that many degrees right / up of the
 //                               recenter direction, r metres from the anchor's eyes
 //   ns.vrSafeZone.set(patch), reset(), load()
@@ -39,7 +39,7 @@
 
   const zone = { ...DEFAULTS, version: 0 };
   const fov = { ...FALLBACK_FOV, measured: false };
-  const anchor = { pos: [0, 1.6, 0], yaw: 0 };
+  const anchor = { pos: [0, 1.6, 0], yaw: 0, pitch: 0 };   // (pitch: radians the layout is turned up, e.g. by the lazy follow)
   let askedAt = -Infinity;
 
   // Take what's remembered (or the defaults).
@@ -91,8 +91,8 @@
     return { left: -hw, right: hw, top: mid + hh, bottom: mid - hh, mid };
   }
 
-  function setAnchor(head, yaw) {
-    anchor.pos = [head.x, head.y, head.z]; anchor.yaw = yaw; zone.version++;
+  function setAnchor(head, yaw, pitch = 0) {
+    anchor.pos = [head.x, head.y, head.z]; anchor.yaw = yaw; anchor.pitch = pitch; zone.version++;
   }
 
   const preview = () => { askedAt = performance.now(); };
@@ -102,7 +102,7 @@
   // the recenter direction (turned by the anchor's yaw, as panel placement is: its forward
   // is [-sin, 0, -cos]). The layout places everything with it (vr-panel.js).
   function point(yaw, pitch, r) {
-    const a = yaw * Math.PI / 180, b = pitch * Math.PI / 180, y0 = anchor.yaw;
+    const a = yaw * Math.PI / 180, b = pitch * Math.PI / 180 + anchor.pitch, y0 = anchor.yaw;
     const lx = Math.sin(a) * Math.cos(b), ly = Math.sin(b), lz = -Math.cos(a) * Math.cos(b);
     const c = Math.cos(y0), s = Math.sin(y0);
     return [anchor.pos[0] + r * (lx * c + lz * s), anchor.pos[1] + r * ly, anchor.pos[2] + r * (-lx * s + lz * c)];

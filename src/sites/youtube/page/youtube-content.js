@@ -210,39 +210,104 @@
     });
   }
 
-  // Info cards (the "i" teasers during the video): [{ start (s), teaser, title, subtitle,
-  //   image, videoId?, playlistId?, url? }]
+  // Info cards (the "i" cards): [{ title, subtitle (who · views · age, or what it is), image,
+  //   duration, videoId?, playlistId?, url? }], as the video's description panel lists them
+  //   (videoDescriptionInfocardsSectionRenderer: compactInfocardRenderer's content, e.g. a
+  //   structuredDescriptionVideoLockupRenderer). Their times aren't there (nor in the player's
+  //   card list, which only holds a "View corrections" teaser on every video): the moment a
+  //   card's teaser shows is read from the player itself (youtube-player.js cardTeaser()).
   function cards() {
-    const list = dig(D.playerResponse(), 'cards', 'cardCollectionRenderer', 'cards') || [];
-    return list.map(c => c.cardRenderer).filter(Boolean).map(c => {
-      const content = c.content ? c.content[Object.keys(c.content)[0]] : {};
+    const sec = findKey(D.watchData() && D.watchData().engagementPanels, 'videoDescriptionInfocardsSectionRenderer');
+    return ((sec && sec.infocards) || []).map(c => c.compactInfocardRenderer).filter(Boolean).map(c => {
+      const content = c.content ? c.content[Object.keys(c.content)[0]] || {} : {};
       const we = findKey(content, 'watchEndpoint') || {}, ue = findKey(content, 'urlEndpoint') || {};
+      const be = findKey(content, 'browseEndpoint') || {};
+      const playlistId = we.playlistId || (be.browseId && /^VL/.test(be.browseId) ? be.browseId.slice(2) : undefined);
       return {
-        start: (+dig(c, 'cueRanges', 0, 'startCardActiveMs') || 0) / 1000,
-        teaser: strOf(dig(c, 'teaser', 'simpleCardTeaserRenderer', 'message')),
-        title: strOf(content.videoTitle || content.playlistTitle || content.title),
-        subtitle: strOf(content.channelName || content.viewCountText || content.playlistVideoCount),
-        image: bestImage(content.videoThumbnail || content.playlistThumbnail || content.image),
-        videoId: we.videoId, playlistId: we.playlistId, url: ue.url,
+        title: strOf(content.title),
+        subtitle: [strOf(content.shortBylineText).replace(/^by\s+/i, ''), strOf(content.metadataDetails)].filter(Boolean).join(' · '),
+        image: we.videoId ? D.thumbOf(we.videoId) : bestImage(content.thumbnail),
+        duration: strOf(content.lengthText), videoId: we.videoId, playlistId, url: ue.url,
       };
-    });
+    }).filter(c => c.title);
   }
 
   // ---------------------------------------------------------------- playlist being played
-  // { id, title, channel, index, total, localIndex, infinite, items: [video items] } or null
-  // when not in a playlist. A long playlist's sidebar (and the player) hold only a window of
-  // ~100-200 videos around the playing one: `index` is the playing video's position in the
-  // WHOLE playlist (0-based), `localIndex` its position in that window (= items), `total`
-  // the playlist's length (0 if not given). `infinite`: a mix, with no fixed length.
+  // YouTube's queue (Add to queue) lives only in the page: its playlist panel's own data
+  // (a list "TLPQ…" titled "Queue"), not in the watch page's. That panel's data, or null.
+  const ended = new Set();                     // queues cleared from VR (the page may keep their data a while)
+  function queuePanel() {
+    const p = [...document.querySelectorAll('ytd-playlist-panel-renderer')].map(e => e.data || (e.__data && e.__data.data))
+      .find(d => d && /^TLPQ/.test(d.playlistId || '') && !ended.has(d.playlistId) && (d.contents || []).length);
+    return p || null;
+  }
+
+  // { id, title, channel, queue (it's YouTube's queue), index, total, localIndex, infinite,
+  // items: [video items] } or null when not in a playlist (or the queue). A long playlist's
+  // sidebar (and the player) hold only a window of ~100-200 videos around the playing one:
+  // `index` is the playing video's position in the WHOLE playlist (0-based), `localIndex`
+  // its position in that window (= items), `total` the playlist's length (0 if not given).
+  // `infinite`: a mix, with no fixed length.
   function playlist() {
-    const pl = dig(results(), 'playlist', 'playlist');
-    if (!pl) return null;
+    const pl = queuePanel() || dig(results(), 'playlist', 'playlist');
+    // (the watch page's own data keeps a queue cleared from VR until the next video: not a list any more)
+    if (!pl || ended.has(pl.playlistId)) return null;
     return {
-      id: pl.playlistId, title: strOf(pl.title), channel: strOf(pl.ownerName),
-      index: pl.currentIndex || 0, total: +pl.totalVideos || 0,
+      id: pl.playlistId, title: strOf(pl.title), channel: strOf(pl.ownerName), queue: /^TLPQ/.test(pl.playlistId || ''),
+      index: pl.currentIndex || 0, total: +pl.totalVideos || (pl.contents || []).length,
       localIndex: pl.localCurrentIndex != null ? pl.localCurrentIndex : null, infinite: !!pl.isInfinite,
       items: D.collectItems(pl.contents || []),
     };
+  }
+
+  // A playlist's own page (browse "VL<id>"), asked once a minute at most: its details and its
+  // videos' first page come from the same answer.
+  const pageCache = new Map();                 // playlist id -> { at, promise }
+  function playlistPage(playlistId) {
+    const hit = pageCache.get(playlistId);
+    if (hit && performance.now() - hit.at < 60000) return hit.promise;
+    const promise = D.innertube('browse', { browseId: `VL${playlistId}` });
+    promise.catch(() => pageCache.delete(playlistId));
+    pageCache.set(playlistId, { at: performance.now(), promise });
+    return promise;
+  }
+
+  // playlistDetails(id) -> Promise of a playlist's details from its own page:
+  //   { id, title, author, authorId, stats: ["24 videos", "1,234 views", "Updated …"],
+  //   description, thumb (its first video's), firstVideo (Play all's), shuffle: { videoId,
+  //   params } | null (YouTube's Shuffle play), canSave (signed in, someone else's playlist),
+  //   saved (in your library) }. Read from the page's sidebar (playlistSidebarPrimaryInfoRenderer,
+  //   with Save as a toggleButtonRenderer of likeEndpoints and Shuffle as a SHUFFLE button's
+  //   watchEndpoint; seen signed in, 2026-10-18), else its header.
+  async function playlistDetails(playlistId) {
+    const r = await playlistPage(playlistId);
+    const pri = findKey(r.sidebar, 'playlistSidebarPrimaryInfoRenderer') || {};
+    const sec = findKey(r.sidebar, 'playlistSidebarSecondaryInfoRenderer') || {};
+    const ph = dig(r, 'header', 'pageHeaderRenderer', 'content', 'pageHeaderViewModel') || {};
+    const owner = dig(sec, 'videoOwner', 'videoOwnerRenderer') || {};
+    const buttons = dig(pri, 'menu', 'menuRenderer', 'topLevelButtons') || [];
+    const save = buttons.map(b => b.toggleButtonRenderer).find(t => t && findKey(t, 'likeEndpoint'));
+    const shuffleEp = dig(buttons.map(b => b.buttonRenderer).find(b => b && dig(b, 'icon', 'iconType') === 'SHUFFLE'), 'navigationEndpoint', 'watchEndpoint');
+    const firstVideo = dig(pri, 'navigationEndpoint', 'watchEndpoint', 'videoId') || dig(findKey(ph.actions, 'watchEndpoint'), 'videoId') || '';
+    return {
+      id: playlistId, title: strOf(pri.title) || strOf(dig(ph, 'title', 'dynamicTextViewModel', 'text')),
+      author: strOf(owner.title), authorId: dig(owner, 'navigationEndpoint', 'browseEndpoint', 'browseId') || '',
+      stats: (pri.stats || []).map(strOf).filter(Boolean),
+      description: strOf(pri.description) || strOf(dig(ph, 'description', 'descriptionPreviewViewModel', 'description')),
+      thumb: firstVideo ? D.thumbOf(firstVideo) : '', firstVideo,
+      shuffle: shuffleEp && shuffleEp.videoId ? { videoId: shuffleEp.videoId, params: shuffleEp.params || '' } : null,
+      canSave: !!save && D.signedIn() && !findKey(save, 'signInEndpoint'), saved: !!(save && save.isToggled),
+    };
+  }
+
+  // Save a playlist to your library (on) or remove it (YouTube's Save button: like/like and
+  // like/removelike with the playlist as the target) -> Promise of { ok, error }.
+  async function savePlaylist(playlistId, on) {
+    try {
+      await D.innertube(on ? 'like/like' : 'like/removelike', { target: { playlistId } });
+      pageCache.delete(playlistId);
+      return { ok: true };
+    } catch (err) { return { ok: false, error: String(err && err.message || err) }; }
   }
 
   // A playlist's videos as its own page lists them (browse "VL<id>"), with the views, age and
@@ -251,7 +316,7 @@
   // such page; the request fails for them.
   function playlistVideos(playlistId) {
     return D.pager(async token => {
-      const r = await D.innertube('browse', token ? { continuation: token } : { browseId: `VL${playlistId}` });
+      const r = token ? await D.innertube('browse', { continuation: token }) : await playlistPage(playlistId);
       // Later pages also repeat `contents`, so their items are read from the append action
       // only. A first page's videos can follow other sections (Watch later puts its own
       // controls first), so every section of the list is read.
@@ -416,6 +481,48 @@
     } catch (err) { return { ok: false, error: String(err && err.message || err) }; }
   }
 
+  // ---------------------------------------------------------------- the queue: clear, save
+  // The Queue box's own Clear command (its menu's "Clear" button: an endPlaylistCommand for
+  // the queue, then YouTube's "Queue cleared" toast; seen 2026-10-20), for the page to run;
+  // null with no queue.
+  function queueClearCommand() {
+    const q = queuePanel();
+    const b = q && (dig(q, 'menu', 'menuRenderer', 'topLevelButtons') || []).map(x => x.buttonRenderer)
+      .find(x => x && findKey(x.command, 'endPlaylistCommand'));
+    return b ? b.command : null;
+  }
+  // The queue's list id (or ''), and forgetting a queue once it's cleared (its tab goes at once,
+  // while the page and the player may still hold it until the next video).
+  const queueId = () => { const q = queuePanel(); return q ? q.playlistId : ''; };
+  const queueEnded = id => { if (id) ended.add(id); };
+  // queueSaveTargets(listId) -> Promise of [{ id, title, saved }]: Watch later and your
+  // playlists, `saved` when one already holds all of the queue (playlist/get_add_to_playlist
+  // asked with the queue's own list id: asked with its videos' ids, more than one, YouTube answers
+  // HTTP 400; seen 2026-10-20). [] signed out.
+  async function queueSaveTargets(listId) {
+    if (!D.signedIn() || !listId) return [];
+    const r = await D.innertube('playlist/get_add_to_playlist', { playlistId: listId, excludeWatchLater: false });
+    return ns.youtubeChannel.findKeyAll(r, 'playlistAddToOptionRenderer').map(o => ({
+      id: o.playlistId, title: strOf(o.title), saved: o.containsSelectedVideos === 'ALL',
+    })).filter(o => o.id);
+  }
+  // addToPlaylist(playlistId, videoIds) -> Promise of { ok, error }: every video added to the
+  // playlist, in order (browse/edit_playlist, one ACTION_ADD_VIDEO each).
+  async function addToPlaylist(playlistId, videoIds) {
+    try {
+      const r = await D.innertube('browse/edit_playlist', { playlistId, actions: videoIds.map(addedVideoId => ({ action: 'ACTION_ADD_VIDEO', addedVideoId })) });
+      return r && r.status === 'STATUS_SUCCEEDED' ? { ok: true } : { ok: false, error: (r && r.status) || 'no answer' };
+    } catch (err) { return { ok: false, error: String(err && err.message || err) }; }
+  }
+  // createPlaylist(title, videoIds) -> Promise of { ok, id, error }: a new private playlist
+  // with the videos (playlist/create, as YouTube's "New playlist" does; works, 0.101.1).
+  async function createPlaylist(title, videoIds) {
+    try {
+      const r = await D.innertube('playlist/create', { title, videoIds, privacyStatus: 'PRIVATE' });
+      return r && r.playlistId ? { ok: true, id: r.playlistId } : { ok: false, error: 'no playlist made' };
+    } catch (err) { return { ok: false, error: String(err && err.message || err) }; }
+  }
+
   // ---------------------------------------------------------------- transcript
   // [{ start (s), text }] for the current video, or [] if it has none. YouTube refuses
   // direct transcript requests, so this opens the page's own transcript panel (the
@@ -464,7 +571,7 @@
   }
 
   ns.youtubeContent = {
-    metadata, description, descriptionWithoutChapters, hasTranscript, owner, chapters, heatmap, mostReplayed, endScreen, cards, playlist, playlistVideos,
+    metadata, description, descriptionWithoutChapters, hasTranscript, owner, chapters, heatmap, mostReplayed, endScreen, cards, playlist, playlistVideos, playlistDetails, savePlaylist, queueClearCommand, queueId, queueEnded, queueSaveTargets, addToPlaylist, createPlaylist,
     comments, commentsInfo, replies, rateComment, readComments, sortTokens, transcript, search, saveTargets, setSaved, signedIn: D.signedIn,
   };
 })(globalThis.__streamxr = globalThis.__streamxr || {});

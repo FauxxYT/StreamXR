@@ -6,6 +6,459 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.101.7
+
+The release after v0.93.3: everything from 0.93.4 to here. The README's "What's new" describes
+it (now with the queue's Clear and Save).
+
+### Fixed
+- **Adding to the queue sometimes moved Up Next's "playing" mark to the next video** (and the
+  Queue tab's count with it): the player's position in the list can be one ahead for a moment;
+  the playing video is now found by the video the tab is on.
+
+## 0.101.6
+
+### Fixed
+- **Clearing the queue left it in Up Next until another video started** (YouTube's own page
+  cleared it): the watch page keeps the cleared queue in its data until the next video, and
+  that copy is now ignored too.
+
+## 0.101.5
+
+### Changed
+- **The queue's Save menu drops down under its button** (as Material menus do) instead of
+  opening in the middle of the view: centred on Save, inside the Up Next panel's width and
+  clear of the side toolbar over the panel's edge. The shell: `host.openMenu(control,
+  { below: true })` replaces `{ centred: true }`.
+
+## 0.101.4
+
+### Changed
+- **The queue's Save and Clear buttons fill in YouTube's red** while their menu or dialogs are
+  up, so you can see which one you're in.
+- **The queue's Save menu opens in the middle of the view** (where a dialog goes), not up at
+  its button. The shell: `host.openMenu(control, { centred: true })`.
+
+### Fixed
+- **The pointing ring round a scrolling menu's first and last rows was cut off.**
+
+## 0.101.3
+
+### Fixed
+- **The queue's Save menu said "Couldn't save (… HTTP 400)"** instead of listing your
+  playlists: YouTube refuses that list asked for several videos at once; it's now asked for
+  the queue itself (its list id).
+
+## 0.101.2
+
+### Fixed
+- **Clearing the queue left an empty Queue tab** (its rows blank) until another video played:
+  YouTube's page and player keep the cleared queue a while, so a queue cleared from VR is now
+  forgotten at once, and its tab goes.
+- **After making a new playlist, the Save menu stayed open**: a short dialog now says it's
+  made (OK closes it).
+
+## 0.101.1
+
+### Added
+- **Clear the queue**: a **Clear** button on Up Next's Queue tab; a dialog asks first, then
+  YouTube's own Clear runs (as its Queue box's button does).
+- **Save the queue**: a **Save** button on the Queue tab opens a menu: **New playlist…** (name
+  it on the VR keyboard; a private playlist of the queued videos), then Watch later and your
+  playlists (ticked when one already holds the whole queue; a choice adds every queued video).
+- The shell: `host.prompt()`, a dialog with a text field typed into on the VR keyboard (Enter
+  creates, Escape cancels); the Queue style's `rectOf` (menus opening from its page's buttons);
+  the `clear_all` icon.
+
+## 0.101.0
+
+Release prep after v0.93.3 (everything from 0.93.4 to 0.100.1 below), with no code changes of
+its own; the queue's Clear and Save followed, and the release is 0.101.7.
+
+### Changed
+- The README's "What's new" now describes this release; its feature list, roadmap and known
+  issues are brought up to date.
+
+## 0.100.1
+
+### Fixed
+- **Adding to the queue jumped Up Next to the Queue tab**: the tab now just appears (a newly
+  started playlist still opens on its tab).
+- **The pointing ring round a playlist's (or the queue's) rows was cut off at the sides**: the
+  rows are a little narrower, so the ring fits inside the page.
+
+## 0.100.0
+
+### Added
+- **Add to queue**: pointing at a video card (in Explore, You, Search, the Channel panel and
+  Up Next) shows a round **Add to queue** button on its thumbnail's bottom-left corner;
+  clicking it adds the video to YouTube's own queue (a check shows it's queued), clicking the
+  rest of the card still plays it. Shorts, playlists and live streams have none.
+- **The queue in Up Next**: YouTube's queue gets its own **Queue · 1 / 4** tab, the same page
+  as a playlist (the playing video marked, a row plays it). As on YouTube, the queued videos
+  play after the current one.
+- The shell: a card can have a `quick` button (`styles/kit.js`); the `add_to_queue` icon.
+
+## 0.99.2
+
+### Added
+- **Follow your head follows up and down too**: looking more than 25° up or down for the
+  delay turns the screen and the panels up or down with you (a recenter levels them again).
+- **Follow delay and Follow speed sliders** (Settings → 2D Cinema, each with Default): the
+  defaults are now a shorter delay (0.6 s, was 1 s) and a gentler speed.
+- **Settings tabs scroll**: a tab with more rows than fit (2D Cinema now has nine) scrolls,
+  with the stick or by dragging, with a bar on the right; each tab keeps its place.
+
+### Fixed
+- **Follow your head crept after you while you read a side panel without pointing at it**:
+  looking at a panel now counts as using it, so nothing follows.
+
+## 0.99.1
+
+### Fixed
+- **The Follow your head switch never showed as on**: the setting was saved, but the switch
+  wasn't told, so it always drew as off (and each click saved "on" again).
+
+## 0.99.0
+
+### Added
+- **Follow your head** (Settings → 2D Cinema; off by default; requested by [u/boatOV](https://www.reddit.com/user/boatOV) on
+  Reddit): on a 2D video, once you've turned more than 35° away from the screen for a second,
+  the screen and the panels glide round to where you're facing, so you never need to
+  recenter. A lazy follow: glances don't move anything, and nothing moves while you're
+  pointing at a panel, holding or dragging something. 180°/360° and 3D videos stay put.
+
+## 0.98.2
+
+### Added
+- **The autoplay countdown in VR**: while YouTube counts down to the next video at a video's
+  end, the next video floats above the Autoplay button ("Up next in 5", its thumbnail, title
+  and channel), and hidden panels come back for it. Clicking it plays that video now;
+  switching Autoplay off cancels the countdown. Read from YouTube's own player (UNVERIFIED).
+
+## 0.98.1
+
+### Fixed
+- **The end screen didn't show with the panels hidden**: like a skippable ad, it now brings
+  hidden panels back (the shell's panels get `host.reveal()`).
+- **The previous video's end screen stayed on the next one**: just after a switch, the end
+  screen read a moment earlier (and the player's time) could still be the previous video's,
+  so the tab came straight back with the old tiles. The tiles now say which video they're
+  for, and a new video's end screen can only start once it has played for a moment.
+
+## 0.98.0
+
+### Added
+- **The end screen in Up Next**: when a video's end screen starts (its last seconds), Up Next
+  gets an **End screen** tab with the creator's suggested videos and playlists, and other
+  channels, as cards; it switches to the tab, and opens if it was closed. The tab stays until
+  another video starts. A video plays, a playlist opens its page, a channel opens in the
+  Channel panel. The video's own channel and Subscribe tiles are left out (the controls panel
+  has both), as are links to other sites.
+
+## 0.97.4
+
+### Fixed
+- **An info card's video showed first in Up Next**: reading Up next from the page also picked
+  up the description panel's info cards (YouTube keeps that panel in the same side column);
+  links inside YouTube's side panels are now skipped.
+- **The info card teaser could come up with the panels hidden**: like Skip ad, a teaser now
+  brings the controls panel back, and it stays while the teaser shows.
+
+## 0.97.3
+
+### Changed
+- **The Cards menu shows the cards as videos**: each row has the video's thumbnail with its
+  length, its title, and channel · views · age (the shell's menus can now show a picture on
+  a row's left).
+- **The info card teaser is clickable**: pointing at it and clicking plays the card's video.
+
+## 0.97.2
+
+### Fixed
+- **Info cards read from where YouTube keeps them**: the video's description data (its
+  "infocards" section), so the Cards menu lists the real cards (title, then channel, views
+  and age), and the button is greyed only on videos without any.
+- **The teaser now follows YouTube's own**: the cards' times aren't in YouTube's data, so the
+  teaser floats above the Cards button while YouTube's player shows its card teaser (read
+  from the player, UNVERIFIED), with the card it's about. The "View corrections" teaser every
+  video has is ignored.
+
+## 0.97.1
+
+### Fixed
+- **Every video seemed to have a "View corrections" info card** (the Cards button never
+  greyed out): YouTube's card list holds that teaser on every video, with nothing behind it
+  but its corrections panel. It's left out; the real cards are still to read (they weren't in
+  that list on a video that has them).
+
+## 0.97.0
+
+### Added
+- **Info cards**: a **Cards** button on the controls panel (after Captions; greyed on a
+  video without cards). Its menu lists the video's cards (title, what it is, when it comes);
+  a choice plays the card's video or playlist (a link to another site says it opens on
+  desktop). When a card's time comes, its teaser floats above the button for 6 seconds,
+  like the Previous / Next hover card, and the button's icon fills.
+- **Autoplay** on the controls panel (next to Play, on the right): YouTube's own switch,
+  On / Off under its icon.
+- The shell: a site button can have a `teaser` (a card floating above it); the `autoplay`
+  icon.
+
+### Changed
+- **The controls panel is wider** (1408 px, was 1216) so its 13 buttons keep their full size
+  and the row stays even on both sides of Play.
+
+## 0.96.6
+
+### Fixed
+- **The pill row jumped back to its start after picking a pill** (seen on Gaming's game
+  shelves): a chosen section reads fewer pages, so it offered fewer pills; the pills already
+  offered now stay, with new ones added after them. A sliding row also keeps its place when
+  more pills arrive at its end.
+
+## 0.96.5
+
+### Added
+- **Gaming's game shelves** (signed in): each game's row of videos on YouTube's Gaming page
+  (Fortnite, Red Dead Redemption 2, Half-Life: Alyx ...) is now a pill on Explore's Gaming
+  tab, with its videos; a pill's "View all" leads to the game's own page. The game cards
+  themselves ("Top live games", Playables) are left out: they're games, not videos.
+
+## 0.96.4
+
+### Added
+- **A shuffle card on Next while shuffle is on**: pointing at the controls' Next shows "A
+  random video from this playlist · Shuffle is on" with the shuffle icon, instead of no card
+  (the next video isn't known until it plays). With shuffle off, the next video's card as
+  before. The generic card takes an `icon` drawn in place of a missing picture.
+
+## 0.96.3
+
+### Changed
+- **No Next preview while a playlist is shuffled**: YouTube only picks the next video when it
+  gets there (its own Next preview shows the in-order one too), so the controls' Next shows
+  no card instead of a wrong one. Reverts 0.96.2's attempt to read it from the player's Next
+  button (it showed the in-order video).
+
+## 0.96.2
+
+### Fixed
+- **Next showed the in-order video with shuffle on**: the controls' Next (its hover card)
+  now shows the video YouTube will actually play next, read from the player's own Next
+  button while the playlist's shuffle is on (UNVERIFIED that its link follows the shuffle).
+- **Save showed different states in two panels**: saving or removing a playlist now shows at
+  once on every open page of it (Up Next's playlist tab and a page opened from a card).
+
+## 0.96.1
+
+### Changed
+- **Up Next's playlist tab is now the playlist as a page** (as when a playlist is opened from
+  its card): its picture, title and position, **Shuffle** (an on / off toggle) and **Save**,
+  then all its videos as rows, the playing one marked and brought into view when it changes.
+- **A playlist card in Up Next's Recommended opens its page** in Recommended's place (a back
+  button returns), instead of playing at once. Mixes still play at once.
+- The Queue style can show a collection page, scrolling.
+
+### Fixed
+- **Shuffle only shuffled the first video**: after YouTube's Shuffle play, StreamXR now also
+  turns on the watch page's own playlist shuffle once it shows (UNVERIFIED: the toggle is
+  found by its "Shuffle" label).
+
+## 0.96.0
+
+### Added
+- **A playlist's page before playing it**: clicking a playlist card in Explore, You, Search
+  or the Channel panel opens the playlist in that panel: its picture, title, author, stats
+  and description, **Play all**, **Shuffle** and **Save** (to your library, signed in), then
+  its videos as rows, more loading as you scroll. A row plays the playlist from that video.
+  **Back** (or the tab again) returns to the list; the playlist stays open while you use
+  other panels. Mixes still play at once.
+- The shell's **collection page** (`styles/collection.js`), shown by the Catalog and Profile
+  styles under a back button; the Catalog style can now scroll it. The `shuffle` and
+  `playlist_add_check` icons.
+
+## 0.95.9
+
+### Added
+- **"Members only" on members-only posts**: the same Members only flag as on members-only
+  video cards, after the channel's name (in the Membership tab's Posts, the Posts tab and an
+  opened post). The Profile style's posts take `flags` for this.
+
+## 0.95.8
+
+### Added
+- **Your membership in the Channel panel**: on a channel you're a member of, the Membership
+  tab has three pills: **Perks** (your level, how long you've been a member, and your perks
+  with their custom emoji and loyalty badges), **Videos** (YouTube's highlighted
+  members-only videos) and **Posts** (recent members-only posts, with likes, polls and
+  comments as on the Posts tab).
+
+## 0.95.7
+
+### Added
+- **The Channel panel's Podcasts tab**: the channel's podcasts, their square covers shown
+  whole in the cards.
+
+### Fixed
+- **The Channel panel said "Subscribe" on a channel you're subscribed to** (seen on one
+  you're a member of): YouTube's answer for the channel now wins over the first guess from
+  the watch page, which could be the previous video's. A subscription change also drops the
+  channel's saved answer, so reopening it shows the change.
+- **No Membership tab on a channel you're a member of**: members get YouTube's Membership tab
+  but no Join button, so the tab now shows whenever the channel has one. Without a Join offer
+  it says your membership is on desktop for now.
+
+## 0.95.6
+
+### Removed
+- The members-only dialog's console diagnostics (0.95.4): the cause is fixed (0.95.5, works
+  in the headset).
+
+## 0.95.5
+
+### Fixed
+- **The members-only dialog on a normal video opened right after a members-only one** (found
+  with 0.95.4's log): the checks behind it were cached for half a second, so just after the
+  switch the new video got the previous video's answers ("won't play", "members only"). Those
+  checks now start over the moment the playing video changes.
+
+## 0.95.4
+
+### Changed
+- **Diagnostics for the members-only dialog** (it still comes up on a normal video opened
+  right after a members-only one): each time it comes up, the console logs what it was decided
+  from ("[streamxr] members-only dialog for …": the address, the playing video, the player's
+  and the watch page's data), to find the cause.
+
+## 0.95.3
+
+### Fixed
+- **The members-only dialog on a normal video, again:** a video now counts as members only
+  only when the watch page itself marks it so (the "Members only" badge under its title),
+  read from the page's data for the playing video, so the player's leftover status from the
+  previous video can't set it off. The dialog also asks again only after a normal video has
+  played for a moment.
+
+## 0.95.2
+
+### Fixed
+- **The members-only dialog still came up on a normal video opened right after one:** the
+  player's leftover data for the members-only video doesn't name its video, so the check in
+  0.95.1 couldn't tell it was stale. The data last seen with the previous video is now ignored
+  until the player has the new video's.
+
+## 0.95.1
+
+### Fixed
+- **The members-only dialog** showed only OK on a members-only video (it asked before the page
+  had the offer: it now waits up to 3 s for it), and came up again on the next, normal video
+  (the player still held the previous video's status for a moment: only the playing video's
+  counts now). It also comes back each time you open a members-only video again.
+
+## 0.95.0
+
+### Added
+- **Members-only videos offer their channel's membership:** opening one brings up a dialog
+  ("Members only: <channel>", YouTube's line about the level it needs) with **See perks** and
+  OK. See perks opens the channel's new **Membership** tab in the Channel panel.
+- **The Membership tab** (signed in, channels with memberships): YouTube's "Join this channel"
+  offer in VR: the channel's picture, each level with its price, its perks (with their badges
+  and emoji) and its disclaimer, and the footnote. Joining stays on desktop: each level shows
+  a greyed **Join on desktop** button. A creator card in Explore → Memberships opens it.
+- For other sites (ARCHITECTURE.md): the Profile style's **'tiers'** page (plans or levels to
+  join: each with a title, price, button, items with small pictures, a note).
+
+## 0.94.6
+
+### Fixed
+- **Explore → Memberships** only offered "Creators for you" as a creators' pill: YouTube puts
+  "Popular creators", "Trending content", "Up-and-coming" and "Loved by members" in one block
+  of the page, and only its first shelf was read. Every shelf in a block is its own pill now
+  (on every Explore page).
+- **Creator cards** show the channel's banner behind its round picture (no more plain grey).
+
+## 0.94.5
+
+### Fixed
+- **Memberships' creators didn't show signed in** ("Creators for you", "Popular creators",
+  "Up-and-coming"): their cards carry the channel in a different encoded parameter then; the
+  reader now looks in all of them.
+
+## 0.94.4
+
+### Changed
+- **A video YouTube won't play** (e.g. members only) now shows its thumbnail on the screen,
+  and the **Play** button is greyed out, besides the red line saying why.
+- **The Channel panel follows the playing video:** while it shows the playing video's channel,
+  it switches to the next video's channel when another video starts (unless you've gone to
+  another channel, a search or a post in it).
+- For other sites (ARCHITECTURE.md): a provider's `poster()` (pictures the screen shows in
+  place of a video the site won't play) and the state's `playable`.
+
+### Fixed
+- The playing video's channel is read from the watch page when the player's data lacks it (a
+  video YouTube won't play).
+
+## 0.94.3
+
+### Fixed
+- **Podcasts' "All" pill** now shows square cards too: a list that's mostly podcasts uses the
+  square layout, its few regular videos shown whole inside their square.
+- **A video YouTube won't play** (e.g. one for channel members only) showed nothing in VR: the
+  controls panel's line under the title now says why, in red ("Members only: join this
+  channel on desktop to watch it." for members-only videos).
+
+## 0.94.2
+
+### Added
+- **Square podcast cards:** a list of podcasts (Explore → Podcasts) shows square cards with
+  each show's own square cover, a **Podcast** flag and its episode count (12 to a page);
+  sections with regular videos (e.g. "Live now") keep the usual cards.
+- **Memberships:** the creators to join ("Popular creators", "Up-and-coming") show as their own
+  pills, as cards with the creator's round picture, name and monthly price; clicking one opens
+  their channel. Joining stays on desktop.
+- **Members only** flag (green) on videos for channel members only.
+- For other sites (ARCHITECTURE.md): the card grid's **square layout** (`shape: 'square'`,
+  Catalog's `perPageFor(shape)`).
+
+### Fixed
+- An Explore page whose "load more" sits at the end of its own section list stopped after its
+  first page.
+
+## 0.94.1
+
+### Changed
+- **Explore's pills show the whole shelf:** picking a section's pill (Live's "Live Now", Hype's
+  "Top 100" ...) shows everything YouTube's "View all" leads to (its own page, loading more as
+  you page through, or its playlist), not just the shelf's first cards.
+- **More sections as pills:** a page's later sections (e.g. Gaming's game shelves, signed in)
+  are read up front, so they're offered too.
+- **News** shows its own tabs as pills: Top stories, Sports, Entertainment, Business,
+  Technology, World, National, Health.
+
+### Fixed
+- **Mixes had no thumbnails** (Music): YouTube's mix art can't be drawn in VR (its image server
+  refuses), so a mix shows its first song's thumbnail instead.
+- The pointing ring round the selected tab or pill was cut at either end of a row that slides.
+
+## 0.94.0
+
+### Added
+- **Explore's Live, Gaming, Music, Hype, Courses, Podcasts and Memberships tabs** (until now
+  "Coming soon"): each shows YouTube's page of that name, with its sections as pills ("All"
+  first, then e.g. Live Now, Recent Live Streams, Upcoming Live Streams on Live). Podcasts and
+  Courses open as playlists. Shorts, Movies & TV and Learning are still to come.
+
+## 0.93.4
+
+### Fixed
+- **Seams on 360° cubemap videos** (reported by [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack) on Reddit and [@MinuteHistoryX](https://x.com/MinuteHistoryX) on X):
+  thin lines along the cube's edges on YouTube's 360° "mesh"
+  videos, with the glass look on. The cubemap is now read at full resolution (the glass's
+  blurred copies of the video made the edges pick up their smallest one); regular 360° videos
+  never had them.
+
 ## 0.93.3
 
 ### Changed
@@ -31,7 +484,7 @@ developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 ## 0.93.0
 
 ### Added
-- **Cinema screen 3D side by side:** a new format for regular (not VR180) 3D videos that put
+- **Cinema screen 3D side by side** (asked for by [@damics80](https://x.com/damics80)): a new format for regular (not VR180) 3D videos that put
   both eyes in one frame: the cinema screen gives each eye its half, in 3D, with the `3d` icon
   on the Format button (180° 3D side by side keeps its own). The screen takes one eye's shape:
   a 16:9 frame with each eye squeezed into half ("half side by side", the usual upload) shows
@@ -142,7 +595,7 @@ developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 ## 0.89.0
 
 ### Added
-- **3D side-by-side videos:** a new format, **180° 3D side by side**, in the Format menu (and
+- **3D side-by-side videos** (the VR180 ones spotted by [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack)): a new format, **180° 3D side by side**, in the Format menu (and
   the video page's format picker). Some VR180 videos reach the browser with both eyes in one
   frame (left eye's picture on the left), which used to be stretched over the half sphere as
   one picture; this format gives each eye its half, in 3D. YouTube's data doesn't mark these
@@ -166,7 +619,7 @@ developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
   A press that closes a menu, a dialog or typing still only does that; the next one hides.
   Another pull, or pointing at a panel, brings them back. Panels set to stay up (the live
   chat) stay.
-- **Settings → Auto-hide → "Hide while paused"** (suggested by u/TehSuperFruitSnack; off by default, remembered): while on, the
+- **Settings → Auto-hide → "Hide while paused"** (suggested by [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack); off by default, remembered): while on, the
   auto-hide waits also run with the video paused, so you can pause and take in a 180° / 360°
   scene with nothing in the way. The waits themselves are unchanged.
 

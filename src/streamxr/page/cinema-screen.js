@@ -1,6 +1,6 @@
 // Shows a regular (flat) video on a big screen in front of you, like a cinema. Same
 // interface as the video sphere: upload(video), draw(viewerPose, layer), backdrop() (for the
-// panels' glass), place(head, yaw),
+// panels' glass), place(head, yaw, pitch),
 // dispose(); plus reset() (the global reset: default size, curve and glow). Unlike the sphere, the screen stays put in the room, so you can lean and
 // look around it.
 //
@@ -33,6 +33,19 @@
     minGlowReach: 0.1,   // limits for the Glow length slider
     maxGlowReach: 0.8,
     glowDetail: 32,      // how blurred its colours are: read from the mipmap level about this many texels wide
+    // Follow your head (a 2D video, with the setting on: xr-session.js): a lazy follow. Once you've
+    // faced more than followStart (sideways) or followStartUp (up or down) away from the layout
+    // for its delay (not while using or looking at a panel), the screen and the panels turn to
+    // where you face, easing in at its speed (the share of the way left covered per second,
+    // as an exponential), until within followDone. Delay and speed are settings (sliders).
+    follow: false,       // off by default
+    followStart: 35,     // degrees
+    followStartUp: 25,   // degrees
+    followAfter: 0.6,    // seconds (default)
+    minFollowAfter: 0.2, maxFollowAfter: 3,      // the Delay slider's limits
+    followRate: 2,       // 1/s (default)
+    minFollowRate: 0.5, maxFollowRate: 6,        // the Speed slider's limits
+    followDone: 2,       // degrees
     storageKey: 'cinemaScreen',   // storage.js name for the remembered size/placement/curve
   };
 
@@ -286,12 +299,14 @@
 
     // Put the screen straight ahead of where you're looking (on enter, recenter, or switching to it),
     // at your remembered distance and height.
-    function place(head, yaw) {
+    function place(head, yaw, pitch = 0) {
       const p = loadPrefs();
       const raise = p.raise != null ? p.raise : SETTINGS.raise;
       dist = clampDistance(p.distance || SETTINGS.distance);
-      const c = Math.cos(yaw), s = Math.sin(yaw);
-      faceToward([head.x - s * dist, head.y + raise, head.z - c * dist], [head.x, head.y, head.z]);
+      // (pitch: the whole placement turned up or down about your eyes, e.g. by the lazy follow)
+      const r = Math.hypot(dist, raise), e = Math.atan2(raise, dist) + pitch;
+      const c = Math.cos(yaw), s = Math.sin(yaw), h = r * Math.cos(e);
+      faceToward([head.x - s * h, head.y + r * Math.sin(e), head.z - c * h], [head.x, head.y, head.z]);
     }
 
     // Settings: the current distance, the slider's limits and the default, in metres.
@@ -579,6 +594,21 @@
     return { upload, draw, backdrop, place, dispose, interaction, pauseAnchor, captionAnchor, distance, setDistance, setCurve, setGlow, reset };
   }
 
+  // Follow your head on a 2D video: on / off, its delay and speed (remembered):
+  // { on, after (s), rate (1/s) }, and storing new ones (`patch`: { on?, after?, rate? }).
+  function followPrefs() {
+    const p = loadPrefs();
+    return { on: p.follow != null ? !!p.follow : SETTINGS.follow, after: p.followAfter != null ? p.followAfter : SETTINGS.followAfter,
+      rate: p.followRate != null ? p.followRate : SETTINGS.followRate };
+  }
+  function saveFollow(patch) {
+    const f = { ...followPrefs(), ...patch };
+    f.after = Math.min(SETTINGS.maxFollowAfter, Math.max(SETTINGS.minFollowAfter, f.after));
+    f.rate = Math.min(SETTINGS.maxFollowRate, Math.max(SETTINGS.minFollowRate, f.rate));
+    savePrefs({ follow: !!f.on, followAfter: f.after, followRate: f.rate });
+    return f;
+  }
+
   // The right renderer for a format: cinema screen for flat videos, sphere for the rest.
   function createVideoView(gl, fmt) {
     return ns.formats.isFlat(fmt) ? createCinemaScreen(gl, fmt) : ns.videoSphere.createVideoSphere(gl, fmt);
@@ -587,6 +617,6 @@
   // The global reset: forget the remembered size, placement and curve.
   const resetPrefs = () => ns.storage.remove(SETTINGS.storageKey);
 
-  ns.cinemaScreen = { createCinemaScreen, SETTINGS, curvePrefs, saveCurve, glowPrefs, saveGlow, resetPrefs };
+  ns.cinemaScreen = { createCinemaScreen, SETTINGS, curvePrefs, saveCurve, glowPrefs, saveGlow, followPrefs, saveFollow, resetPrefs };
   ns.videoView = { create: createVideoView };
 })(globalThis.__streamxr = globalThis.__streamxr || {});

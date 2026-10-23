@@ -30,6 +30,7 @@
         if (/[?&]list=/.test(a.getAttribute('href'))) continue;                               // playlist card
         const card = a.closest(CARD) || a.parentElement;
         if (!card || card.closest('ytd-ad-slot-renderer, ytd-in-feed-ad-layout-renderer')) continue;   // skip ads
+        if (card.closest('ytd-engagement-panel-section-list-renderer')) continue;   // a side panel's (e.g. the description's info cards), not Up next
         const title = textOf(card.querySelector('#video-title, h3 [title], h3, .yt-lockup-metadata-view-model__title, a#video-title-link'))
           || a.getAttribute('title') || textOf(a);
         if (!title) continue;
@@ -147,16 +148,17 @@
   // (with no video id, e.g. a channel's show, its first video is looked up first: opened
   // without one, YouTube played a "not available on this device" placeholder instead).
   // index: the video's 0-based position in the playlist (tells YouTube which copy when a
-  // video is listed twice, and where to load the playlist window from).
+  // video is listed twice, and where to load the playlist window from). params: the watch
+  // request's params YouTube's own button sent (e.g. a playlist's Shuffle play: its order).
   // Returns true if it's opening (asynchronously when the first video had to be looked up).
-  function openVideo(id, playlistId, index) {
+  function openVideo(id, playlistId, index, params) {
     if (!id && !playlistId) return false;
     if (!id) {
       const go = first => { if (!openNow(first || '', playlistId)) console.warn('[streamxr] could not open playlist', playlistId); };
       firstVideoOf(playlistId).then(go, err => { console.warn('[streamxr] playlist lookup failed:', err); go(''); });
       return true;
     }
-    return openNow(id, playlistId, index);
+    return openNow(id, playlistId, index, params);
   }
 
   // The first video of a playlist, as YouTube's own "play all" picks it (the `next` request's
@@ -167,12 +169,12 @@
   }
 
   // openVideo's navigation itself (id may be '' with a playlist: YouTube picks the video).
-  function openNow(id, playlistId, index) {
+  function openNow(id, playlistId, index, params) {
     const sel = REC_ROOTS.split(',').map(s => `${s.trim()} a[href*="v=${id}"]`).join(', ');
-    const a = id && !playlistId && document.querySelector(sel);
+    const a = id && !playlistId && !params && document.querySelector(sel);
     const at = playlistId && index >= 0;
     const url = `/watch?${[id && `v=${id}`, playlistId && `list=${playlistId}`, at && `index=${index + 1}`].filter(Boolean).join('&')}`;
-    const endpoint = { ...(id ? { videoId: id } : {}), ...(playlistId ? { playlistId } : {}), ...(at ? { index } : {}) };
+    const endpoint = { ...(id ? { videoId: id } : {}), ...(playlistId ? { playlistId } : {}), ...(at ? { index } : {}), ...(params ? { params } : {}) };
     if (a) a.click();
     else if (!navigate(url, endpoint)) return false;
     recommendations.reset(); details.reset();
@@ -305,8 +307,69 @@
     });
   }
 
+  // ---------------------------------------------------------------- the queue
+  // Add a video to YouTube's queue the way its own card menu does ("Add to queue"): the same
+  // command (an addToPlaylistCommand of list type QUEUE; YouTube's page creates the queue the
+  // first time, a playlist "TLPQ…" that plays after the current video), run by the page's own
+  // command handler (ytd-app handleCommandWithCommandHandler; seen working 2026-10-19).
+  // Returns true if the page took it.
+  function addToQueue(videoId) {
+    if (!videoId) return false;
+    const watch = { commandMetadata: { webCommandMetadata: { url: `/watch?v=${videoId}`, webPageType: 'WEB_PAGE_TYPE_WATCH', rootVe: 3832 } }, watchEndpoint: { videoId } };
+    return runCommand({ signalServiceEndpoint: { signal: 'CLIENT_SIGNAL', actions: [{ addToPlaylistCommand: {
+      openMiniplayer: false, videoId, videoIds: [videoId], listType: 'PLAYLIST_EDIT_LIST_TYPE_QUEUE',
+      onCreateListCommand: { commandMetadata: { webCommandMetadata: { sendPost: true, apiUrl: '/youtubei/v1/playlist/create' } },
+        createPlaylistServiceEndpoint: { videoIds: [videoId], params: 'CAQ%3D' } },
+      videoCommand: watch } }] } });
+  }
+  // Run one of YouTube's own commands (e.g. its Queue box's Clear) with the page's command
+  // handler, as clicking its button would. Returns true if the page took it.
+  function runCommand(cmd) {
+    const app = document.querySelector('ytd-app');
+    if (!cmd || !app || typeof app.handleCommandWithCommandHandler !== 'function') return false;
+    try { app.handleCommandWithCommandHandler(cmd); return true; }
+    catch (err) { console.warn('[streamxr] YouTube\'s command failed:', err); return false; }
+  }
+
+  // ---------------------------------------------------------------- playlist shuffle
+  // The watch page's playlist panel has a Shuffle toggle (YouTube's own button, labelled
+  // "Shuffle playlist", aria-pressed when on). Opening a playlist with its Shuffle play params
+  // only picks a random first video; the toggle shuffles what plays next (works, checked in
+  // the headset with 0.96.1; docs/youtube.md).
+  function shuffleButton() {
+    return [...document.querySelectorAll('ytd-playlist-panel-renderer button, ytd-playlist-panel-renderer [role="button"]')]
+      .find(b => /shuffle/i.test(b.getAttribute('aria-label') || '') && b.getClientRects().length) || null;
+  }
+  // The playing playlist's shuffle: true / false, or null when the page shows no toggle.
+  function playlistShuffled() {
+    const b = shuffleButton();
+    return b ? b.getAttribute('aria-pressed') === 'true' : null;
+  }
+  // Turn it on or off by clicking the toggle; true if it was found.
+  function setPlaylistShuffle(on) {
+    const b = shuffleButton();
+    if (!b) return false;
+    if ((b.getAttribute('aria-pressed') === 'true') !== !!on) b.click();
+    return true;
+  }
+  // Once the watch page plays playlist `id` and shows its toggle (within `ms`), turn shuffle
+  // on: for a playlist just opened with Shuffle. Resolves true if it did.
+  function shuffleWhenReady(id, ms = 10000) {
+    const until = performance.now() + ms;
+    return new Promise(resolve => {
+      const tryNow = () => {
+        const list = D.dig(D.watchData(), 'contents', 'twoColumnWatchNextResults', 'playlist', 'playlist', 'playlistId');
+        if (list === id && setPlaylistShuffle(true)) { resolve(true); return; }
+        if (performance.now() > until) { console.warn('[streamxr] no shuffle toggle found for playlist', id); resolve(false); return; }
+        setTimeout(tryNow, 250);
+      };
+      setTimeout(tryNow, 500);
+    });
+  }
+
   ns.youtubePage = {
     recommendations, upNextPlaylists, loadMoreRecommendations, openVideo, navigate,
+    playlistShuffled, setPlaylistShuffle, shuffleWhenReady, addToQueue, runCommand,
     details, subscribe, noteSubscription, like, dislike, logo,
     currentVideoId: D.currentVideoId, compactNumber, timeAgo,
   };

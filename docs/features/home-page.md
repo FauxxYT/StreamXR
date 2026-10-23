@@ -34,7 +34,7 @@ are the extra work for each feature once the panel exists.
    - Code: `home(chip)`; `p.chips` lists the chips on offer (personalised: News, Music,
      Gaming, Live, Recently uploaded, Watched ...)
    - VR idea: a scrollable row of chip buttons above the grid.
-3. [ ] **Explore feeds: Live, Gaming, Music, Hype, Courses, Podcasts, Memberships** (small to medium; v0.74.0: each
+3. [x] **Explore feeds: Live, Gaming, Music, Hype, Courses, Podcasts, Memberships** (0.94.0 to 0.95.6, work in the headset: each a tab with its sections as pills, "View all" behind each pill, square podcast cards, Memberships' creators and the Membership tab; Gaming's signed-in game shelves as pills since 0.96.5, work in the headset (the pill row keeps its place: 0.96.6); v0.74.0: each
    is a "Coming Soon" tab of the Explore panel, with Shorts, Movies & TV and Learning, ready to fill)
    - Code: `feed(name)` -> sections [{ title, items }] ("Live Now", "Upcoming Live
      Streams", "Top 100" ...)
@@ -60,10 +60,27 @@ are the extra work for each feature once the panel exists.
    - ~~Code: `suggestions(text)` -> YouTube's autocomplete~~ (verified Oct 2026: up to 12,
      about 0.2 s, works from the youtube.com page)
 
+7. [x] **A playlist's page before playing it** (0.96.0 to 0.96.2): clicking a
+   playlist card (not a mix: mixes have no page and still play at once) opens it in place of
+   the list, in Explore, You, Search and the Channel panel: its picture, title, author, stats
+   and description, **Play all**, **Shuffle**, **Save** (signed in, someone else's playlist),
+   then its videos as rows (a row plays from that video). Back, or the tab again, returns to
+   the list; leaving the panel keeps it open (0.96.0: details, rows, scrolling, Play all,
+   navigation, Save (not on your own playlists, as on YouTube) and Shuffle work in the headset).
+   Up Next (0.96.1, works in the headset): its playlist tab shows the
+   playing playlist the same way (Shuffle toggle, Save), and its Recommended playlist cards
+   open their page (untested: none showed up yet). Save shows at once on every open page
+   (0.96.2).
+
 ## Deferred
 
 Left out for now by the maintainer; each can come back if there is demand for it.
 
+- **Learning** (the Explore tab; the maintainer, 2026-10-18)
+  - What: YouTube's Learning page, an AI prompt ("What do you want to learn?") that generates
+    tabs, shelves and quizzes from the topic you type.
+  - Why: a different kind of page (typing a topic, AI-generated content of an unknown shape),
+    and Courses already brings learning content into VR. Its tab stays "Coming soon".
 - **Shelves from the Home feed** (small)
   - Why: Shorts are a poor fit for this extension, and the "Top news" shelf is rarely
     used. The shelves' items are often less related to what's recommended elsewhere, so

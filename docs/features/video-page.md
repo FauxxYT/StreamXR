@@ -37,18 +37,6 @@ published; what matters from them is in this file and docs/youtube.md).
 - [x] ~~**Most Replayed graph on the seek bar**~~ DONE (v0.41.0: a soft curve over the seek
   bar while it's pointed at or dragged, as on YouTube)
   - ~~Code: `youtubeContent.mostReplayed()`~~
-- [ ] **Movies in Up Next** (seen by the maintainer in 0.66.1, signed in: a free movie rated
-  PG-13 in Recommended). Two parts:
-  - **Fix:** its card's grey line shows the movie's price ("Free") and rating ("PG-13")
-    where a video shows its views and upload date: YouTube's movie items put those in the
-    fields our parser reads as views / age. Read movies as their own kind and show what
-    fits (e.g. the year, the rating, the price or "Free"), never price / rating in the
-    views slot.
-  - **Add:** a **Movie tag** on the card, beside the 2D / 180° / 360° tag (`cards.js`
-    kinds): the Material Symbols **`movie`** icon (already in `symbols.js`) instead of
-    text, in **yellow** (the maintainer's choice), so movies stand out from regular videos.
-  - Code: the Up Next items (`youtubePage` recommendations, the card fields in
-    `provider/cards.js`); check Browse and Search results show movies the same way.
 - [ ] **Premium features** (the maintainer, after 0.78.4): YouTube Premium's extras in VR, marked with
   Material Symbols' **Diamond** icon: **purple** when you don't have Premium (an upsell, like
   YouTube's own), **YouTube Red** when you do. Find out first how the page says whether you
@@ -68,7 +56,7 @@ published; what matters from them is in this file and docs/youtube.md).
     | Higher-quality audio (256 kbps music) | apps and TVs only | Out |
     | YouTube Music app, Premium badges, Co-Watch with Meet, Afterparties, smart devices | other apps | Out |
     | Early access to new features (experiments) | varies | Out: they come and go |
-- [ ] **Add to queue** (desktop: for everyone, not Premium): queue a video from a card and
+- [x] **Add to queue** (0.100.0 to 0.101.7, works in the headset: a button on cards, a Queue tab in Up Next with Clear and Save (to a new or existing playlist); desktop: for everyone, not Premium): queue a video from a card and
   play the queue in order. Find out first how the page's queue can be driven.
 
 ## Medium: new panels with scrolling or long text
@@ -78,7 +66,7 @@ published; what matters from them is in this file and docs/youtube.md).
   - ~~Code: `youtube.captions()`, `youtube.setCaptions(track)`, `youtube.captionLines()`~~
   - Note: YouTube draws captions on the page, not into the video picture, so VR never sees
     them; StreamXR reads the lines as they appear (captions-overlay.js draws them).
-- [ ] **End screen**
+- [x] **End screen** (0.98.0 to 0.98.2, works in the headset: an End screen tab in Up Next when it starts, panels coming back for it; with the autoplay countdown as a card above Autoplay)
   - Code: `youtubeContent.endScreen()`
   - VR idea: show the suggested videos and channel links when a video ends.
 - [x] ~~**Description panel**~~ DONE (v0.29.0: "Description" tab: views · date, the text
@@ -87,7 +75,9 @@ published; what matters from them is in this file and docs/youtube.md).
 - [x] ~~**Transcript panel**~~ DONE (v0.29.0: "Transcript" tab when the video has one;
   loading spinner, current line highlighted and followed, click a line to seek)
   - ~~Code: `youtubeContent.transcript()`, `youtubeContent.hasTranscript()`~~
-- [ ] **Info cards**
+- [x] **Info cards** (0.97.0 to 0.97.4, work in the headset: the menu with thumbnails, the clickable teaser at the right time, greying,
+  the panels coming back for a teaser: a Cards button on the controls panel,
+  a menu of the video's cards, and each card's teaser above the button as its time comes)
   - Code: `youtubeContent.cards()`
   - VR idea: show the "i" cards (linked videos/playlists) at their times.
 
@@ -142,6 +132,21 @@ published; what matters from them is in this file and docs/youtube.md).
 
 Left out for now by the maintainer; each can come back if there is demand for it.
 
+- **Movies in Up Next** (the maintainer, 2026-10-18: deferred until YouTube allows its movies
+  in VR). Why: YouTube's movies are copy-protected, the free ones too (`docs/youtube.md`,
+  "Movies"), so they can't play in VR; polishing their cards would only lead to a movie that
+  won't play. The plan, for when it comes back (seen by the maintainer in 0.66.1, signed in: a free movie rated
+  PG-13 in Recommended). Two parts:
+  - **Fix:** its card's grey line shows the movie's price ("Free") and rating ("PG-13")
+    where a video shows its views and upload date: YouTube's movie items put those in the
+    fields our parser reads as views / age. Read movies as their own kind and show what
+    fits (e.g. the year, the rating, the price or "Free"), never price / rating in the
+    views slot.
+  - **Add:** a **Movie tag** on the card, beside the 2D / 180° / 360° tag (`cards.js`
+    kinds): the Material Symbols **`movie`** icon (already in `symbols.js`) instead of
+    text, in **yellow** (the maintainer's choice), so movies stand out from regular videos.
+  - Code: the Up Next items (`youtubePage` recommendations, the card fields in
+    `provider/cards.js`); check Browse and Search results show movies the same way.
 - **Other viewers' floating reactions in the live chat** (medium; the maintainer, 2026-10-17)
   - What: the emojis that float up over YouTube's chat when viewers press the reaction
     buttons.

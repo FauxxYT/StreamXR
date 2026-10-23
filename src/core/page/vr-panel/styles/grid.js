@@ -22,7 +22,8 @@
   // MAX_THUMB_H tall) and rows as the space above the paging row allows.
   // fit: move the paging row up to just under the last row of cards (no empty band between);
   // the panel then trims its canvas to the returned `height`.
-  // Returns { PER_PAGE, height, tabs(...), pills(...), divider(y), grid(...), paging(...),
+  // Returns { PER_PAGE, PER_PAGE_SQUARE (cards per page in the square layout), height,
+  // tabs(...), pills(...), divider(y), grid(...), paging(...),
   // point(x, y), moving() } (the sliding rows: see `strips`);
   // each drawing call pushes its clickable rectangles onto the `regions` array it is given.
   function createGrid(g, kit, W, H, gridTop, lines = 2, fit = false) {
@@ -34,6 +35,12 @@
     const BOTTOM_Y = fit ? gridTop + ROWS * (CARD_H + GAP) - GAP + 28 : H - 82;   // paging row
     const PER_PAGE = COLS * ROWS;
     const BOX = { w: CARD_W, h: CARD_H, thumbH: THUMB_H };
+    // The square layout (shape 'square', e.g. podcasts' covers): square pictures as tall as
+    // the standard ones, so the rows stay; as many columns as fit, spread across the width.
+    const SQ_COLS = Math.max(1, Math.floor((W - PAD * 2 + GAP) / (THUMB_H + GAP)));
+    const SQ_GAP = SQ_COLS > 1 ? (W - PAD * 2 - SQ_COLS * THUMB_H) / (SQ_COLS - 1) : 0;
+    const SQ_BOX = { w: THUMB_H, h: CARD_H, thumbH: THUMB_H };
+    const PER_PAGE_SQUARE = SQ_COLS * ROWS;
     const ARROWS = { prev: { x: W - PAD - 124, y: BOTTOM_Y - 2, w: 56, h: 56 }, next: { x: W - PAD - 56, y: BOTTOM_Y - 2, w: 56, h: 56 } };   // round tonal buttons
 
     // The tab row and the left-aligned chip row slide sideways when they're wider than their
@@ -168,7 +175,8 @@
     // while loading (`loadingAt`: the clock in seconds, else null), under the loading
     // indicator in the middle of the grid; with `emptyIcon` (a Material Symbols name), larger
     // in the middle of the grid with the icon after it (a placeholder, e.g. "Coming soon").
-    function grid(cards, ui, regions, emptyText, loadingAt = null, emptyIcon = null) {
+    // shape: 'square' for the square layout (square cards), else the standard one.
+    function grid(cards, ui, regions, emptyText, loadingAt = null, emptyIcon = null, shape = null) {
       if (!cards.length && emptyIcon) {
         const cy = gridTop + (BOTTOM_Y - gridTop) / 2, ICON = 44;
         g.font = T.font('titleMedium', 32); g.textAlign = 'left'; g.textBaseline = 'middle';
@@ -186,8 +194,9 @@
         g.fillText(emptyText, PAD, gridTop + 40);
       }
       cards.forEach((card, i) => {
-        const col = i % COLS, row = Math.floor(i / COLS);
-        kit.drawCard(card, PAD + col * (BOX.w + GAP), gridTop + row * (BOX.h + GAP), BOX, ui, regions, `item:${i}`);
+        const sq = shape === 'square', cols = sq ? SQ_COLS : COLS, box = sq ? SQ_BOX : BOX, step = sq ? THUMB_H + SQ_GAP : BOX.w + GAP;
+        const col = i % cols, row = Math.floor(i / cols);
+        kit.drawCard(card, PAD + col * step, gridTop + row * (box.h + GAP), box, ui, regions, `item:${i}`);
       });
     }
 
@@ -210,7 +219,7 @@
       arrow('next', 1, m.page < pages - 1, ui, regions);
     }
 
-    return { PER_PAGE, height: BOTTOM_Y + 82, tabs, pills, field, suggestions, magnifier, divider, grid, paging, point, moving };
+    return { PER_PAGE, PER_PAGE_SQUARE, height: BOTTOM_Y + 82, tabs, pills, field, suggestions, magnifier, divider, grid, paging, point, moving };
   }
 
   ns.vrStyleGrid = { createGrid, PAD };

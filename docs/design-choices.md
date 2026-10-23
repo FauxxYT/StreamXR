@@ -293,3 +293,67 @@ even where they look like something to "fix".
 - **The Format button says "Format"** (the maintainer, 2026-10-17, 0.93.2), whatever's chosen;
   its icon shows the format, and the Format menu shows every format's icon and name. The
   cinema screen's icon is `2d_2`, 3D Cinema's `3d_2` (0.93.3).
+- **Explore's pages (the maintainer, 2026-10-18, after 0.94.0):** each page's sections are its
+  pills, and a pill shows the whole section (YouTube's "View all"). **News** stays an Explore
+  tab, its own tabs (Top stories, Sports ...) as its pills. **Learning** is deferred (an AI
+  prompt with generated lessons; Courses covers learning). **Podcasts** get **square cards**
+  for their square cover art. **Memberships** stays in Explore: its channel cards show the
+  channel's picture, name and price and open the channel; members-only videos are flagged;
+  joining stays on desktop. Viewing a playlist before playing it comes after Explore.
+- **Members-only videos and memberships (the maintainer, 2026-10-18):** opening a members-only
+  video brings up a short dialog (Members only, the channel, YouTube's "choose a level that's
+  at least …" line and the cheapest level) with **See perks** (opens the channel's
+  **Membership** page in the Channel panel: each level with its price, perks and disclaimer)
+  and OK. A creator card in Explore → Memberships opens that Membership page. Joining stays
+  on desktop: each level shows a greyed **Join on desktop** button.
+- **Info cards and Autoplay on the controls panel (the maintainer, 2026-10-19, 0.97.0):** the
+  panel is wider (1408 px, was 1216) so two more buttons keep full size and the row stays
+  even on both sides of Play: **Cards** at the inner end of the left part (after Captions;
+  always there, greyed on a video without cards, so the row never shifts; a menu of the
+  video's cards; as a card's time comes, its teaser floats above the button like the
+  Previous / Next hover card, nothing drawn over the video) and **Autoplay** at the inner end
+  of the right part (before Save; YouTube's own switch, On / Off under its icon). The teaser
+  is clickable (plays its card) and, like Skip ad, brings hidden panels back while it shows; the
+  Cards menu shows each card as a video row (thumbnail, length, title, channel · views · age).
+- **The end screen goes in Up Next (the maintainer, 2026-10-19, 0.98.0):** not a raised row
+  over the controls (a large raised area, reaching into the video) nor on the video (YouTube's
+  way: over the picture, and no screen for 360° / 180°). When it starts, an **End screen** tab
+  appears in Up Next with its videos, playlists and other channels as cards; Up Next switches
+  to it and opens if it was closed; it stays until another video starts. The video's own
+  channel and Subscribe tiles are left out: the controls panel already has both.
+  With Autoplay on, YouTube's countdown to the next video shows as a card above the Autoplay
+  button ("Up next in 5": the next video, clickable to play it now; switching Autoplay off
+  cancels it), bringing hidden panels back like a teaser.
+- **Follow your head on 2D videos (the maintainer, 2026-10-19, 0.99.0; asked for by [u/boatOV](https://www.reddit.com/user/boatOV)):**
+  a lazy follow, not a head lock (XR guidelines advise against content locked to the head):
+  once you've faced more than 35° sideways or 25° up / down away for the Delay, the screen and the panels ease round to
+  where you face at the Speed (both sliders, 0.99.2); glances don't move anything, and nothing
+  moves while you're using or looking at a panel.
+  A switch in Settings → 2D Cinema, off by default; 2D videos only (not 3D, 180° or 360°).
+- **Add to queue (the maintainer, 2026-10-19, 0.100.0):** a round **Add to queue** button on a
+  video card's thumbnail, bottom-left (the flags take the top), shown while the card is pointed
+  at; one click queues (a check once queued), the rest of the card still plays. The queue has
+  its own **Queue** tab in Up Next, which appears without Up Next switching to it (YouTube's queue takes the playing playlist's place, so
+  it's that tab, named Queue). It drives YouTube's own queue, the command its card menu sends.
+  The Queue tab has **Clear** (a dialog asks first, as YouTube's Undo can't be reached) and
+  **Save** (a menu: New playlist… named on the VR keyboard, then Watch later and your playlists;
+  the maintainer, 2026-10-20). While its menu or dialogs are up, the button is filled in
+  YouTube's red; the Save menu drops down under its button (Material menus open below their control), kept clear of the side toolbar.
+- **The Membership tab for a member (the maintainer, 2026-10-18):** on a channel you're a
+  member of, the Membership tab has three pills: **Perks** (your level, "Member · 3 months" and
+  your perks with their emoji and loyalty badges, on the same page as the Join offer), **Videos**
+  (the "Highlighted content for members", as the usual card grid) and **Posts** (the recent
+  members-only posts, as the usual feed).
+- **A playlist's page (the maintainer, 2026-10-18):** clicking a playlist card opens the
+  playlist **inside the panel it's in** (not a hover popup: hover stays feedback only, and
+  large scrolling areas aren't raised, docs/Spatial-Layout.md): a back button, its picture,
+  title, author, stats and description, **Play all · Shuffle · Save**, then its videos as
+  compact rows (number, thumbnail, title, a grey line) rather than full cards, so more fit.
+  The panel keeps it open while you use other panels (like an opened post); Back, or its
+  tab again, returns to the list. A mix still plays at once (it has no page).
+  Up Next shows the same page for the playing playlist (its tab: Shuffle as an on / off toggle,
+  Save, every video as a row, the playing one brought into view), and opens a Recommended
+  playlist card the same way (the maintainer, 2026-10-18).
+  While a playlist is shuffled, the controls' Next shows a shuffle card ("A random video from
+  this playlist", the shuffle icon) instead of a video: the next one isn't known until it plays
+  (the maintainer, 2026-10-18).

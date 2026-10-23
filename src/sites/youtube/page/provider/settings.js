@@ -25,6 +25,7 @@
   function create(host) {
     const { actions } = host;
     let tab = 'playback', audioPage = 0, vs = {}, st = {};
+    const scrolls = {};                       // tab id -> px its rows are scrolled (each tab keeps its own)
     { const t = ns.storage.get(TAB_KEY); if (TABS.includes(t)) tab = t; }
 
     function model(frame) {
@@ -48,13 +49,15 @@
           { label: tr('yt.settings.loop'), control: { type: 'switch', id: 'loop', on: !!p.loop }, hint: tr('yt.settings.loopHint') },
           { label: tr('yt.settings.autoplay'), control: { type: 'switch', id: 'autoplay', on: !!p.autoplay }, hint: tr('yt.settings.autoplayHint') },
         ] };
-      const m = { tabs, tab: t, content };
+      const m = { tabs, tab: t, content, scroll: scrolls[t] || 0 };
       return { model: m, key: JSON.stringify(m) };
     }
 
     function event(ev) {
       const p = st.playback || {};
       if (ev.type === 'tab') { tab = ev.value; ns.storage.set(TAB_KEY, tab); }
+      else if (ev.type === 'scroll') scrolls[tab] = Math.max(0, Math.min(host.style.maxScroll(), ev.value));   // (the rows, dragged or by the stick)
+      else if (ev.type === 'text') { /* (a press on the rows: a drag may follow) */ }
       else if (ev.type === 'switch' && ev.value === 'loop') actions.setLoop(!p.loop);
       else if (ev.type === 'switch' && ev.value === 'autoplay') actions.setAutoplay(!p.autoplay);
       else if (ev.type === 'choice' && ev.value === 'more') audioPage++;
