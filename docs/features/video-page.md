@@ -56,7 +56,7 @@ published; what matters from them is in this file and docs/youtube.md).
     | Higher-quality audio (256 kbps music) | apps and TVs only | Out |
     | YouTube Music app, Premium badges, Co-Watch with Meet, Afterparties, smart devices | other apps | Out |
     | Early access to new features (experiments) | varies | Out: they come and go |
-- [ ] **Add to queue** (0.100.0 to 0.100.1, works in the headset: a button on cards, a Queue tab in Up Next; still to do: clear the queue, save it as a playlist; desktop: for everyone, not Premium): queue a video from a card and
+- [x] **Add to queue** (0.100.0 to 0.101.7, works in the headset: a button on cards, a Queue tab in Up Next with Clear and Save (to a new or existing playlist); desktop: for everyone, not Premium): queue a video from a card and
   play the queue in order. Find out first how the page's queue can be driven.
 
 ## Medium: new panels with scrolling or long text

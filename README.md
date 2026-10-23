@@ -7,7 +7,7 @@ taking your headset off. 🎬✨
 **Works with:**<br> 🖥️ Windows · 🌐 Chrome · 🎮 SteamVR · 🥽 Valve Steam Frame · 🥽 Meta Quest 2 (reported by [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack)) · ([full requirements](#-what-you-need))<br> 
 **Jump to:** [Get started](#-get-started-in-a-minute) ·
 [Quick troubleshooting](#-quick-troubleshooting) · [Controls](#-controls) ·
-[Your privacy](#-your-privacy) · [What's new](#-whats-new-in-v01010) · [Roadmap](#-roadmap) · [How you can help](#-how-you-can-help)
+[Your privacy](#-your-privacy) · [What's new](#-whats-new-in-v01017) · [Roadmap](#-roadmap) · [How you can help](#-how-you-can-help)
 
 > **Early access** (version 0.101). Free and open source, forever. It already works every day; it's
 > still growing fast, and your feedback shapes what comes next.
@@ -16,7 +16,7 @@ taking your headset off. 🎬✨
 > Bug fixes, updates and support for more headsets and sites are coming, so please be
 > patient with me. 😭🙏
 
-## ✨ What's new in v0.101.0
+## ✨ What's new in v0.101.7
 
 The latest release, in short (every version's details are in the [changelog](CHANGELOG.md)):
 
@@ -27,7 +27,9 @@ The latest release, in short (every version's details are in the [changelog](CHA
   Search, Channel, Up Next) to open its page: details, **Play all**, **Shuffle**, **Save**, and
   its videos as a list. Up Next's playlist tab shows the playing playlist the same way.
 - 📋 **Add to queue:** point at a video card and click the queue button on its thumbnail; the
-  queue gets its own tab in Up Next and plays after the current video.
+  queue gets its own tab in Up Next and plays after the current video. **Clear** empties it,
+  and **Save** keeps it as a new playlist (named on the VR keyboard) or adds it to Watch later
+  or one of yours.
 - ℹ️ **Info cards:** a **Cards** button on the controls panel lists the video's cards, and
   each card's teaser pops up above it at the right moment (click it to watch).
 - 🔚 **End screens:** when a video's end screen starts, Up Next shows its suggested videos,
@@ -410,9 +412,10 @@ which is often all that's needed. 📋
 No dates, just what I'll work on after release, in this order:
 
 1. 🐛 **Immediate bug fixes:** whatever the first wave of users runs into.
-2. ✅ **Add to queue:** done (v0.101.0): line up videos to watch next from any panel.
+2. ✅ **Add to queue:** done (v0.101.7): line up videos to watch next from any panel,
+   then clear it or save it as a playlist.
 3. 🧭 **Explore page tabs:** Live, Gaming, Music, Hype, Courses, Podcasts and Memberships are
-   done (v0.101.0); Shorts and Movies & TV are next.
+   done (v0.101.7); Shorts and Movies & TV are next.
 4. ✅ **Live Chat:** done (v0.88.1): read, react and type in a live stream's chat.
 5. ✅ **YouTube Premium:** done (v0.93.3): 1080p Premium and Jump ahead, marked with the Diamond.
 6. 💬 **Commenting in-headset:** write comments and replies with the VR keyboard (typing in a live

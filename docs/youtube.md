@@ -493,6 +493,15 @@ snippets); read by `youtube-chat.js` since 0.79.0:
   `videoIds` it answers HTTP 400; one video, or the list id, work), adds them with
   `browse/edit_playlist` (ACTION_ADD_VIDEO each), and makes a new one with `playlist/create`
   { title, videoIds, privacyStatus PRIVATE } (works: seen 0.101.1, the playlist made with the queued videos).
+- After Clear (2026-10-23), the watch page's own data (`twoColumnWatchNextResults.playlist`)
+  still holds the queue until the next video, and the Queue box keeps its data without its
+  menu: a cleared queue's id is ignored in both places. The queue's id is `TLPQ` + the date
+  (base64, e.g. "23102026") + a random part.
+- The same video queued twice is in both the page's and the player's lists twice, at the
+  same positions; either copy plays from Up Next.
+- Just after adding to the queue, the player's `getPlaylistIndex()` can sometimes be one
+  ahead of the video playing (seen 0.101.6); StreamXR takes the
+  position from the video the tab's URL is on (the nearest copy of it in `getPlaylist()`; 0.101.7, works in the headset).
 
 ## End screen
 

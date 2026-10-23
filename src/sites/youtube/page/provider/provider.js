@@ -242,8 +242,17 @@
     }
     const BLANK_CARD = { type: 'video', id: '', title: '', channel: '', views: '', age: '', duration: '', kind: '2D', thumb: '' };
     const playlist = cached(() => {
-      const pos = youtube.playlistPosition();
-      if (!pos) return null;
+      const raw = youtube.playlistPosition();
+      if (!raw) return null;
+      // The player's index can be one ahead for a moment (seen just after adding to the queue):
+      // when its video isn't the one this tab is on, the nearest copy of that one is the
+      // position instead.
+      const pos = { ids: raw.ids, index: raw.index }, onId = ns.youtubeData.currentVideoId();
+      if (onId && raw.ids[raw.index] !== onId) {
+        let best = -1;
+        raw.ids.forEach((id, i) => { if (id === onId && (best < 0 || Math.abs(i - raw.index) < Math.abs(best - raw.index))) best = i; });
+        if (best >= 0) pos.index = best;
+      }
       const pl = ns.youtubeContent.playlist();
       // (a queue that ended, cleared from VR: no list any more, though the player still holds it)
       if (!pl && plMemo && /^TLPQ/.test(plMemo.id || '')) return null;

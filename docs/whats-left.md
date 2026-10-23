@@ -2,7 +2,7 @@
 
 One list of what's still open, gathered from the feature backlogs (`docs/features/`) and
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
-Last updated for 0.101.5.
+Last updated for 0.101.7.
 
 ## Top priority: before the first release
 
@@ -49,9 +49,10 @@ until another headset or two has been tried and the unverified items are cleared
 ## The public roadmap (README, after release, in this order)
 
 1. Immediate bug fixes (what the first users run into).
-2. Add to queue (free on desktop, not Premium; how the page's queue can be driven is to probe
-   first: `features/video-page.md`).
-3. Explore page tabs (the "Coming Soon" ones).
+2. Done: Add to queue (0.100.0 to 0.101.7; free on desktop, not Premium; how the page's queue is driven:
+   `features/video-page.md`).
+3. Explore page tabs: Live, Gaming, Music, Hype, Courses, Podcasts and Memberships done (0.94.0 to
+   0.96.6); Shorts and Movies & TV are next.
 4. Done: Live chat (0.79.0 to 0.88.1), YouTube Premium (1080p Premium 0.91.0, Jump ahead 0.92.3).
 5. Commenting in-headset (writing comments and replies with the VR keyboard).
 6. Chrome Web Store release as **1.0** (the maintainer, 2026-10-17: once the YouTube features are
@@ -112,7 +113,7 @@ list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps 
    as you turn your head, so it never needs recentering. Decided: a lazy follow (35° away for
    1 s, then easing round; not while using a panel), the panels coming along, a switch in
    Settings → 2D Cinema (off by default), 2D videos only.
-8. [ ] **Add to queue** (0.100.0 to 0.100.1, works in the headset; Clear and Save added in 0.101.1, untested:
+8. [x] **Add to queue** (0.100.0 to 0.101.7, works in the headset; Clear and Save 0.101.1 to 0.101.7:
    **Clear the queue** and **Save the queue as a playlist**, as YouTube's own Queue box offers,
    the maintainer, 2026-10-19): probe how desktop YouTube's queue can be driven, then
    a way to add from cards, the queue in Up Next, and what plays when a video ends

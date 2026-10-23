@@ -6,6 +6,23 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.101.7
+
+The release after v0.93.3: everything from 0.93.4 to here. The README's "What's new" describes
+it (now with the queue's Clear and Save).
+
+### Fixed
+- **Adding to the queue sometimes moved Up Next's "playing" mark to the next video** (and the
+  Queue tab's count with it): the player's position in the list can be one ahead for a moment;
+  the playing video is now found by the video the tab is on.
+
+## 0.101.6
+
+### Fixed
+- **Clearing the queue left it in Up Next until another video started** (YouTube's own page
+  cleared it): the watch page keeps the cleared queue in its data until the next video, and
+  that copy is now ignored too.
+
 ## 0.101.5
 
 ### Changed
@@ -55,8 +72,8 @@ developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
 ## 0.101.0
 
-The release after v0.93.3 (everything from 0.93.4 to 0.100.1 below), with no code changes of
-its own.
+Release prep after v0.93.3 (everything from 0.93.4 to 0.100.1 below), with no code changes of
+its own; the queue's Clear and Save followed, and the release is 0.101.7.
 
 ### Changed
 - The README's "What's new" now describes this release; its feature list, roadmap and known

@@ -250,7 +250,8 @@
   // `infinite`: a mix, with no fixed length.
   function playlist() {
     const pl = queuePanel() || dig(results(), 'playlist', 'playlist');
-    if (!pl) return null;
+    // (the watch page's own data keeps a queue cleared from VR until the next video: not a list any more)
+    if (!pl || ended.has(pl.playlistId)) return null;
     return {
       id: pl.playlistId, title: strOf(pl.title), channel: strOf(pl.ownerName), queue: /^TLPQ/.test(pl.playlistId || ''),
       index: pl.currentIndex || 0, total: +pl.totalVideos || (pl.contents || []).length,
