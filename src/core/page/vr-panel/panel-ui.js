@@ -12,6 +12,7 @@
 //
 // state: { title, time, duration, paused, hover, pressed, scrubTime, grabbing,
 //          buffered (seconds: how far the video is loaded ahead, shown on the seek bar; or null),
+//          playable (false: the site won't play this video, Play is greyed out),
 //          now (ms; a long title scrolls with it),
 //          nowPlaying: { info: [{ text, color }] (the line under the title, pieces in a row;
 //                                color: an M3 role name, e.g. 'onSurfaceVariant'),
@@ -58,11 +59,11 @@
   const TC = T.color;                                // (today's colours: the ad colour)
   const F = role => T.font(role);
 
-  // The panel is one 1216-pixel-wide canvas, laid out in fixed pixel positions (the world
+  // The panel is one 1408-pixel-wide canvas, laid out in fixed pixel positions (the world
   // size follows the panels' pixel density: vr-panel.js). From the top: title row, info line, creator
   // row (with the action buttons on its right), seek bar, button row, then the grab bar
   // below the body.
-  const W = 1216, H = 422;            // panel body is 0..374; the grab bar sits below it
+  const W = 1408, H = 422;            // panel body is 0..374; the grab bar sits below it (1408: 13 buttons at full width)
   const BODY_H = 374;
   const ROW_Y = 250;                  // top of the button row
   const ACTIONS = { y: 74, h: 58, gap: 12, joined: 3 };   // right to left; `joined`: inside a connected group
@@ -349,7 +350,7 @@
         const [id, icon, text, extra] = it;
         if (id === 'play') {
           button({ x, y: PLAY.y, w: PLAY.w, h: PLAY.h }, id, state, () => S.draw(g, icon, 0, 0, 56, true),
-            { kind: 'brand', radius: T.shape.extraLargeIncreased });
+            { kind: 'brand', radius: T.shape.extraLargeIncreased, disabled: state.playable === false });   // (greyed out: the site won't play this video)
         } else {
           // the button whose menu is open shows selected (its menu floats in front: popups-ui.js);
           // an extra that's `on` (e.g. captions showing) has its icon filled

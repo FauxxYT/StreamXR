@@ -17,7 +17,8 @@
 //              the live moment), extra(id, itemId) (the site's own button `id` was clicked,
 //              or one of its menu's items; itemId null: its menu just opened), ...and
 //              whatever the site's panels use,
-//              state() -> { title, time, duration, paused,
+//              state() -> { title, time, duration, paused, playable (false: the site won't play
+//                           this video: Play greys out),
 //                           nowPlaying (what the controls panel shows: see panel-ui.js),
 //                           quality: { current, currentLabel, levels: [{ id, label, icons?, disabled? }] },
 //                           live: null | { atHead, behind (seconds), dvr } (a live stream; time
@@ -30,7 +31,9 @@
 //                           extras: { left: [...], right: [...], seek } (the site's own buttons on
 //                             the controls panel: panel-ui.js, plus menu: null | { items: [{ id,
 //                             text, on, disabled }], note, scroll, width, stay (stays open on a
-//                             choice) }: opens like Quality's),
+//                             choice) }: opens like Quality's, and teaser: null | { card, label }
+//                             (a card floating above the button for a while, like the hover
+//                             card: e.g. an info card as its time comes)),
 //                           ...and what the site's panels read } }
 //   The layout (docs/Spatial-Layout.md) is placed around the Safe Zone (safe-zone.js), which
 //   keeps the video clear: each registered panel belongs to a zone (its registration's
@@ -44,7 +47,10 @@
 //   Which side panels are open is remembered. Each panel is a style (styles/) filled by its
 //   controller; its control ids are '<panel id>|<style id>' here, and a used control
 //   reaches the controller as an event { type, value } (ARCHITECTURE.md).
-//   panel.place(headPosition, yaw)        lay it out around you (on enter and recenter)
+//   panel.place(headPosition, yaw, pitch)  lay it out around you (on enter, recenter, and the lazy follow:
+//                                         pitch, radians up, 0 otherwise)
+//   panel.engaged(gaze) -> bool            a laser on a panel or handle, a grab / drag going on, or
+//                                         (gaze: { origin, dir }) looking at a shown panel
 //   panel.resetSettings()                 the global reset: keyboard size back to default, panels shown
 //   panel.toggleVisible()
 //   panel.toggleKeyboard()                swap the in-VR keyboard (keyboard.js) and the controls panel, in the same place
@@ -132,8 +138,13 @@
         // (`local`, e.g. 'action:bell'; the style needs rectOf). Its items come from the
         // controller's menu(local) each frame; a choice arrives as { type: 'menu', value:
         // item id, menu: local }.
-        openMenu: local => { const id = `p:${reg.id}${SEP}${local}`; menu = menu === id ? null : id; lastActivity = performance.now(); },
+        // opts.below: a dropdown under the control instead of a menu rising above it.
+        openMenu: (local, opts) => { const id = `p:${reg.id}${SEP}${local}`; menu = menu === id ? null : id; menuBelow = !!(menu && opts && opts.below); lastActivity = performance.now(); },
+        // Bring the panels back if auto-hide (or the left D-pad) hid them, as a skippable ad
+        // does: for something that just came up in this panel (e.g. an end screen).
+        reveal: () => { visible = true; lastActivity = performance.now(); dismissedAt = -1; },
         confirm: d => confirm(d),
+        prompt: d => prompt(d),            // a line of text typed into a dialog -> Promise of text | null
         typeInto: (on, opts) => typeInto(p, on, opts),
       });
       panels.set(reg.id, p);
@@ -150,7 +161,7 @@
     let typing = null;                    // the panel being typed into, or null
     const TYPING_KEYS = /^(Backspace|Enter|Escape)$/;
     // (Typing into the top panel's bar needs only the panels shown: the bar is always there.)
-    const typingNow = () => !!typing && (typing.zone === 'top' ? visible : shown(typing));
+    const typingNow = () => !!typing && (typing.zone === 'dialog' ? !!dialog : typing.zone === 'top' ? visible : shown(typing));
     // A panel asks for the keys (on) or gives them back. Asking also brings up the in-VR
     // keyboard if it isn't up; giving them back (with no other panel typing) puts it away again
     // if it came up that way. A panel asking while another has the keys takes them over, and
@@ -197,14 +208,15 @@
     let hoverImages = 0;
     const hoverCard = ns.vrHoverCardUI.create(() => { hoverImages++; });
     const hoverPass = ns.vrPanelPass.createPanelPass(gl, vaos, hoverCard.canvas);
-    let hoverShown = null;            // { rect (controls canvas px) } while a card is up
+    let hoverShown = null;            // { rect (controls canvas px), teaser (the site button's id, a teaser: clickable) } while a card is up
     let hoverKey = '';
 
     // ------------------------------------------------------------ popups and dialogs
     // The controls panel's menus float in front of it (32 dp, Android XR's popup level),
     // rising from the button that opened them (popups-ui.js createMenu); a dialog (confirm()
     // below) stands in front of everything (56 dp) over a dim layer (the scrim).
-    const menuUi = ns.vrPopupsUI.createMenu();
+    let menuImages = 0;                // bumps when a menu row's picture arrives (redraw)
+    const menuUi = ns.vrPopupsUI.createMenu(() => { menuImages++; });
     const menuPass = ns.vrPanelPass.createPanelPass(gl, vaos, menuUi.canvas), menuSize = metres(menuUi.canvas);
     let menuKey = '', menuShown = null;   // what was last drawn; the menu last opened (it fades out from its button)
     const dialogUi = ns.vrPopupsUI.createDialog();
@@ -224,16 +236,38 @@
     // true for confirm, false for cancel or a click anywhere else (a new dialog cancels the
     // one before). The panels show (and stay) while it's up.
     function confirm(d) {
-      if (dialog) dialog.resolve(false);
+      if (dialog) closeDialog(false);                      // (a new dialog cancels the one before)
       return new Promise(resolve => {
         dialog = { d: { cancel: tr('dialog.cancel'), ...d }, resolve };
         dialogShown = dialog.d; visible = true; menu = null; lastActivity = performance.now();
       });
     }
+    // Ask for a line of text in a dialog: d = { title, text, placeholder, value (to start
+    // with), confirm (its button's label), cancel }. The dialog has a text field that takes
+    // the keys (the in-VR keyboard comes up for it; Enter confirms, Escape cancels). Resolves
+    // the text (trimmed) for confirm, or null for cancel or a click anywhere else.
+    const dialogTyping = {
+      zone: 'dialog', reg: { id: 'dialog', label: () => (dialog && dialog.d.title) || '' },
+      ctrl: { event(ev) {
+        const f = dialog && dialog.d.field;
+        if (!f || ev.type !== 'key') return;
+        const k = ev.value;
+        if (k === 'Enter') { if (f.text.trim()) closeDialog(true); }
+        else if (k === 'Escape') closeDialog(false);
+        else if (k === 'Backspace') dialog.d = { ...dialog.d, field: { ...f, text: f.text.slice(0, -1) } };
+        else if (k.length === 1 && f.text.length < 150) dialog.d = { ...dialog.d, field: { ...f, text: f.text + k } };
+      } },
+    };
+    function prompt(d) {
+      const p = confirm({ ...d, field: { text: d.value || '', placeholder: d.placeholder || '' } });
+      typeInto(dialogTyping, true);
+      return p;
+    }
     function closeDialog(answer) {
       if (!dialog) return;
-      const r = dialog.resolve; dialog = null; lastActivity = performance.now();
-      r(answer);
+      const r = dialog.resolve, f = dialog.d.field; dialog = null; lastActivity = performance.now();
+      if (f) typeInto(dialogTyping, false);
+      r(f ? (answer && f.text.trim() ? f.text.trim() : null) : answer);
     }
     // Where the menu goes: its bottom middle just above the button that opened it (centred
     // on it, kept from reaching far past the panel's sides), in the controls panel's tilt,
@@ -242,6 +276,24 @@
     // that panel's pose.
     function menuModel(id) {
       const pm = panelMenu(id);
+      if (pm && menuBelow) {
+        // A dropdown: the menu's card (at the bottom of its canvas, centred across it) with its
+        // top edge 12 px under the control, centred on it, 32 dp in front. Kept inside the
+        // panel's width, and clear of the side's toolbar, which stands over the panel's inner
+        // edge (half its bar over the panel) and would sit behind the card.
+        const r = pm.p.style.rectOf && pm.p.style.rectOf(pm.local), c = pm.p.style.canvas, sz = pm.p.size;
+        if (!r) return null;
+        const card = menuUi.cardRect(), mw = menuUi.canvas.width, mh = menuUi.canvas.height;
+        const k = menuSize[1] / mh, cardW = (card ? card.w : mw) * k;
+        const o = orbiters[pm.p.zone], bar = o ? (o.ui.barWidth / 2) * MPX + dp(8) : 0;
+        const lo = -sz[0] / 2 + cardW / 2 + (pm.p.zone === 'right' ? bar : 0);
+        const hi = sz[0] / 2 - cardW / 2 - (pm.p.zone === 'left' ? bar : 0);
+        const want = ((r.x + r.w / 2) / c.width - 0.5) * sz[0];
+        const x = lo <= hi ? Math.max(lo, Math.min(hi, want)) : (lo + hi) / 2;
+        const below = (0.5 - (r.y + r.h) / c.height) * sz[1] - 12 * MPX;
+        const top = (mh / 2 - (card ? card.y : 0)) * k;   // the card's top edge, up from the canvas's centre
+        return M.multiply(panelModel(pm.p), M.translation(x, below - top, dp(32)));
+      }
       if (pm) {
         const r = pm.p.style.rectOf && pm.p.style.rectOf(pm.local), c = pm.p.style.canvas, sz = pm.p.size;
         if (!r) return null;
@@ -419,10 +471,12 @@
     let grab = null;                  // { hand, local } while moving the panel by its grab bar
     let sideGrab = null;              // { hand, side, local, at } while moving a side by its toolbar's handle (moveSide)
     let menu = null;                  // null | 'quality' | 'speed' | 'format' | 'volume' | 'x:<id>' (a site button's)
+    let menuBelow = false;            // a panel's menu opened as a dropdown under its control (host.openMenu opts.below)
     let extrasNow = null;             // the site's own buttons, from the latest state (st.extras)
     let menuDrag = null;              // { hand, v, scroll, moved } while a trigger drags a scrolling menu
     let muted = false;                // last seen mute state (for the Mute/Unmute button)
     let adSkippable = false;          // last seen: the current ad can be skipped
+    let teaserWas = false;            // last seen: a site button had a teaser up
     let targets = [];                 // other grabbable things (see setTargets)
     let targetGrab = null;            // { hand, target } while gripping one of them
     let drawnKey = '';
@@ -537,10 +591,10 @@
     // (the controls panel, the sides) comes along: its move is turned and shifted as the
     // recenter turned and shifted the layout, so it stays where it was relative to you. (With
     // Settings → Safe zone → "Recenter resets panels" on, the moves are dropped instead.)
-    const anchorFrame = () => { const a = ns.vrSafeZone.anchor; return M.multiply(M.translation(a.pos[0], a.pos[1], a.pos[2]), M.rotationY(a.yaw)); };
-    function place(head, yaw) {
+    const anchorFrame = () => { const a = ns.vrSafeZone.anchor; return M.multiply(M.translation(a.pos[0], a.pos[1], a.pos[2]), M.multiply(M.rotationY(a.yaw), M.axisAngle(1, 0, 0, a.pitch || 0))); };
+    function place(head, yaw, pitch = 0) {
       const before = anchorFrame();
-      ns.vrSafeZone.setAnchor(head, yaw);
+      ns.vrSafeZone.setAnchor(head, yaw, pitch);
       const turn = M.multiply(anchorFrame(), M.invertRigid(before));   // the old anchor's frame -> the new one's
       const drop = ns.vrSafeZoneOptions && ns.vrSafeZoneOptions.recenterResets();
       const carry = mv => (mv && !drop ? M.multiply(turn, M.multiply(mv, M.invertRigid(turn))) : null);
@@ -703,10 +757,12 @@
         const rest = id.slice(3), i = rest.indexOf(':'), xid = rest.slice(0, i), x = extraOf(xid);
         if (actions.extra) actions.extra(xid, rest.slice(i + 1));
         if (!(x && x.menu && x.menu.stay)) menu = null;
+      } else if (id.startsWith('teaser:')) {          // a site button's teaser card: 'teaser:<button>'
+        if (actions.extra) actions.extra(id.slice(7), 'teaser');
       }
     }
     // A site button as the button row draws it (without its menu).
-    const stripMenu = ({ menu: _m, ...x }) => x;
+    const stripMenu = ({ menu: _m, teaser: _t, ...x }) => x;   // (menus and teasers aren't drawn on the panel)
     // One of the site's own buttons (st.extras) by id, or null.
     const extraOf = xid => [...((extrasNow && extrasNow.left) || []), ...((extrasNow && extrasNow.right) || [])].find(x => x.id === xid) || null;
 
@@ -746,7 +802,7 @@
     //     (press, scrub/slide/drag while held, release = click) and the grip (grab the panel's
     //     bar or a handle), and set up the beam to draw;
     //  3. show the cinema screen's handles while the panel is up;
-    //  4. ad handling (no scrubbing; pop up when Skip appears) and auto-hide;
+    //  4. ad handling (no scrubbing; pop up when Skip appears, or a teaser) and auto-hide;
     //  5. redraw each canvas only if something it shows has changed.
     let lastUpdate = 0;               // the previous update's time (ms), for frameDt
     let frameDt = 0;                  // seconds since the previous update (capped)
@@ -852,7 +908,7 @@
         // What is this laser on? The panel (only while shown) or another target; nearest wins.
         const inside = r => !!(r && r.u >= 0 && r.u <= 1 && r.v >= 0 && r.v <= 1);
         const mainHit = visible && !kbShown && !dialog ? intersect(origin, dir) : null;   // (the keyboard stands in for it; a dialog is modal)
-        // Which surface the laser is on (nearest if several): 'main', 'orbit:<left | right |
+        // Which surface the laser is on (nearest if several): 'main', 'teaser', 'orbit:<left | right |
         // pill | bar>', 'menu', 'dialog', 'keyboard' or a panel id. The orbiters, the menu and the
         // keyboard only where they're drawn (the rest of their canvas lets the laser through).
         const hits = { main: mainHit };
@@ -861,6 +917,10 @@
             if (name === 'pill' && kbShown) continue;      // the pill sits on the controls panel, not the keyboard
             const r = intersect(origin, dir, orbiterModel(name), o.size);
             if (inside(r) && o.ui.solidAt(r.u, r.v)) hits[`orbit:${name}`] = r;
+          }
+          if (hoverShown && hoverShown.teaser && !kbShown) {   // a teaser card (clickable, unlike the hover card)
+            const r = intersect(origin, dir, hoverCardModel(hoverShown.rect), hoverSize);
+            if (inside(r)) hits.teaser = r;
           }
           if (menu && !kbShown) {                            // the floating menu (on its card only)
             const mm = menuModel(menu), r = mm && intersect(origin, dir, mm, menuSize);
@@ -872,10 +932,12 @@
           const r = intersect(origin, dir, kbModel(), kbSize());
           if (inside(r) && kb.solidAt(r.u, r.v)) hits.keyboard = r;
         }
-        if (dialog) {                                        // a dialog is modal: only it can be pointed at
+        if (dialog) {                                        // a dialog is modal: only it (and the keyboard, for its text field) can be pointed at
+          const kbHit = dialog.d.field ? hits.keyboard : null;
           for (const k of Object.keys(hits)) delete hits[k];
           const r = intersect(origin, dir, dialogModel(dp(56)), dialogSize);
           if (inside(r)) hits.dialog = r;
+          if (kbHit) hits.keyboard = kbHit;
         }
         let surface = null;
         for (const [name, r] of Object.entries(hits)) {
@@ -904,6 +966,8 @@
           target = r ? { id: `kb:${r.id}` } : null;
         } else if (onPanel && surface === 'menu') {
           target = menuUi.hitTest(hit.u, hit.v);
+        } else if (onPanel && surface === 'teaser') {
+          target = { id: `teaser:${hoverShown.teaser}` };
         } else if (onPanel && surface === 'dialog') {
           target = dialogUi.hitTest(hit.u, hit.v);
         } else if (onPanel && surface === 'orbit:bar') {
@@ -1078,6 +1142,10 @@
       const canSkip = !!(ad && ad.skippable && ad.canSkipInVR);
       if (canSkip && !adSkippable) { visible = true; lastActivity = now; }
       adSkippable = canSkip;
+      // Likewise when a site button's teaser comes up (e.g. an info card), and they stay while it shows.
+      const teaserUp = !ad && !!extrasNow && [...(extrasNow.left || []), ...(extrasNow.right || [])].some(x => x.teaser && !x.disabled);
+      if (teaserUp && !teaserWas) { visible = true; lastActivity = now; }
+      teaserWas = teaserUp;
 
       // Auto-hide while playing and nobody is using it (typing into a panel, or the keyboard
       // being up, counts as using it), each part after its own wait (Settings → Auto-hide,
@@ -1089,7 +1157,7 @@
       const F = ns.vrFadeOptions, unused = now - lastActivity;
       if (dismissedAt >= 0 && lastActivity > dismissedAt) dismissedAt = -1;
       const playing = !st.paused || (F.hideWhilePaused() && st.duration > 0);
-      const idle = playing && !scrub && !setDrag && !pressed && !grab && !sideGrab && !menu && !dialog && !canSkip && !typingNow() && !kbShown;
+      const idle = playing && !scrub && !setDrag && !pressed && !grab && !sideGrab && !menu && !dialog && !canSkip && !teaserUp && !typingNow() && !kbShown;
       if (visible && idle && unused > F.seconds('panels') * 1000) visible = false;
       barsAwake = dismissedAt < 0 && !(idle && unused > F.seconds('bars') * 1000);
       searchAwake = dismissedAt < 0 && !(idle && unused > F.seconds('search') * 1000);
@@ -1153,7 +1221,7 @@
         }
 
         const state = {
-          title: st.title, time: st.time, duration: st.duration, paused: st.paused, buffered: st.buffered != null ? st.buffered : null,
+          title: st.title, time: st.time, duration: st.duration, paused: st.paused, playable: st.playable !== false, buffered: st.buffered != null ? st.buffered : null,
           live: st.live || null, nowPlaying: st.nowPlaying || null, now,
           hover, pressed: pressed && pressed.id, scrubTime: scrub ? scrub.time : null,
           quality, format: { id: format.current, label: currentFormat ? currentFormat.short : '' },
@@ -1162,7 +1230,7 @@
           extras: extrasNow ? { left: (extrasNow.left || []).map(stripMenu), right: (extrasNow.right || []).map(stripMenu), seek: extrasNow.seek || null } : null,
         };
         const pf = preview && preview.frame;
-        const key = [state.title, Math.floor(state.time), Math.floor(state.duration), state.paused, state.buffered != null ? Math.floor(state.buffered) : '',
+        const key = [state.title, Math.floor(state.time), Math.floor(state.duration), state.paused, state.playable, state.buffered != null ? Math.floor(state.buffered) : '',
           JSON.stringify(state.nowPlaying), JSON.stringify(state.extras), state.hover, state.pressed, scrub ? Math.round(scrub.time * 4) : '',
           quality.current, quality.levels.map(q => q.id).join(','), format.current, menu, !!grab,
           state.speed, Math.round(shownVolume.level), shownVolume.muted, state.chapters.length, state.heatmap.length,
@@ -1176,7 +1244,7 @@
         // at on them, changes, and every frame while something on them eases).
         if (menuState) {
           menuShown = menu;
-          const mKey = [JSON.stringify(menuState), hover, pressed && pressed.id, Math.round(menuUi.shownScroll()), ns.i18n.version(), ns.vrTokens.glass.version, menuUi.moving() ? now : ''].join('|');
+          const mKey = [JSON.stringify(menuState), hover, pressed && pressed.id, Math.round(menuUi.shownScroll()), menuImages, ns.i18n.version(), ns.vrTokens.glass.version, menuUi.moving() ? now : ''].join('|');
           if (mKey !== menuKey) { menuUi.draw(menuState, { hover, pressed: pressed && pressed.id }); menuPass.upload(); menuKey = mKey; }
         }
         if (dialog) {
@@ -1185,13 +1253,16 @@
         }
 
         // Hover card: pointing at Previous / Next in a list shows the card it leads to
-        // (nowPlaying.queue.prev / next, cards made by the provider).
+        // (nowPlaying.queue.prev / next, cards made by the provider); otherwise a site
+        // button's teaser floats above that button (extras' teaser: { card, label }).
         const q = state.nowPlaying && state.nowPlaying.queue;
-        const cardItem = q && !ad ? (hover === 'pl:prev' ? q.prev : hover === 'pl:next' ? q.next : null) : null;
-        const cardRect = cardItem && ui.rectOf(hover);
-        hoverShown = cardRect ? { rect: cardRect } : null;
+        let cardItem = q && !ad ? (hover === 'pl:prev' ? q.prev : hover === 'pl:next' ? q.next : null) : null;
+        let cardAt = hover, label = hover === 'pl:prev' ? tr('panel.previousVideo') : tr('panel.nextVideo');
+        const teasing = !cardItem && !ad && !menu && [...((extrasNow && extrasNow.left) || []), ...((extrasNow && extrasNow.right) || [])].find(x => x.teaser && !x.disabled);
+        if (teasing) { cardItem = teasing.teaser.card; cardAt = `x:${teasing.id}`; label = teasing.teaser.label || ''; }
+        const cardRect = cardItem && ui.rectOf(cardAt);
+        hoverShown = cardRect ? { rect: cardRect, teaser: teasing ? teasing.id : null } : null;
         if (hoverShown) {
-          const label = hover === 'pl:prev' ? tr('panel.previousVideo') : tr('panel.nextVideo');
           const card = cardItem;
           const hKey = [JSON.stringify(card), label, hoverImages, ns.vrTokens.glass.version].join('|');
           if (hKey !== hoverKey) { hoverCard.draw(card, label); hoverPass.upload(); hoverKey = hKey; }
@@ -1369,7 +1440,16 @@
       for (const p of panels.values()) p.pass.dispose();
     }
 
-    return { place, resetSettings, toggleVisible, toggleKeyboard, claimsGrip, stickScrolls, stickPages, stickPage, iconSwaps, setTargets, update, drawPanel, drawLasers, dispose,
+    // Is something being used now: a laser on a panel or a handle, a grab, a drag or the seek bar
+    // held, or (gaze: { origin, dir }, your head's forward ray) are you looking at a shown panel?
+    // (The cinema screen's lazy follow waits meanwhile: xr-session.js.)
+    const onIt = r => !!(r && r.u >= 0 && r.u <= 1 && r.v >= 0 && r.v <= 1);
+    const engaged = gaze => !!(grab || sideGrab || kbGrab || targetGrab || setDrag || textDrag || menuDrag || scrub
+      || [...hands.values()].some(h => h.hover || h.targetHit)
+      || (gaze && ((visible && !kbShown && onIt(intersect(gaze.origin, gaze.dir)))
+        || [...panels.values()].some(p => shown(p) && onIt(intersect(gaze.origin, gaze.dir, panelModel(p), p.size))))));
+
+    return { place, engaged, resetSettings, toggleVisible, toggleKeyboard, claimsGrip, stickScrolls, stickPages, stickPage, iconSwaps, setTargets, update, drawPanel, drawLasers, dispose,
       isVisible: () => visible, isKeyboardShown: () => kbShown };
   }
 

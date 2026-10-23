@@ -2,7 +2,7 @@
 
 One list of what's still open, gathered from the feature backlogs (`docs/features/`) and
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
-Last updated for 0.93.3.
+Last updated for 0.101.7.
 
 ## Top priority: before the first release
 
@@ -49,9 +49,10 @@ until another headset or two has been tried and the unverified items are cleared
 ## The public roadmap (README, after release, in this order)
 
 1. Immediate bug fixes (what the first users run into).
-2. Add to queue (free on desktop, not Premium; how the page's queue can be driven is to probe
-   first: `features/video-page.md`).
-3. Explore page tabs (the "Coming Soon" ones).
+2. Done: Add to queue (0.100.0 to 0.101.7; free on desktop, not Premium; how the page's queue is driven:
+   `features/video-page.md`).
+3. Explore page tabs: Live, Gaming, Music, Hype, Courses, Podcasts and Memberships done (0.94.0 to
+   0.96.6); Shorts and Movies & TV are next.
 4. Done: Live chat (0.79.0 to 0.88.1), YouTube Premium (1080p Premium 0.91.0, Jump ahead 0.92.3).
 5. Commenting in-headset (writing comments and replies with the VR keyboard).
 6. Chrome Web Store release as **1.0** (the maintainer, 2026-10-17: once the YouTube features are
@@ -79,16 +80,57 @@ until another headset or two has been tried and the unverified items are cleared
 12. Whatever else comes up.
 
 **As soon as it's possible** (README's second roadmap, ahead of everything above once the support exists):
-YouTube Movies (copy-protected: once YouTube allows protected video in desktop XR; showing
-them in Up Next with price / rating can come before),
+YouTube Movies (copy-protected, the free ones too: once YouTube allows protected video in desktop XR;
+their Up Next cards (price / rating, the Movie tag) come with them: `features/video-page.md`, "Deferred"),
 Firefox (desktop WebXR), full Steam Frame controller support (Chrome recognizing the
 controllers instead of "Oculus Touch"), native Steam Frame support (StreamXR in the Frame's own
 Chromium browser, no PC, once that browser supports WebXR), streaming services (HBO Max and
 Netflix first) once they allow protected video in desktop XR.
 
+## Road to 1.0 (easiest first)
+
+The roadmap's items before the Chrome Web Store release and the smaller open items, in one
+list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps its own order
+(what users see). Details in the sections below and `features/`.
+
+1. [x] **Cubemap seams** (0.93.4, works in the headset; reported by [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack) on Reddit and [@MinuteHistoryX](https://x.com/MinuteHistoryX) on X): the glass look's mipmaps (confirmed: gone with the glass off);
+   the cubemap is now read at full resolution (see "Next" below).
+2. [x] **Explore's "Coming Soon" tabs, the ready ones** (0.94.0 to 0.95.6, work in the headset): Live, Gaming, Music,
+   Hype, Courses, Podcasts, Memberships, each with its sections as pills
+   (`features/home-page.md`).
+3. [x] **A playlist's page before playing it** (0.96.0 to 0.96.4, works in the headset;
+   Recommended playlist cards untested): clicking a
+   playlist card opens it in its panel (Explore, You, Search, Channel, Up Next): details, Play all,
+   Shuffle, Save, and its videos (`features/home-page.md`).
+4. [x] **Info cards** (0.97.0 to 0.97.4, work in the headset; with an Autoplay button): YouTube's cards as they come up during a video
+   (`features/video-page.md`).
+5. [x] **End screen** (0.98.0 to 0.98.2, works in the headset; with the autoplay countdown): the suggested videos and channel links when a video ends
+   (`features/video-page.md`).
+6. [x] **News tabs** (0.94.x, work in the headset): Top stories, Sports ... as pills on Explore's
+   News tab. Also done along the way: Gaming's game shelves as pills (0.96.5 to 0.96.6).
+7. [x] **Follow your head on a 2D video** (0.99.0 to 0.99.2, works in the headset, with Delay / Speed sliders and scrolling Settings tabs; requested by [u/boatOV](https://www.reddit.com/user/boatOV) on Reddit, 2026-10-19):
+   a setting (on / off) that keeps the cinema screen, and the panels with it, in front of you
+   as you turn your head, so it never needs recentering. Decided: a lazy follow (35° away for
+   1 s, then easing round; not while using a panel), the panels coming along, a switch in
+   Settings → 2D Cinema (off by default), 2D videos only.
+8. [x] **Add to queue** (0.100.0 to 0.101.7, works in the headset; Clear and Save 0.101.1 to 0.101.7:
+   **Clear the queue** and **Save the queue as a playlist**, as YouTube's own Queue box offers,
+   the maintainer, 2026-10-19): probe how desktop YouTube's queue can be driven, then
+   a way to add from cards, the queue in Up Next, and what plays when a video ends
+   (`features/video-page.md`).
+9. [ ] **Explore's other tabs** (large): Shorts and Movies & TV need new readers first (Learning deferred)
+   (`features/home-page.md`).
+10. [ ] **Commenting in VR** (large): writing comments and replies with the VR keyboard (posting,
+    threads, typing into the Comments panel).
+11. [ ] **Chrome Web Store release, StreamXR 1.0** (last: it waits on the rest): the store
+    listing, the privacy questions (the README's "Your privacy" covers them), review.
+
+Set aside: the Back button (0.73.0; comes back on demand). Deferred: Movies in Up Next (YouTube's
+movies are copy-protected, so they can't play in VR yet: `features/video-page.md`, "Deferred").
+
 ## Next: from u/TehSuperFruitSnack's Reddit feedback (after 0.88.1)
 
-1. [ ] **Cubemap seams** (small): thin lines along the cube's edges on 360° cubemap ("MESH")
+1. [x] **Cubemap seams** (0.93.4, works in the headset; also reported by [@MinuteHistoryX](https://x.com/MinuteHistoryX) on X; the cause: the glass look's mipmaps): thin lines along the cube's edges on 360° cubemap ("MESH")
    videos; regular (equirectangular) 360° videos don't have them. Likely cause: the glass look
    (on by default) builds mipmaps of the video (`gl-utils.js` `videoMipmaps`), and the
    sphere's cubemap lookup (`video-sphere.js` `eacUv`) jumps across the texture where two faces
@@ -116,24 +158,22 @@ Netflix first) once they allow protected video in desktop XR.
 
 ## Features to build (easiest first)
 
-- [ ] **Movies in Up Next**: the price / rating in place of views and date, a yellow Movie tag
-  (`features/video-page.md`).
 - [x] **Premium features** (audited 2026-10-17, `features/video-page.md`): **1080p Premium** in the
   Quality menu and **Jump ahead**, marked with the Diamond (purple without Premium, YouTube Red
   with it). 1080p Premium (0.91.0) and Jump ahead (0.92.3) work in the headset. **Add to queue** is its own item
   (not Premium on desktop).
 - [ ] **Explore's "Coming Soon" tabs**: Live, Gaming, Music, Hype, Courses, Podcasts,
-  Memberships (readers exist); Shorts, Movies & TV, Learning need more first
+  Memberships built in 0.94.0 (to check); Shorts, Movies & TV, Learning need more first
   (`features/home-page.md`).
 - [ ] **News**: its own tabs (Top stories, Sports ...) and the Sports feed.
 - [x] **Subscriptions** (0.90.0 to 0.92.2, work in the headset): the Channels tab with its sort pills, the bell on the Channel
-  panel, posts in the feed; the feed's shelves deferred (`features/subscriptions-page.md`).
+  panel; posts in the feed (desktop has none) and its shelves deferred (`features/subscriptions-page.md`).
 - [ ] **Live chat**: reading (0.79.1) and reactions (0.80.0) work in the headset; typing, the
   keyboard's emoji pages and Support on desktop built in 0.81.0, Top fans (XP, the list, rank
   pills) in 0.82.0 and chat replays in 0.87.0 (all work in the headset). Other viewers' floating
   reactions are deferred (`features/video-page.md`, "Deferred"). Left: the unverified items in `known-issues.md`, which the
   README's "How you can help" asks users to check (`features/video-page.md`).
-- [ ] **End screen**, **Info cards** (`features/video-page.md`).
+- [x] **End screen** (0.98.0 to 0.98.2) and **Info cards** (0.97.0 to 0.97.4) done (`features/video-page.md`).
 - [ ] **Back button**: set aside (0.73.0); comes back on demand.
 
 ## Known quirks (`known-issues.md`)

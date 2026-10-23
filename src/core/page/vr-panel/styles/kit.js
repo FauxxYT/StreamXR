@@ -12,9 +12,15 @@
 //     current (outlined in blue: the item playing now),
 //     progress (0-1: how much of it you've watched, a bar along the thumbnail's bottom in
 //               the brand colour (the site's theme); 0 or missing: no bar),
+//     backdrop (with fit 'round': a picture behind the round one, dimmed, e.g. a banner),
 //     fit ('contain': the whole picture, letterboxed, e.g. a product; 'round': a round picture
 //          in the middle, e.g. a person or a channel (a letter until it loads); default:
 //          cropped to fill),
+//     icon (a Material Symbols name drawn in the middle of the thumbnail when there's no
+//           picture, e.g. 'shuffle'),
+//     quick: { icon, on } (a round button on the thumbnail's bottom-left while the card is
+//            pointed at, e.g. Add to queue; region 'quick:<n>' for a card 'item:<n>'; on: done,
+//            a check),
 //     inert (just to look at: not clickable, no hover highlight) }
 // Badges: a site registers its own (registerBadge); drawBadge(name) draws one if registered.
 (function (ns) {
@@ -155,9 +161,16 @@
     // clickable region `id` pushed onto `regions`; ui: { hover, pressed }.
     function drawCard(card, x, y, box, ui, regions, id) {
       const W_ = box.w, TH = box.thumbH, T = ns.vrTokens, P = T.m3;
+      // Its quick button (card.quick, e.g. Add to queue): 'quick:<n>' for a card 'item:<n>', in the
+      // thumbnail's bottom-left corner (the flags take the top), shown while the card or it is
+      // pointed at; pushed first so it wins over the card under it.
+      const quickId = card.quick && !card.inert ? `quick:${String(id).slice(String(id).indexOf(':') + 1)}` : null, QS = 48;
+      const quickR = quickId ? { x: x + 8, y: y + TH - QS - (card.progress > 0 ? 14 : 8), w: QS, h: QS } : null;
+      if (quickR) regions.push({ id: quickId, ...quickR });
       if (!card.inert) regions.push({ id, x, y, w: W_, h: box.h });
       // How far it's pointed at / pressed (motion.js: eased; 0 for a card just to look at).
-      const { h: hv, p: pv } = card.inert ? { h: 0, p: 0 } : ns.vrMotion.of(ui, id);
+      const own = card.inert ? { h: 0, p: 0 } : ns.vrMotion.of(ui, id), qm = quickId ? ns.vrMotion.of(ui, quickId) : { h: 0, p: 0 };
+      const hv = Math.max(own.h, qm.h), pv = own.p;                 // (pointing at its quick button counts as pointing at it)
       const tileA = Math.min(1, Math.max(hv, pv));
       const tile = { x: x - 8, y: y - 8, w: W_ + 16, h: box.h + 16, r: Math.max(4, ns.vrMotion.lerp(T.shape.large, T.shape.medium, pv)) };
       if (tileA > 0.01) {
@@ -173,9 +186,15 @@
       if (card.fit === 'round') {                    // a round picture (a person) in the middle of the box
         const s = Math.round(TH * 0.8);
         g.fillStyle = TC.n17; g.fillRect(x, y, W_, TH);
+        const back = card.backdrop && image(card.backdrop);   // (a picture behind it, dimmed: e.g. a channel's banner)
+        if (back) { drawImageCover(back, x, y, W_, TH); g.fillStyle = 'rgba(0,0,0,0.35)'; g.fillRect(x, y, W_, TH); }
         avatar(card.thumb, card.title, x + (W_ - s) / 2, y + (TH - s) / 2, s);
       } else if (img && card.fit === 'contain') { g.fillStyle = TC.n17; g.fillRect(x, y, W_, TH); drawImageContain(img, x, y, W_, TH); }
       else if (img) drawImageCover(img, x, y, W_, TH);
+      else if (card.icon) {                          // no picture, an icon instead (e.g. shuffle)
+        g.fillStyle = TC.n17; g.fillRect(x, y, W_, TH);
+        g.fillStyle = P.onSurfaceVariant; ns.vrSymbols.draw(g, card.icon, x + W_ / 2, y + TH / 2, Math.round(TH * 0.45), false);
+      }
       else {
         g.fillStyle = TC.n17; g.fillRect(x, y, W_, TH);
         g.fillStyle = TC.outlineVariant; const cx = x + W_ / 2, cy = y + TH / 2;
@@ -211,6 +230,18 @@
           g.textAlign = 'left'; g.fillText(f.text, fx + 23, y + 22);
         } else { g.textAlign = 'center'; g.fillText(f.text, fx + fw / 2, y + 22); }
         fx += fw + 6;
+      }
+      // The quick button, while the card is pointed at: a round dark button with its icon
+      // (filled in the brand colour once done, card.quick.on); itself pointed at: lighter, ringed.
+      if (quickR && hv > 0.01) {
+        const a0 = g.globalAlpha, cx = quickR.x + QS / 2, cy = quickR.y + QS / 2, on = !!card.quick.on;
+        g.globalAlpha = a0 * Math.min(1, hv);
+        g.fillStyle = on ? P.brand : qm.h > 0.01 ? 'rgba(40,40,40,0.92)' : 'rgba(0,0,0,0.75)';
+        g.beginPath(); g.arc(cx, cy, QS / 2, 0, Math.PI * 2); g.fill();
+        g.fillStyle = on ? P.onBrand : '#FFFFFF';
+        ns.vrSymbols.draw(g, on ? 'check' : card.quick.icon, cx, cy, 28, on);
+        g.globalAlpha = a0;
+        hoverRing(g, quickR.x, quickR.y, QS, QS, QS / 2, qm.h);
       }
 
       // Title (2 lines), then the grey lines (each with an optional badge after its text)
@@ -399,9 +430,10 @@
   //   const strip = createStrip();
   //   strip.draw(g, regions, box, contentW, key, paint): box { x, y, w, h } is the row's room
   //     on the canvas; contentW how wide the row is; key changes when its contents do (back
-  //     to the start). paint(ctx, regions, x) draws the row starting at x on ctx (canvas
-  //     coordinates); a row that fits is painted straight onto g, else onto the strip's own
-  //     canvas (shifted, faded, then copied in) and its regions are cut to what shows.
+  //     to the start, unless the new key only adds to the end of the old one). paint(ctx,
+  //     regions, x) draws the row starting at x on ctx (canvas coordinates); a row that fits
+  //     is painted straight onto g, else onto the strip's own canvas (shifted, faded, then
+  //     copied in) and its regions are cut to what shows.
   //   strip.point(x, y): where the laser is on the panel (canvas px; called from hitTest).
   //   strip.moving() -> true while it's sliding (keep redrawing).
   const STRIP = { edge: 150, speed: 900, fade: 48, margin: 8, stale: 150 };   // px, px/s at the very end, px, px, ms
@@ -420,26 +452,29 @@
     }
     function draw(g, regions, b, contentW, key, paint) {
       box = b; max = Math.max(0, contentW - b.w);
-      if (key !== lastKey) { lastKey = key; offset = 0; }
+      // New contents: back to the start, unless they only added to the end (more pills arriving).
+      if (key !== lastKey) { if (!(lastKey && key.startsWith(lastKey))) offset = 0; lastKey = key; }
       const now = performance.now(), dt = last ? Math.min(0.05, (now - last) / 1000) : 0;
       last = now;
       offset = Math.min(max, Math.max(0, offset + speed() * dt));
       if (max <= 0) { offset = 0; paint(g, regions, b.x); return; }
       const M = STRIP.margin;
-      if (cv.width !== b.w || cv.height !== b.h + M * 2) { cv.width = b.w; cv.height = b.h + M * 2; }
+      // (The strip's canvas reaches M past the row on every side, so the pointing ring round an
+      // item at either end isn't cut.)
+      if (cv.width !== b.w + M * 2 || cv.height !== b.h + M * 2) { cv.width = b.w + M * 2; cv.height = b.h + M * 2; }
       sg.setTransform(1, 0, 0, 1, 0, 0); sg.clearRect(0, 0, cv.width, cv.height);
-      sg.setTransform(1, 0, 0, 1, -b.x, -(b.y - M));
+      sg.setTransform(1, 0, 0, 1, -(b.x - M), -(b.y - M));
       const local = [];
       paint(sg, local, b.x - offset);
       sg.setTransform(1, 0, 0, 1, 0, 0);
       // Fade the ends that have more beyond them.
       sg.globalCompositeOperation = 'destination-in';
-      const grad = sg.createLinearGradient(0, 0, b.w, 0), f = STRIP.fade / b.w;
-      grad.addColorStop(0, offset > 0.5 ? 'rgba(0,0,0,0)' : '#000'); grad.addColorStop(f, '#000');
-      grad.addColorStop(1 - f, '#000'); grad.addColorStop(1, offset < max - 0.5 ? 'rgba(0,0,0,0)' : '#000');
+      const grad = sg.createLinearGradient(0, 0, cv.width, 0), a = M / cv.width, f = (M + STRIP.fade) / cv.width;
+      grad.addColorStop(offset > 0.5 ? a : 0, offset > 0.5 ? 'rgba(0,0,0,0)' : '#000'); grad.addColorStop(f, '#000');
+      grad.addColorStop(1 - f, '#000'); grad.addColorStop(offset < max - 0.5 ? 1 - a : 1, offset < max - 0.5 ? 'rgba(0,0,0,0)' : '#000');
       sg.fillStyle = grad; sg.fillRect(0, 0, cv.width, cv.height);
       sg.globalCompositeOperation = 'source-over';
-      g.drawImage(cv, b.x, b.y - M);
+      g.drawImage(cv, b.x - M, b.y - M);
       for (const r of local) {
         const x0 = Math.max(r.x, b.x), x1 = Math.min(r.x + r.w, b.x + b.w);
         if (x1 - x0 > 12) regions.push({ ...r, x: x0, w: x1 - x0 });

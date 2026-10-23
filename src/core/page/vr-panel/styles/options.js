@@ -1,13 +1,14 @@
-// Options style (canvas 2D): tabs of settings, in Material 3 Expressive. A tab is either up
-// to three rows (M3 list items: the setting's name with a grey hint under it on the left,
-// its control on the right: a switch, a slider with an optional Default button, a stepper
-// or a button) or a grid of choices (e.g. audio tracks). YouTube's Settings (Playback,
+// Options style (canvas 2D): tabs of settings, in Material 3 Expressive. A tab is either
+// rows (M3 list items: the setting's name with a grey hint under it on the left, its control
+// on the right: a switch, a slider with an optional Default button, a stepper or a button;
+// more than fit scroll) or a grid of choices (e.g. audio tracks). YouTube's Settings (Playback,
 // Audio, 2D Cinema, Laser, Keyboard, Language); any site's options. Knows nothing about any
 // site (ARCHITECTURE.md).
 //
 //   const style = ns.vrStyles.options.create(onImageLoaded, W, H);   // canvas size in px (no images: unused)
 //   style.draw(model, ui)
-//     model: { tabs: [{ id, label, icon (Material Symbols name, optional) }], tab,
+//     model: { tabs: [{ id, label, icon (Material Symbols name, optional) }], tab, scroll (px:
+//              rows that don't all fit scroll),
 //              corner (grey text top-right; optional: it shares the row with the tabs, so
 //              only for a panel with few tabs),
 //              content: one of
@@ -23,7 +24,8 @@
 //         fit, the last button is "More (2/3)", which moves on a page) }
 //   Control ids: 'tab:<id>', 'switch:<id>', 'slider:<id>' (its hit test also reports the
 //   fraction along it), 'default:<id>', 'prev:<id>' / 'next:<id>' (a stepper's arrows),
-//   'button:<id>', 'choice:<index in items>', 'choice:more'.
+//   'button:<id>', 'choice:<index in items>', 'choice:more', 'text' (scrolling rows: a drag can start there).
+//   Scrolling (rows): scrollAt(u, v), maxScroll(), shownScroll(), pxPerV.
 //   Also: hitTest(u, v) -> { id, fraction? } | null, has(id), sliderFraction(u), imagesReady().
 (function (ns) {
   'use strict';
@@ -39,7 +41,7 @@
   const CHOICES = { cols: 4, rows: 4, top: 124, h: 54, gap: 10 };
   const SWITCH = { w: 72, h: 44 };
   const BTN_H = 52;                             // buttons' height (Default, steppers' arrows are round: 56)
-  const MIN_ROW_H = 64;                         // the least height a row gets
+  const MIN_ROW_H = 76;                         // the least height a row gets (with more rows than fit, they scroll)
 
   function create(onImageLoaded, W = 1024, H = 390) {
     const canvas = document.createElement('canvas');
@@ -108,19 +110,28 @@
 
     // Rows (M3 list items): each faded when `dim`; the name (with its hint under it) on the
     // left, the control on the right, a slider's Default button and end captions. The rows
-    // share the room under the note evenly (at most 86 px each, at least MIN_ROW_H: rows that
-    // wouldn't fit are left out).
-    function drawRows(c, ui) {
+    // share the room under the note evenly (at most 86 px each); when they'd get less than
+    // MIN_ROW_H, each keeps MIN_ROW_H and the rows scroll (m.scroll px; a bar on the right
+    // says where; the last draw's state for the host: scrollAt, maxScroll, shownScroll).
+    let view = null, maxScrollPx = 0, scrollPx = 0;
+    function drawRows(c, ui, scrollWant) {
       let top = CONTENT_Y;
       if (c.note) {
         g.fillStyle = P.onSurfaceVariant; g.textAlign = 'left'; g.textBaseline = 'middle';
         g.fillText(fitFont(g, c.note, W - PAD * 2, 19), PAD, top + 14);
         top += 34;
       }
-      const rows = (c.rows || []).slice(0, Math.max(1, Math.floor((H - top - 12) / MIN_ROW_H)));   // as many as fit
-      const rowH = Math.min(86, (H - top - 12) / Math.max(1, rows.length));
+      const rows = c.rows || [], room = H - top - 12;
+      const rowH = Math.max(MIN_ROW_H, Math.min(86, room / Math.max(1, rows.length)));
+      view = { y: top, h: room };
+      maxScrollPx = Math.max(0, rows.length * rowH - room);
+      scrollPx = Math.min(maxScrollPx, Math.max(0, scrollWant || 0));
+      const all = regions;                                 // (the rows' controls are cut to what shows)
+      regions = [];
+      g.save(); g.beginPath(); g.rect(0, top, W, room); g.clip();
       rows.forEach((row, i) => {
-        const y = top + rowH * i + rowH / 2, ctl = row.control || {}, enabled = ctl.enabled !== false;
+        const y = top + rowH * i + rowH / 2 - scrollPx, ctl = row.control || {}, enabled = ctl.enabled !== false;
+        if (y + rowH / 2 < top || y - rowH / 2 > top + room) return;   // scrolled out of view
         g.globalAlpha = row.dim ? 0.38 : 1; rowFaded = !!row.dim;
         // The name, and the hint under it (switch rows have the whole width up to the switch).
         const nameW = ctl.type === 'switch' || !ctl.type ? W - PAD * 2 - SWITCH.w - 24 : LABEL_W;
@@ -149,7 +160,19 @@
           }
         }
       });
+      g.restore();
       g.globalAlpha = 1; rowFaded = false;
+      for (const r of regions) {                          // keep each control's part inside the rows' area
+        const a = Math.max(top, r.y), b = Math.min(top + room, r.y + r.h);
+        if (b - a > 8) all.push({ ...r, y: a, h: b - a });
+      }
+      regions = all;
+      if (maxScrollPx > 0) {                              // the scroll bar
+        const barH = Math.max(36, room * room / (room + maxScrollPx)), barY = top + (room - barH) * (scrollPx / maxScrollPx);
+        g.fillStyle = PA('onSurface', 0.08); roundRect(g, W - 22, top, 8, room, 4); g.fill();
+        g.fillStyle = PA('onSurface', 0.45); roundRect(g, W - 22, barY, 8, barH, 4); g.fill();
+        regions.push({ id: 'text', x: 0, y: top, w: W, h: room });   // (last: a drag can start anywhere on the rows)
+      }
     }
 
     // Choices: a 4 x 4 grid of tonal buttons, the chosen one primary with a check
@@ -198,8 +221,9 @@
       headerTabs(g, m.tabs, m.tab, ui, regions, PAD, { x: PAD - 16, y: TAB_Y, h: TAB_H, maxX: tabsEnd + 16, fill: true });
       g.fillStyle = P.outlineVariant; g.fillRect(PAD - 16, LINE_Y, W - PAD * 2 + 32, 1);
       const c = m.content || { kind: 'rows', rows: [] };
+      view = null; maxScrollPx = 0; scrollPx = 0;
       if (c.kind === 'choices') drawChoices(c, ui);
-      else drawRows(c, ui);
+      else drawRows(c, ui, m.scroll);
     }
 
     // Fraction (0..1) along a slider for any u (also used while dragging off it).
@@ -211,7 +235,14 @@
     }
     const has = id => regions.some(r => r.id === id);    // an enabled control from the last draw?
 
-    return { canvas, aspect: H / W, draw, hitTest, has, sliderFraction, imagesReady: () => 0, perPage: 0, animating: motion.moving };
+    // Is (u, v) on rows that scroll (not on a slider: dragging that moves the slider)?
+    const scrollAt = (u, v) => {
+      const x = u * W, y = v * H;
+      return maxScrollPx > 0 && !!view && y >= view.y && y <= view.y + view.h
+        && !regions.some(r => r.id.startsWith('slider:') && x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h);
+    };
+    return { canvas, aspect: H / W, draw, hitTest, has, sliderFraction, imagesReady: () => 0, perPage: 0, animating: motion.moving,
+      scrollAt, maxScroll: () => maxScrollPx, shownScroll: () => scrollPx, pxPerV: H };
   }
 
   ns.vrStyles = ns.vrStyles || {};

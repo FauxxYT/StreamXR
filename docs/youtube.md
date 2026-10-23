@@ -85,6 +85,93 @@ Channel, Home, Subscriptions); what matters from them is in this file and the ba
   matched "backstagePostThreadRenderer" and silently dropped every channel post.
 - Text matching in `youtube-page.js` assumes **English** YouTube.
 
+- **Explore pages' "View all"** (2026-10-18, signed out): Live's shelves (`richShelfRenderer`)
+  carry an `endpoint` to a page of their own (a channel's live tab, with continuations); Hype's
+  (`shelfRenderer`) have it in the shelf's `menu`, a browse to `VL<playlist id>` (Top 100: a
+  101-video playlist). `youtube-home.js` `viewAllOf` / `viewAll`. News's tabs (Top stories,
+  Sports, Entertainment, Business, Technology, World, National, Health) are the page's
+  `twoColumnBrowseResultsRenderer` tabs, each with its own browse params.
+- **Mixes' art can't be drawn:** a mix's lockup (`LOCKUP_CONTENT_TYPE_STATION`, e.g. Music's
+  `RDCLAK5uy_...` mixes) names no first video, and its square art is on `i9.ytimg.com`, which
+  refuses CORS (as do `i.ytimg.com/s_p/...` variants), so the canvas couldn't be uploaded to
+  WebGL. Its first video comes from the `next` request (`currentVideoEndpoint`), and that
+  video's `i.ytimg.com/vi/<id>/` thumbnail loads (`youtube-data.js` `playlistThumb`).
+- **Podcasts' covers** (2026-10-18): a podcast lockup (`LOCKUP_CONTENT_TYPE_PODCAST`) carries
+  its square art in `contentImage` (`i.ytimg.com/pl_c/<id>/studio_square_thumbnail…`, up to
+  720×720, CORS allowed), used instead of its first episode's frame (`square: true`).
+- **Memberships page** (`FEchannel_memberships`, 2026-10-18, signed out): the creators to join
+  are `horizontalShelfViewModel`s (title in `header.sectionHeaderViewModel.headline`) of
+  lockups of `LOCKUP_CONTENT_TYPE_TV_NETWORK`: a banner (`contentImage`), the avatar
+  (`metadata…image.decoratedAvatarViewModel`), the name and the monthly price ("$9.99") as the
+  metadata row. No channel id field: signed out the tap is a sign-in whose `surlp` parameter
+  base64-decodes to the channel's `UC…` id; signed in, it's a `ypcGetOffersEndpoint` (`ypc/get_offers`)
+  whose `params` hold the id the same way (`youtube-data.js` `fromCreator` tries every encoded
+  parameter). The page puts several shelves in one item section (`youtube-home.js` `shelvesIn`). Members-only
+  videos carry a `badgeViewModel` with `badgeStyle: "BADGE_MEMBERS_ONLY"` ("Members only").
+- **A channel's membership offer** (the "Join" popup; signed in, 2026-10-18): a
+  `ypcGetOffersEndpoint.params` (on a members-only video's watch page, its Join button; on
+  the Memberships page, a creator card's tap; starts "sku-") goes to `ypc/get_offers` as
+  **`itemParams`** (as `params` it answers HTTP 400). The answer's
+  `actions[0].openPopupAction.popup.sponsorshipsOfferRenderer`: `header.sponsorshipsHeaderRenderer`
+  (`channelImage`, `superTitle` the channel's name, `title` "Join this channel", `subtitle`
+  "Get access to membership perks"), `alert.sponsorshipsAlertRenderer.alertMessage` ("To
+  unlock this video and more, choose a level that's at least $2.99/month."), `tiers[]` of
+  `sponsorshipsTierRenderer` (`title` "Friends", `subtitle` "$2.99" + "/month", `disclaimer`,
+  `perks.sponsorshipsPerksRenderer.perks[]` of `sponsorshipsPerkRenderer`: `title`, optional
+  `description`, optional `images` (badges, emoji), and `purchaseButton` "Join", a
+  `ypcGetCartEndpoint` (the checkout: StreamXR never calls it)), `bottomDisclaimer`. A
+  blocked video's `playabilityStatus.errorScreen.playerLegacyDesktopYpcOfferRenderer` has only
+  `itemTitle` "Members-only content", `itemThumbnail`, `offerDescription`, `offerId`. The
+  watch page marks a members-only video in `videoPrimaryInfoRenderer.badges`: a
+  `metadataBadgeRenderer` with style `BADGE_STYLE_TYPE_MEMBERS_ONLY`, label "Members only"
+  (the recommendations carry such badges for other videos too). Right after switching videos
+  the player still holds the previous video's data (for a members-only one, not naming its
+  video), so the members-only state also needs that badge (`provider.js` `watchMembersOnly`).
+- **A playlist's own page** (browse `VL<id>`, signed in, 2026-10-18; read by
+  `youtube-content.js` `playlistDetails()`): the details sit in
+  `sidebar.playlistSidebarRenderer`: `playlistSidebarPrimaryInfoRenderer` (`title`, `stats[]`
+  ("24 videos", "1,234 views", "Updated …"), `description`, `navigationEndpoint.watchEndpoint`
+  = Play all's first video, and `menu.menuRenderer.topLevelButtons`: a `toggleButtonRenderer`
+  **Save playlist / Remove from Library**, and a `buttonRenderer` with icon `SHUFFLE` "Shuffle
+  play") and `playlistSidebarSecondaryInfoRenderer.videoOwner.videoOwnerRenderer` (the author).
+  The header (`pageHeaderViewModel`) repeats them as view models. **Save** is `like/like` with
+  `{ target: { playlistId } }` (`likeEndpoint` status LIKE), **remove** `like/removelike`
+  (status INDIFFERENT). Whether it's saved: the toggle's `isToggled` (true / false; the
+  header's `toggleButtonViewModel.isToggled` agrees; checked saved and unsaved). **Shuffle** is a
+  `watchEndpoint` { videoId (a random one), playlistId, `params` (e.g. "CKMLIAk%3D", different on
+  each load) }. Opened with those params (`youtube-page.js` `openVideo(id, list, index,
+  params)`), only the first video was random: the rest played in order. So StreamXR then
+  turns on the watch page's playlist Shuffle toggle (`shuffleWhenReady`; found by its
+  "Shuffle" aria-label in `ytd-playlist-panel-renderer`, aria-pressed: works, 0.96.1). With
+  shuffle on, the player's `getPlaylist()` stays in order, and YouTube's own Next preview shows
+  the in-order video too: the random next one isn't known until it plays, so StreamXR's Next
+  card says "A random video from this playlist" while shuffled (0.96.4, works in the headset).
+- **A channel you're a member of** (signed in, 2026-10-18): its header has
+  no `ypcGetOffersEndpoint` (no Join button) and no "join"/"perks" text at all, but the tab
+  list has a **"Membership"** tab (params `EgptZW1iZXJzaGlw8gYECgIiAA==`). For a member, that
+  tab's `sectionListRenderer` starts with a `sponsorshipsHubViewModel` (`tierName` (the level's name),
+  `membershipType` "Member", `membershipDurationOrExpiry` (e.g. "3 months"), `perksTitle` "Your
+  perks", `badgeImage` (the loyalty badge), `avatar`, a ⋮ sheet of help links), and
+  `perkCards[]` of `sponsorshipsHubPerkCardViewModel` (`title`, `icon.iconType`). Each card's
+  `onTap` opens an engagement panel holding the same `sponsorshipsPerksListViewModel`, whose
+  `perks[]` have `title`, `description.content`, `icon.iconType`, and optionally `emoji[]`
+  (custom emoji images) or `badges[]` (`title` "Month 6", `image`) with `currentBadgeIndex`.
+  Then an item section with a `shelfRenderer` "Highlighted content for members" (video
+  lockups), and one with `backstagePostThreadRenderer`s "Recent members-only posts"
+  (`sponsorsOnlyBadgeRenderer`). Read by `youtube-channel.js` `membership()`.
+  The header's `frameworkUpdates` held one `subscriptionStateEntity`
+  (`subscribed: true`). The tab list also had **"Podcasts"** (params `Eghwb2RjYXN0c_IGBQoDugEA`).
+- **Gaming page** (`UCOpNcN46UbXVtpKMrmU4Abg`, the same browse id as youtube.com/gaming;
+  signed out, 2026-10-18): a "Featured" shelf, a `horizontalCardListRenderer` of
+  `gameCardRenderer`s ("Top live games": games, not videos) and no continuation. Signed in
+  (2026-10-19): every entry is an `itemSectionRenderer`; after "Featured" (a `shelfRenderer`),
+  a game-card list, "Recommended" (a `shelfRenderer` grid) and a Shorts `reelShelfRenderer`
+  come "YouTube Playables" (`miniGameCardViewModel`s) and then the **game shelves**: each a
+  `horizontalCardListRenderer` with its title in `header.richListHeaderRenderer` (the game's
+  name: "Fortnite", "Red Dead Redemption 2" ...; some are "Collaborators") and its videos as
+  `videoCardRenderer`s, about 14 on the first page and more on the continuation. Read since
+  0.96.5 (`youtube-home.js` SHELF_KEYS, `youtube-channel.js` collect; videos, channel, views
+  and age work in the headset); the header's "View all" link is UNVERIFIED.
 ## Subscribe and Like
 
 - The watch page's subscribe box holds both buttons ("Subscribe" and "Subscribed"), so its
@@ -149,6 +236,19 @@ The formats are in `src/streamxr/shared/formats.js`; YouTube's detection is the 
   180 / 360 kind from either the page text or the data.
 - VR180 test video: "how TV screens made watching movies worse" by Noodle (`wlUV6y5TUko`):
   no "180" in the title, 16:9 below 2160p.
+
+## Movies
+
+- **YouTube's movies are copy-protected, the free ones too** (checked 2026-10-18, signed out:
+  "Matilda", `_F8kU1vb_rk`, "Free with ads", PG): playable on the page, but every format
+  carries `drmFamilies` (WIDEVINE, PLAYREADY, FAIRPLAY) and `streamingData.drmParams`, so
+  StreamXR can't draw them in VR (as Netflix: ARCHITECTURE.md "Known limits"). An R-rated one
+  ("Life", `SosdXyFcL7c`) asks signed-out viewers to sign in to confirm their age.
+- In search results a movie is a `movieRenderer` with `badges` of
+  `metadataBadgeRenderer`s: the price as style `BADGE_STYLE_TYPE_YPC` ("Free with ads", or a
+  price), the rating and "CC" as `BADGE_STYLE_TYPE_MEDIA` ("PG", "TV-G", "R", "Unrated");
+  `longBylineText` "YouTube Movies & TV", a `movieposter_en.webp` thumbnail (portrait). Up
+  Next's movie items (seen signed in, 0.66.1) weren't captured yet.
 
 ## Ads
 
@@ -367,6 +467,77 @@ snippets); read by `youtube-chat.js` since 0.79.0:
   (`startMillis`, `durationMillis`, `intensityScoreNormalized` 0..1, the most replayed = 1).
   So `mostReplayed()` reads the page's data and otherwise asks `next` once per video
   (checked Oct 2026 on a very popular music video). Newer or less watched videos have none.
+
+## The queue (Add to queue)
+
+- A card's ⋮ menu item "Add to queue" is a client-side command (2026-10-19, signed in):
+  `signalServiceEndpoint` { signal CLIENT_SIGNAL, actions: [{ `addToPlaylistCommand`: {
+  `openMiniplayer`, `videoId`, `videoIds`, `listType: PLAYLIST_EDIT_LIST_TYPE_QUEUE`,
+  `onCreateListCommand` (a `createPlaylistServiceEndpoint` { videoIds, params "CAQ%3D" }:
+  `playlist/create`, for the first one) and `videoCommand` (its watchEndpoint) } }] }.
+  StreamXR builds the same command and hands it to the page's own command handler,
+  `document.querySelector('ytd-app').handleCommandWithCommandHandler(cmd)` (works; a
+  `yt-action` event with `yt-execute-innertube-command` did nothing). `youtube-page.js` `addToQueue()`.
+- The queue then shows where a playlist does: a `ytd-playlist-panel-renderer` titled "Queue",
+  list id `TLPQ…`, its items in the element's own `data` (not in the watch page's data, nor on
+  a `VL…` page); the player's `getPlaylist()` lists them too (`getPlaylistId()` is null). When
+  the current video ends the first queued one plays, and the finished one leaves the queue.
+  `youtube-content.js` `playlist()` reads the panel's data for it (`queue: true`).
+- The Queue box's data (2026-10-20) has `menu.menuRenderer.topLevelButtons[0]`: **Clear**
+  ("Clear queue"), a `signalServiceEndpoint` of an `endPlaylistCommand` { closeListPanel,
+  listId (the queue), listType QUEUE } and a "Queue cleared" toast with Undo (a
+  `recoverPlaylistCommand`); StreamXR runs that command as is (`queueClearCommand()`,
+  `youtube-page.js` `runCommand()`). And `playlistButtons`: **Save**, a `showSheetCommand` for
+  the "Save to playlist" sheet (`PAadd_to_playlist`, params naming the queue); StreamXR asks
+  `playlist/get_add_to_playlist` with `{ playlistId: <the queue> }` instead (with several
+  `videoIds` it answers HTTP 400; one video, or the list id, work), adds them with
+  `browse/edit_playlist` (ACTION_ADD_VIDEO each), and makes a new one with `playlist/create`
+  { title, videoIds, privacyStatus PRIVATE } (works: seen 0.101.1, the playlist made with the queued videos).
+- After Clear (2026-10-23), the watch page's own data (`twoColumnWatchNextResults.playlist`)
+  still holds the queue until the next video, and the Queue box keeps its data without its
+  menu: a cleared queue's id is ignored in both places. The queue's id is `TLPQ` + the date
+  (base64, e.g. "23102026") + a random part.
+- The same video queued twice is in both the page's and the player's lists twice, at the
+  same positions; either copy plays from Up Next.
+- Just after adding to the queue, the player's `getPlaylistIndex()` can sometimes be one
+  ahead of the video playing (seen 0.101.6); StreamXR takes the
+  position from the video the tab's URL is on (the nearest copy of it in `getPlaylist()`; 0.101.7, works in the headset).
+
+## End screen
+
+- In the player's data: `playerResponse.endscreen.endscreenRenderer` (`startMs`, `elements[]`
+  of `endscreenElementRenderer`: `style` VIDEO / PLAYLIST / CHANNEL / WEBSITE ..., `title`,
+  `metadata` (a video's views; a channel's description), `image`, `startMs` / `endMs`, its
+  place on the video (`left`, `top`, `width`, `aspectRatio`), `endpoint`; a channel tile also
+  `isSubscribe`, `callToAction`, `hovercardButton`). Probed 2026-10-19 (a video with a channel
+  tile for the video's own channel and two video tiles, 1231.6 s to the end), read as is by
+  `youtube-content.js` `endScreen()`. Shown since 0.98.0 as Up Next's End screen tab.
+- **Autoplay's countdown** ("Up next in 5" at a video's end): read from the player's own overlay,
+  `.ytp-autonav-endscreen-countdown-overlay` (the next video's link, `.ytp-autonav-endscreen-upnext-title`
+  / `-author`, the seconds in `.ytp-autonav-endscreen-countdown`), cancelled with its
+  `.ytp-autonav-endscreen-upnext-cancel-button` (`youtube-player.js` `autoplayCountdown()`,
+  `cancelAutoplay()`; works, 0.98.2).
+
+## Info cards
+
+- The player's data has a card list, `playerResponse.cards.cardCollectionRenderer.cards[]`,
+  each a `cardRenderer` with `teaser.simpleCardTeaserRenderer.message` (the teaser),
+  `cueRanges[0].startCardActiveMs` (when it comes) and, in the shape it used to have, `content`
+  (a video, playlist or link card). StreamXR read it in 0.97.0 (`youtube-content.js` `cards()`,
+  the Cards button in `extras.js`); in practice it holds no real cards (below).
+  Probed 2026-10-19 (signed in): on a video **with** cards and one without, that list held
+  only one card, the same on both: a "View corrections" teaser (`prominent`, its tap opens the
+  `engagement-panel-error-corrections` panel) with no `content`, cue 0-5 s; the collection's
+  `headerText` is "From <channel>". It's left out (0.97.1). The video with cards had them in
+  the watch page's description panel instead: `engagementPanels[].…structuredDescriptionContentRenderer
+  .items[].videoDescriptionInfocardsSectionRenderer.infocards[].compactInfocardRenderer` (the
+  video without had the section but no infocards). Each `compactInfocardRenderer.content` is
+  e.g. a `structuredDescriptionVideoLockupRenderer` (`title`, `shortBylineText` "by …",
+  `metadataDetails` "56K views · 3 years ago", `lengthText`, `navigationEndpoint.watchEndpoint`).
+  **No times anywhere**: a teaser showed at 26:18 and neither the description section nor the
+  player's card list changed (still only the corrections card). So since 0.97.2 the cards are
+  read from the description section and the teaser's moment from the player's own
+  `.ytp-cards-teaser` element while it shows (`youtube-player.js` `cardTeaser()`; works, 0.97.2).
 
 ## Audio, channels, storyboards
 

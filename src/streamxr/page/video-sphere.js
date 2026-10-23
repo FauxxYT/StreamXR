@@ -26,6 +26,10 @@
   // Cubemap layout, confirmed against a real YouTube frame (same as ffmpeg's "eac"):
   //   top row    left | front | right
   //   bottom row down | back  | up      (down and up turned 270° clockwise, back 90°)
+  // The cubemap is read at full resolution (a -16 mipmap bias pins it to level 0): where two
+  // faces meet, the lookup jumps across the texture, and with the glass's mipmaps
+  // (gl-utils.js videoMipmaps) the GPU would read its smallest level along those lines,
+  // drawing seams along the cube's edges. Level 0 is what it reads with no mipmaps anyway.
   const FS = `
     #ifdef GL_FRAGMENT_PRECISION_HIGH
     precision highp float;
@@ -57,8 +61,8 @@
     }
 
     void main() {
-      vec2 uv = uMode > 0.5 ? eacUv(normalize(vDir)) : vUv;
-      gl_FragColor = texture2D(uTex, uv);
+      if (uMode > 0.5) gl_FragColor = texture2D(uTex, eacUv(normalize(vDir)), -16.0);
+      else gl_FragColor = texture2D(uTex, vUv);
     }`;
 
   // Inside-facing sphere. Longitude 0 = straight ahead (-Z), positive = to the right.

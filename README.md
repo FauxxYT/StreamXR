@@ -7,35 +7,46 @@ taking your headset off. 🎬✨
 **Works with:**<br> 🖥️ Windows · 🌐 Chrome · 🎮 SteamVR · 🥽 Valve Steam Frame · 🥽 Meta Quest 2 (reported by [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack)) · ([full requirements](#-what-you-need))<br> 
 **Jump to:** [Get started](#-get-started-in-a-minute) ·
 [Quick troubleshooting](#-quick-troubleshooting) · [Controls](#-controls) ·
-[Your privacy](#-your-privacy) · [What's new](#-whats-new-in-v0933) · [Roadmap](#-roadmap) · [How you can help](#-how-you-can-help)
+[Your privacy](#-your-privacy) · [What's new](#-whats-new-in-v01017) · [Roadmap](#-roadmap) · [How you can help](#-how-you-can-help)
 
-> **Early access** (version 0.93). Free and open source, forever. It already works every day; it's
+> **Early access** (version 0.101). Free and open source, forever. It already works every day; it's
 > still growing fast, and your feedback shapes what comes next.
 >
 > StreamXR is vibe coded by one guy (me!), and the only headset I've got is the Steam Frame.
 > Bug fixes, updates and support for more headsets and sites are coming, so please be
 > patient with me. 😭🙏
 
-## ✨ What's new in v0.93.3
+## ✨ What's new in v0.101.7
 
 The latest release, in short (every version's details are in the [changelog](CHANGELOG.md)):
 
-- 🕶️ **3D side-by-side videos:** some 3D videos reach your browser with both eyes in one frame.
-  Pick **180° 3D side by side** (VR180) or **Cinema 3D side by side** (regular 3D videos on the
-  cinema screen) in the Format menu, and each eye gets its own half, in real 3D. Thanks to
-  [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack) for spotting them!
-- 💎 **YouTube Premium in VR:** **1080p Premium** (the enhanced bitrate) in the Quality menu, and
-  **Jump ahead** at the end of the seek bar whenever YouTube offers it, both marked with the
-  Diamond.
-- 👥 **Your channels:** You → **Channels** lists the channels you subscribe to, sorted your way
-  (Most relevant, New activity, A-Z). Click one to open it in the Channel panel.
-- 🔔 **The notification bell:** on a channel you subscribe to, choose All, Personalized or None
-  right from the Channel panel.
-- 🎚️ **A tidier Format menu:** every format with its own icon, and the Format button shows the
-  one you picked.
-- 🩹 **Fixes:** videos open from the Channel panel and History even when VR started on a
-  channel page; floating menus no longer clip the pointing ring; the Channels list loads all
-  the way down.
+- 🧭 **Explore's new tabs:** **Live**, **Gaming**, **Music**, **Hype**, **Courses**, **Podcasts**
+  and **Memberships**, each with its sections as pills (Gaming's game shelves too, signed in),
+  and "View all" behind each one. Podcasts show with their square covers.
+- 📃 **See a playlist before playing it:** click a playlist card anywhere (Explore, You,
+  Search, Channel, Up Next) to open its page: details, **Play all**, **Shuffle**, **Save**, and
+  its videos as a list. Up Next's playlist tab shows the playing playlist the same way.
+- 📋 **Add to queue:** point at a video card and click the queue button on its thumbnail; the
+  queue gets its own tab in Up Next and plays after the current video. **Clear** empties it,
+  and **Save** keeps it as a new playlist (named on the VR keyboard) or adds it to Watch later
+  or one of yours.
+- ℹ️ **Info cards:** a **Cards** button on the controls panel lists the video's cards, and
+  each card's teaser pops up above it at the right moment (click it to watch).
+- 🔚 **End screens:** when a video's end screen starts, Up Next shows its suggested videos,
+  playlists and channels, and **Autoplay** (now a button on the controls panel) shows what's up
+  next with a countdown.
+- 🧲 **Follow your head:** turn it on in Settings → 2D Cinema, and on regular videos the screen
+  and panels glide back in front of you when you turn (with adjustable delay and speed).
+  Thanks to [u/boatOV](https://www.reddit.com/user/boatOV) for asking for it!
+- ⭐ **Channel memberships:** members-only videos say so (and show their thumbnail), a
+  channel's **Membership** tab shows its levels and perks, and on channels you're a member of:
+  your level, perks, members-only videos and posts.
+- 🎛️ **A wider controls panel** with room for the new buttons, and **Settings tabs that
+  scroll** when they have more than fits.
+- 🩹 **Fixes:** no more seams on 360° cubemap videos (thanks to
+  [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack) and
+  [@MinuteHistoryX](https://x.com/MinuteHistoryX) for reporting them!), the Channel panel's
+  Subscribe button, and many smaller ones.
 
 ## 💡 Why I made this
 
@@ -123,6 +134,8 @@ more likely they are to open the door. **If and when they do, I'll make it work 
   **format**, **recenter** and exit; **Jump ahead** 💎 at the seek bar's end when YouTube offers it.
 - **💬 Captions** in any language the video has, drawn right in VR.
 - **🔖 Save** to Watch later or any of your playlists.
+- **ℹ️ Info cards** with their teasers at the right moment, and **Autoplay** with its
+  "Up next" countdown.
 - Playlists get **Previous / Next** with a preview card; live streams get a **LIVE** label
   that jumps you back to live.
 - It fades away while you watch, and one pull of the trigger brings it back.
@@ -131,12 +144,15 @@ more likely they are to open the door. **If and when they do, I'll make it work 
 Laid out around a **Safe Zone** you can tune, so the picture always stays clear, with
 glassy toolbars on each side:
 - ⬅️ **About this video:** **Description** (with chapters and the transcript), **Comments**
-  and **Channel** (videos, Shorts, live streams, playlists, posts, About, Subscribe).
+  and **Channel** (videos, Shorts, live streams, playlists, podcasts, posts, membership,
+  About, Subscribe).
 - 🔎 **Search** above the video, with suggestions as you type on the **VR keyboard**.
-- ➡️ **What to watch:** **Up Next**, **Explore** (your Home feed with all its topic chips,
-  "Immersive videos" included, plus News) and **You** (Subscriptions, your Channels with their
+- ➡️ **What to watch:** **Up Next** (with your **queue** and the video's **end screen**), **Explore** (your Home feed with all its topic chips,
+  "Immersive videos" included, plus Live, Gaming, Music, News, Hype, Courses, Podcasts and
+  Memberships) and **You** (Subscriptions, your Channels with their
   notification bells, Your channel,
-  History, Playlists, Watch later, Liked videos).
+  History, Playlists, Watch later, Liked videos). Any playlist opens as a page you can
+  browse before playing, and any video card can be **added to the queue**.
 - 💬 **Live chat** on live streams (and **chat replays** on finished ones, playing along with the
   video): it opens by itself and stays up while you watch. Read it with emojis, badges, Super
   Chats and the pinned message; send reactions and type messages on the VR keyboard (with your
@@ -146,7 +162,8 @@ glassy toolbars on each side:
 ### 🎨 Make it yours (Settings)
 - Looks: **YouTube** or **Material 3** colors, **glass** panels with an adjustable tint, the
   **panel size**.
-- The cinema screen's **curve**, **distance** and **glow**.
+- The cinema screen's **curve**, **distance** and **glow**, and **Follow your head** (the screen
+  and panels catch up when you turn).
 - The **Safe Zone**, how long each part waits before it **fades**, the **laser's
   steadiness**, the **keyboard layout** and the **language**.
 
@@ -316,7 +333,7 @@ what bugs you most):
   vibrate yet, so Settings → Appearance → Vibration is greyed out.
 - **Only Steam Frame controller models.** Other controllers are drawn as Steam Frame
   controllers. Besides the Steam Frame, only the Quest 2 has been reported working (by
-  u/TehSuperFruitSnack); other headsets are untested. **Got 3D models of your controllers?** 🧊
+  [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack)); other headsets are untested. **Got 3D models of your controllers?** 🧊
   Share them in a **Headset / controller compatibility** issue (with where they came from and
   their license) and I'll integrate them once I start accepting pull requests. They need a
   license that lets them be shared and changed in a free project, with credit (for example
@@ -344,8 +361,7 @@ what bugs you most):
 - **Comments show one level of replies;** YouTube's newer replies-to-replies aren't shown
   yet.
 - **Glass menus blur only the video,** not the panels behind them.
-- **Some Explore tabs say "Coming Soon"** (Shorts, Music, Live, Gaming and more): they're
-  on the roadmap.
+- **Two Explore tabs say "Coming Soon"** (Shorts and Movies & TV): they're on the roadmap.
 - A channel's **Featured** tab only shows for channels you subscribe to when the creator
   picked a video for returning subscribers (that's YouTube's behavior).
 
@@ -396,9 +412,10 @@ which is often all that's needed. 📋
 No dates, just what I'll work on after release, in this order:
 
 1. 🐛 **Immediate bug fixes:** whatever the first wave of users runs into.
-2. 📋 **Add to queue:** line up videos to watch next from any panel, without leaving VR.
-3. 🧭 **Explore page tabs:** Live, Gaming, Music, Podcasts and the rest of the "Coming Soon"
-   tabs.
+2. ✅ **Add to queue:** done (v0.101.7): line up videos to watch next from any panel,
+   then clear it or save it as a playlist.
+3. 🧭 **Explore page tabs:** Live, Gaming, Music, Hype, Courses, Podcasts and Memberships are
+   done (v0.101.7); Shorts and Movies & TV are next.
 4. ✅ **Live Chat:** done (v0.88.1): read, react and type in a live stream's chat.
 5. ✅ **YouTube Premium:** done (v0.93.3): 1080p Premium and Jump ahead, marked with the Diamond.
 6. 💬 **Commenting in-headset:** write comments and replies with the VR keyboard (typing in a live

@@ -17,12 +17,20 @@
 //                                    items: [cards for this page], page, pageCount, more,
 //                                    loading (with no items: the loading indicator above
 //                                      emptyText), now (seconds, its clock), emptyText,
+//                                    shape: 'square' (square cards, e.g. podcasts' covers:
+//                                      grid.js) | null (the standard 16:9 ones),
+//                                    body: null | { kind: 'collection', ... } (a playlist or
+//                                      other list opened from a card: collection.js, under a
+//                                      back button in the pills' place, scrolling: scroll px),
 //                                    emptyIcon (with no items: emptyText larger in the
 //                                      middle with this icon after it: a placeholder) }
 //   Control ids: 'tab:<id>', 'pill:<id>', 'item:<index on page>', 'page:prev', 'page:next',
 //   'field:<id>' (the field), 'clear:<id>' (its ×), 'submit:<id>' (its button),
-//   'suggest:<index>' (a suggestion).
-//   Also: hitTest(u, v) -> { id } | null, has(id), imagesReady(), perPage, canvas, aspect.
+//   'suggest:<index>' (a suggestion); with a collection: 'back', 'action:<id>', 'row:<index>',
+//   'text' (the page itself: a drag can start there).
+//   Scrolling (a collection): scrollAt(u, v), maxScroll(), shownScroll(), pxPerV.
+//   Also: hitTest(u, v) -> { id } | null, has(id), imagesReady(), perPage, perPageFor(shape),
+//   canvas, aspect.
 (function (ns) {
   'use strict';
 
@@ -52,6 +60,7 @@
     function draw(m, ui) {
       ui = motion.step(ui);
       regions = [];
+      scrollable = false; maxScrollPx = 0; scrollPx = 0;
       g.clearRect(0, 0, W, H);
       g.fillStyle = T.panelFill(); roundRect(g, 0, 0, W, H, T.shape.extraLarge); g.fill();
 
@@ -61,6 +70,9 @@
       g.fillText(m.title || '', PAD, HEAD_Y + HEAD_H / 2);
       const titleW = g.measureText(m.title || '').width + 28;
       grid.tabs(m.tabs, m.tab, HEAD_Y, HEAD_H, ui, regions, W - PAD, PAD + titleW);
+      // A collection opened from a card (collection.js) takes the pills row (its back button)
+      // and the grid's place, scrolling.
+      if (m.body && m.body.kind === 'collection') { drawCollection(m.body, m, ui); return; }
 
       // A text field, or filter pills (left-aligned; ones that don't fit are left out), or a note.
       if (m.field) drawField(m.field, ui);
@@ -68,7 +80,7 @@
       else if (m.note) { g.fillStyle = P.onSurfaceVariant; g.font = T.font('bodyMedium', 22); g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(m.note, PAD, PILL_Y + PILL_H / 2); }
       grid.divider(DIVIDER_Y);
 
-      grid.grid(m.items || [], ui, regions, m.emptyText || '', m.loading ? m.now || 0 : null, m.emptyIcon || null);
+      grid.grid(m.items || [], ui, regions, m.emptyText || '', m.loading ? m.now || 0 : null, m.emptyIcon || null, m.shape || null);
       grid.paging(m, ui, regions);
       if (m.field && (m.field.suggestions || []).length) drawSuggestions(m.field, ui);   // over the cards
     }
@@ -82,11 +94,49 @@
     // field without its button.
     const drawSuggestions = (f, ui) => grid.suggestions(f, ui, regions, PAD, PILL_Y + PILL_H + 6, W - PAD * 2 - 150 - 12);
 
+    // ------------------------------------------------------------ collection page
+    // The back button ('back') on the pills row, then the page scrolling in the grid's area,
+    // with a scroll bar on the right when it's taller. The last draw's scroll state is kept
+    // for the host (scrollAt, maxScroll, shownScroll).
+    const collection = ns.vrStyleCollection.create(g, kit);
+    const VIEW = { x: PAD, y: GRID_TOP - 8, w: W - PAD * 2 - 24, h: H - (GRID_TOP - 8) - 20 };
+    let scrollable = false, maxScrollPx = 0, scrollPx = 0;
+    // A region pushed only for its part inside the scrolling area (nothing if none shows).
+    function clipRegion(id, x, y, w, h) {
+      const a = Math.max(VIEW.y, y), b = Math.min(VIEW.y + VIEW.h, y + h);
+      if (b > a) regions.push({ id, x, y: a, w, h: b - a });
+    }
+    function drawCollection(b, m, ui) {
+      g.font = `500 22px ${FONT}`;
+      const bw = g.measureText(b.back || '').width + 48 + 36;
+      ns.vrKit.button(g, regions, 'back', PAD, PILL_Y + 4, bw, 44, { icon: 'arrow_back', label: b.back || '' }, ui);
+      grid.divider(DIVIDER_Y);
+      const lay = collection.layout(b, VIEW.w);
+      scrollable = true;
+      maxScrollPx = Math.max(0, lay.height + 12 - VIEW.h);
+      scrollPx = Math.min(maxScrollPx, Math.max(0, collection.scrollFor(b, lay, VIEW.h, m.scroll)));
+      g.save(); g.beginPath(); g.rect(VIEW.x - 8, VIEW.y, VIEW.w + 16, VIEW.h); g.clip();
+      collection.draw(b, lay, m, ui, VIEW.x, VIEW.y - scrollPx, VIEW, clipRegion);
+      g.restore();
+      if (maxScrollPx > 0) {
+        const barH = Math.max(40, VIEW.h * VIEW.h / (VIEW.h + maxScrollPx));
+        const barY = VIEW.y + (VIEW.h - barH) * (scrollPx / maxScrollPx);
+        g.fillStyle = PA('onSurface', 0.08); roundRect(g, W - 30, VIEW.y, 8, VIEW.h, 4); g.fill();
+        g.fillStyle = PA('onSurface', 0.45); roundRect(g, W - 30, barY, 8, barH, 4); g.fill();
+      }
+      regions.push({ id: 'text', x: VIEW.x - 8, y: VIEW.y, w: VIEW.w + 16, h: VIEW.h });   // (last: drags start here)
+    }
+
     // (It also tells the sliding rows where the laser is: grid.js strips.)
     const hitTest = (u, v) => { grid.point(u * W, v * H); const r = regionAt(regions, u, v, W, H); return r ? { id: r.id } : null; };
     const has = id => regions.some(r => r.id === id);    // an enabled control from the last draw?
+    // Is (u, v) on the scrolling collection page of the last draw?
+    const scrollAt = (u, v) => scrollable && u * W >= VIEW.x - 8 && u * W <= W - 16 && v * H >= VIEW.y && v * H <= VIEW.y + VIEW.h;
 
-    return { canvas, aspect: H / W, draw, hitTest, has, imagesReady: kit.imagesReady, perPage: grid.PER_PAGE, animating: () => motion.moving() || grid.moving() };
+    return { canvas, aspect: H / W, draw, hitTest, has, scrollAt, imagesReady: kit.imagesReady, perPage: grid.PER_PAGE,
+      maxScroll: () => maxScrollPx, shownScroll: () => scrollPx, pxPerV: H,   // (a collection page's scrolling)
+      perPageFor: shape => (shape === 'square' ? grid.PER_PAGE_SQUARE : grid.PER_PAGE),   // cards per page in a layout
+      animating: () => motion.moving() || grid.moving() };
   }
 
   ns.vrStyles = ns.vrStyles || {};
