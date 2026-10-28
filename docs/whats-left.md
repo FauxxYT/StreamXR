@@ -162,9 +162,9 @@ movies are copy-protected, so they can't play in VR yet: `features/video-page.md
   Quality menu and **Jump ahead**, marked with the Diamond (purple without Premium, YouTube Red
   with it). 1080p Premium (0.91.0) and Jump ahead (0.92.3) work in the headset. **Add to queue** is its own item
   (not Premium on desktop).
-- [ ] **Explore's "Coming Soon" tabs**: Live, Gaming, Music, Hype, Courses, Podcasts,
-  Memberships built in 0.94.0 (to check); Shorts, Movies & TV, Learning need more first
-  (`features/home-page.md`).
+- [x] **Explore's "Coming Soon" tabs**: Live, Gaming, Music, Hype, Courses, Podcasts,
+  Memberships (0.94.0 to 0.96.6, work in the headset, released in v0.101.7); Shorts, Movies &
+  TV, Learning need more first (Road to 1.0, item 9; `features/home-page.md`).
 - [ ] **News**: its own tabs (Top stories, Sports ...) and the Sports feed.
 - [x] **Subscriptions** (0.90.0 to 0.92.2, work in the headset): the Channels tab with its sort pills, the bell on the Channel
   panel; posts in the feed (desktop has none) and its shelves deferred (`features/subscriptions-page.md`).
@@ -199,6 +199,37 @@ shown by `src/streamxr/ui/panel.js`). Left for later, most useful first:
   and then calls the real console would keep the links right; it means switching the 67
   `console.warn` / `console.error` calls in 21 files over to it.
 
+## From the WebXR capabilities review (2026-10-28)
+
+What desktop Chrome's WebXR allows, checked against StreamXR (the maintainer, 2026-10-28).
+Already how StreamXR works, nothing to do: one VR session per site tab (moving between pages
+uses the site's in-page navigation), Enter VR only from a real click, everything in VR drawn
+on canvases, no copy-protected (DRM) video, no passthrough, eye tracking or WebXR Layers on
+desktop Chrome. To do:
+
+- [ ] **A sharpness setting** (render scale): `framebufferScaleFactor` above the headset's
+  default sharpens the video and panels on fast PCs, at a cost in frame rate. A setting
+  (e.g. Settings → Appearance), its value in Copy details next to `nativeScale`.
+- [ ] **Upload video frames only when a new one arrives** (`requestVideoFrameCallback`)
+  instead of every VR frame: may save time on 8K. Measure first.
+- [ ] **A second site: Twitch** (needs the maintainer's OK for its host permission): an
+  ordinary `<video>` with no DRM, chat on the page, mostly flat streams (the cinema screen),
+  ads inside the stream (detect the ad overlay to show it in VR). The best test of the
+  shell / provider split (`docs/Future-Plans.md`).
+- [ ] **Jellyfin / Plex** (later; each needs a host permission for the user's own server):
+  test first on a real server. WebXR needs HTTPS or localhost (a plain `http://192.168…`
+  address blocks VR); Plex's video comes from the server's own address and needs CORS; Plex's
+  free movies and live TV may be DRM.
+- [ ] **On hold, with BrowseXR** (`docs/Future-Plans.md`): a Home page the extension owns
+  (`chrome-extension://…/home.html`) holding the VR session for local video files (a folder
+  granted once with `showDirectoryPicker()`, formats from file-name tags like `_180`, `_360`,
+  `_sbs`). Video sites still need their own tab: a page can only draw video playing in it.
+  Not decided; new permissions.
+
+Not for StreamXR: libraries (three.js, mp4box.js), a helper app, Electron / Tauri / CEF, a
+native rewrite, a bundled Chromium (a build step or a second product), and recommending
+unofficial browser builds to users.
+
 ## Known quirks (`known-issues.md`)
 
 - Captions on 180°/360° need improvement (0.77.1: "good enough for now").
@@ -212,3 +243,11 @@ shown by `src/streamxr/ui/panel.js`). Left for later, most useful first:
 
 - Signed-in Home feeds other than the main one.
 - The Captions button greyed out on a video with no captions.
+- The SteamVR dashboard while in VR: WebXR makes the session `visible-blurred` (no
+  controller input); does StreamXR pause the laser and clicks and pick up cleanly after?
+- Switching tabs or minimizing Chrome while in VR: does the session pause, end, or go on? If
+  it ends or freezes, say so instead of failing silently.
+- WebXR hand input on the Frame through Chrome and SteamVR (expected: none; if so, a known
+  limit in `docs/hardware.md`).
+- Whether Chrome asks for a "Virtual reality" permission on a fresh profile (for the README's
+  Get started steps).
