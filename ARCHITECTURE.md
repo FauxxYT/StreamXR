@@ -144,7 +144,10 @@ src/streamxr/                  STREAMXR (shell, part 2): the video player on the
     popup.css                  its styles (Material 3; colours from the site's palette, asked of the page world)
   home/                        StreamXR Home and the toolbar popup (extension pages; docs/Home-Page.md)
     sites.js                   the sites they list (each site adds its entry from src/sites/<site>/home/)
-    action-popup.html, .js, .css   the toolbar popup: headset status, the sites, Quick troubleshooting
+    home.html, .js, .css       StreamXR Home: the first-run welcome, the headset, Quick troubleshooting, the sites
+    home-ui.js, .css           what Home and the toolbar popup share: the status line, the sites' rows, troubleshooting
+    action-popup.html, .js, .css   the toolbar popup: headset status, Open StreamXR Home, the sites, Quick troubleshooting
+    background.js              opens Home once on install (with its welcome)
 src/sites/youtube/             YOUTUBE
   page/
     youtube-data.js            plumbing: text helpers, watch-page data, /youtubei/v1 requests,

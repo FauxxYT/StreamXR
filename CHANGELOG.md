@@ -6,6 +6,22 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.101.23
+
+### Added
+- **StreamXR Home** (step 3; `docs/Home-Page.md`): a page of StreamXR's own, on the desktop:
+  the headset's status and Quick troubleshooting (with Copy details), the sites (Open
+  YouTube), and the version. Material 3 Expressive like the popup, a fixed-width card.
+- **A first-run welcome**: Home opens once when StreamXR is installed (not on updates or
+  reloads), with three steps (start SteamVR, wait for Headset ready, open a site and press
+  its VR button, choosing Allow when Chrome asks); "Got it" puts it away. A small background
+  script does it; no permission.
+- **Open StreamXR Home** in the toolbar popup.
+
+### Changed
+- The toolbar popup and Home share their pieces (`src/streamxr/home/home-ui.js` and
+  `home-ui.css`): the status line, the sites' rows, Quick troubleshooting.
+
 ## 0.101.22
 
 ### Changed

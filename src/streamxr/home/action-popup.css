@@ -8,49 +8,5 @@ html, body { margin: 0; background: var(--m3-surfaceContainer, #1f1f1f); }
   border-radius: 0;
   box-shadow: none;
 }
-/* The headset's status: one line, neutral while checking, then the success or error colors. */
-.streamxr-pop .streamxr-status {
-  margin: 0 0 14px;
-  padding: 10px 14px;
-  border-radius: 16px;
-  background: var(--m3-surfaceContainerHigh, #2a2a2a);
-  font-weight: 500;
-}
-.streamxr-pop .streamxr-status.ok { background: #0f5223; color: #b7f0bf; }
-.streamxr-pop .streamxr-status.bad { background: var(--m3-errorContainer, #8c1d18); color: var(--m3-onErrorContainer, #f9dedc); }
-/* The sites: a heading, then one row per site (its mark, "Open <site>", an arrow): a list
-   item with hover / press state layers and a focus ring (desktop: pointer and keyboard). */
-.streamxr-pop .streamxr-sites-label { margin: 0 6px 6px; color: var(--m3-onSurfaceVariant, #c4c4c4); font-size: 12px; font-weight: 500; }
-.streamxr-pop .streamxr-site {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  min-height: 48px;
-  padding: 6px 14px 6px 10px;
-  border: 0;
-  border-radius: 16px;
-  background: var(--m3-surfaceContainerHigh, #2a2a2a);
-  color: var(--m3-onSurface, #e6e1e1);
-  font: 500 14px Roboto, Arial, sans-serif;
-  text-align: left;
-  cursor: pointer;
-  transition: border-radius 0.12s ease-out;
-}
-.streamxr-pop .streamxr-site + .streamxr-site { margin-top: 6px; }
-.streamxr-pop .streamxr-site::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; }
-.streamxr-pop .streamxr-site:hover::after { background: rgba(255, 255, 255, 0.08); }
-.streamxr-pop .streamxr-site:active::after { background: rgba(255, 255, 255, 0.12); }
-.streamxr-pop .streamxr-site:active { border-radius: 10px; }
-.streamxr-pop .streamxr-site:focus-visible { outline: 3px solid var(--m3-brand, #ff0033); outline-offset: 2px; }
-/* A site's mark: its own icon on a light tile (icons are drawn for light backgrounds), or
-   the plain play mark on its color (.plain, set by action-popup.js). */
-.streamxr-pop .streamxr-site-mark { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; background: #fff; color: #fff; }
-.streamxr-pop .streamxr-site-mark img { width: 22px; height: 22px; object-fit: contain; }
-.streamxr-pop .streamxr-site-mark svg { width: 20px; height: 20px; }
-.streamxr-pop .streamxr-site span { flex: 1; }
-.streamxr-pop .streamxr-site-arrow { flex: none; width: 20px; height: 20px; color: var(--m3-onSurfaceVariant, #c4c4c4); }
-/* "More sites coming": plain, greyed text, not a button. */
-.streamxr-pop .streamxr-more { margin: 8px 6px 4px; color: var(--m3-onSurfaceVariant, #c4c4c4); opacity: 0.7; font-size: 12px; }
-@media (prefers-reduced-motion: reduce) { .streamxr-pop .streamxr-site { transition: none; } }
+/* Open StreamXR Home: the main button, with room before the sites. */
+.streamxr-pop .streamxr-open-home { margin: 0 0 16px; }

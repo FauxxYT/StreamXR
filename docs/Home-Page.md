@@ -61,9 +61,11 @@ focus states, lines of about 60 characters, text that follows the browser's zoom
 
 1. [x] Quick troubleshooting in a shared file (nothing visible changes): 0.101.20, checked
    on YouTube (`src/streamxr/ui/troubleshoot.js`).
-2. [ ] The toolbar popup: built in 0.101.21 (`src/streamxr/home/action-popup.*`), to check;
-   its Open StreamXR Home button comes with step 3.
-3. [ ] Home on the desktop: status, troubleshooting, sites, the first-run welcome.
+2. [x] The toolbar popup: 0.101.21 to 0.101.22, works (`src/streamxr/home/action-popup.*`);
+   its Open StreamXR Home button came with step 3.
+3. [ ] Home on the desktop: status, troubleshooting, sites, the first-run welcome: built in
+   0.101.23 (`src/streamxr/home/home.*`, `home-ui.*` shared with the popup, `background.js`),
+   to check.
 4. [ ] Test VR on Home (the shell with the placeholder screen and a panel).
 5. [ ] Start VR when a site opens (Skip Helper users), by message; the address mark removed.
 6. [ ] Docs: design-choices, Future-Plans, ARCHITECTURE, README (Get started, privacy, the
