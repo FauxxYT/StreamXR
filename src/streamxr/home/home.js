@@ -33,6 +33,9 @@
       </section>
       <section aria-labelledby="streamxr-sites-title">
         <h2 id="streamxr-sites-title">${esc(t('home.sites'))}</h2>
+        ${ui.CROSS_PAGE_VR ? `<label class="streamxr-switch"><span>${esc(t('home.enterOnOpen'))}</span>
+          <input type="checkbox" role="switch" class="streamxr-enter-box" ${ui.enterOnOpen() ? 'checked' : ''}><i></i></label>
+        <div class="streamxr-switch-note streamxr-enter-note"></div>` : ''}
         ${ui.sitesHtml()}
       </section>
       <footer class="streamxr-version">${version ? esc(t('home.version', { version })) : ''}</footer>
@@ -47,6 +50,16 @@
     });
   }
   ui.wireSites(root, false);
+  // "Enter VR when a site opens", and its note (what opening a site will do: by itself with
+  // the Skip Helper, a key press or click without it, or nothing when off), checked again
+  // whenever the page comes back into view (the Skip Helper may have been installed since).
+  // (hidden for now with the rest of cross-page VR: home-ui.js CROSS_PAGE_VR)
+  const enterBox = root.querySelector('.streamxr-enter-box'), enterNote = root.querySelector('.streamxr-enter-note');
+  if (enterBox) {
+    enterBox.addEventListener('change', () => { ui.setEnterOnOpen(enterBox.checked); ui.renderEnterNote(enterNote); });
+    ui.renderEnterNote(enterNote);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) ui.renderEnterNote(enterNote); });
+  }
 
   // Test VR: the real shell with Home's provider (home-provider.js: the logo on the screen,
   // the controls panel, a "Your setup" panel), started right inside the click (WebXR needs
@@ -59,6 +72,10 @@
   const setIdle = () => { label.textContent = t('home.testVr'); testBtn.disabled = !headsetFound; };
   testBtn.addEventListener('click', () => {
     if (ns.xrSession.isActive()) { ns.xrSession.end(); return; }
+    startVr();
+  });
+  // Start Test VR (inside a click or key press: VR needs that real input).
+  function startVr() {
     msg.hidden = true;
     testBtn.disabled = true;
     ns.xrSession.start(ns.homeProvider, ns.formats.DEFAULT, s => {
@@ -74,9 +91,47 @@
         trouble.open = true;
         setIdle();
       });
-  });
-  ui.watch(root, ({ diag }) => {
+  }
+
+  // Opened with ?vr=1 ("Enter Dashboard in VR" in the toolbar popup): a full-page layer (the
+  // same as on a site opened from here: popup.css .streamxr-enter-layer) saying "Getting VR
+  // ready…" until a headset is found, then "Press any key or click anywhere to enter VR": that
+  // input starts VR here (Chrome needs real input in this page). Esc cancels. The address
+  // loses ?vr so a reload doesn't bring it back.
+  let vrLayer = null;
+  if (ui.CROSS_PAGE_VR && new URLSearchParams(location.search).has('vr')) {   // (hidden for now)
+    history.replaceState(null, '', location.pathname + (welcome ? '?welcome=1' : ''));
+    vrLayer = document.createElement('div');
+    vrLayer.className = 'streamxr-enter-layer';
+    vrLayer.setAttribute('role', 'dialog');
+    vrLayer.innerHTML = `<div class="streamxr-enter-card">${ns.gogglesIcon.standalone()}<b>${esc(t('auto.getting'))}</b><span>${esc(t('home.vrLayerNote'))}</span></div>`;
+    document.body.appendChild(vrLayer);
+    const closeLayer = () => {
+      if (!vrLayer) return;
+      vrLayer.remove(); vrLayer = null;
+      window.removeEventListener('keydown', onLayerInput, true);
+      window.removeEventListener('pointerdown', onLayerInput, true);
+    };
+    function onLayerInput(e) {
+      if (!vrLayer) return;
+      e.preventDefault(); e.stopPropagation();
+      if (e.type === 'keydown' && e.key === 'Escape') { closeLayer(); return; }
+      if (!headsetFound || ns.xrSession.isActive()) return;
+      closeLayer();
+      startVr();
+    }
+    window.addEventListener('keydown', onLayerInput, true);
+    window.addEventListener('pointerdown', onLayerInput, true);
+  }
+
+  ui.watch(root, ({ state, diag }) => {
     headsetFound = !!diag.headsetFound;
     if (!ns.xrSession.isActive() && label.textContent === t('home.testVr')) testBtn.disabled = !headsetFound;
+    // (the layer's line: ready once a headset is found; what's wrong once it's clear there's none)
+    if (vrLayer) {
+      const b = vrLayer.querySelector('b');
+      const text = headsetFound ? t('auto.ready') : state === 'looking' ? t('auto.getting') : t('auto.noHeadset');
+      if (b.textContent !== text) b.textContent = text;
+    }
   });
 })(globalThis.__streamxr = globalThis.__streamxr || {});

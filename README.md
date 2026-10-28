@@ -160,6 +160,14 @@ glassy toolbars on each side:
 - The **Safe Zone**, how long each part waits before it **fades**, the **laser's
   steadiness**, the **keyboard layout** and the **language**.
 
+### 🏠 The StreamXR Dashboard
+A page of StreamXR's own, before any site is open: click StreamXR's button in Chrome's toolbar
+(its popup shows the headset's status and the sites too) → **Open StreamXR Dashboard**.
+- **Your headset:** whether it's ready, and **Quick troubleshooting** when it isn't.
+- **Test VR:** StreamXR's VR interface with nothing playing, to check your setup without any
+  site.
+- **Sites:** open YouTube from here; more sites are coming.
+
 ### 🌍 Speaks your language
 StreamXR's own words (buttons, menus, settings, the popup) come in **English** 🇺🇸 and
 **Español** 🇪🇸, and it picks your browser's language by default (you can switch in
@@ -183,6 +191,10 @@ their own websites do. That's it.
 - **No servers, no analytics, no tracking.** I don't collect anything, and there's nowhere for
   it to go.
 - **Your settings stay in your browser.**
+- **The StreamXR Dashboard and the toolbar popup** run on your PC: they check your headset
+  right there, and show each site's own icon, loaded from that site. A small background script
+  only opens the Dashboard once after you install StreamXR and opens sites when you pick
+  them. No new permissions.
 - **Copy details** (in the VR button's menu) copies troubleshooting info to your clipboard only
   when you click it, so you can paste it into a bug report if you want to: your browser and
   operating system versions, your graphics cards, whether a headset is found, headset and
@@ -191,8 +203,8 @@ their own websites do. That's it.
   unless you paste it somewhere yourself.
 - **The [Skip Helper](#-skipping-ads)** asks for Chrome's scary-sounding `debugger` permission
   because it's the only way to press YouTube's Skip button for real. It only works in YouTube
-  tabs, only presses Skip (and, in a test of starting VR by itself, StreamXR's own Enter VR
-  button), and lets go right away. It's optional and
+  tabs, only presses Skip (and StreamXR's own Enter VR button, only when StreamXR asks; that
+  feature is switched off for now), and lets go right away. It's optional and
   [short enough to read](skip-helper/service-worker.js) (about 110 lines).
 - It's all open source, so you don't have to take my word for it. 🙂
 
@@ -233,16 +245,20 @@ The full design story is in [docs/Materials-Redesign.md](docs/Materials-Redesign
    runs it from there, so don't delete it).
 2. **Install:** open `chrome://extensions`, turn on **Developer mode** (top right), click
    **Load unpacked** and pick the unzipped folder (the one with `manifest.json` inside).
-   Want to skip ads in VR? Load its `skip-helper` folder the same way
-   ([what it is](#-skipping-ads)).
+   The **StreamXR Dashboard** opens with a short welcome. Want to skip ads in VR? Load its
+   `skip-helper` folder the same way ([what it is](#-skipping-ads)).
 3. **Start SteamVR** on your PC.
 4. **Get the Steam Frame streaming:** in the headset, go to **Streaming Status**, find the PC
    that's running SteamVR, open the **Advanced** drop-down and pick **Stream VR without
    game**. Now the Frame is ready for StreamXR.
 5. **Then open Chrome.** ⚠️ Chrome only looks for a headset when it starts: if SteamVR
    wasn't running yet, close every Chrome window and open it again.
-6. **Click the 🥽 VR button** on YouTube: in the top bar next to **+ Create** (on any page),
-   or in a video's player. Then press **Enter VR**. That's it!
+6. **Check your setup (optional):** click StreamXR's button in Chrome's toolbar (pin it from
+   the 🧩 menu) → **Open StreamXR Dashboard** → **Test VR**. If something's wrong, the
+   Dashboard says what's most likely the problem.
+7. **Click the 🥽 VR button** on YouTube: in the top bar next to **+ Create** (on any page),
+   or in a video's player. Then press **Enter VR**. The first time, Chrome asks to use virtual
+   reality devices: choose **Allow while visiting the site**. That's it!
 
 No video playing yet? No problem: you'll see YouTube's logo on the big screen; pick
 something from **Explore**, **You** or **Search** right inside VR. 🍿
@@ -254,8 +270,10 @@ automatic.)
 
 ## 🔧 Quick troubleshooting
 
-VR won't start? Open the 🥽 VR button's popup: its **Quick troubleshooting** section shows the
-**most likely issue** on your PC, with a short checklist.
+VR won't start? Click StreamXR's button in Chrome's toolbar (or the 🥽 VR button's popup on
+YouTube): its **Quick troubleshooting** section shows the **most likely issue** on your PC,
+with a short checklist. The **StreamXR Dashboard** has it too, and **Test VR** checks your
+setup without any site.
 
 | If... | Try this |
 |---|---|

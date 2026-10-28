@@ -2,7 +2,7 @@
 
 One list of what's still open, gathered from the feature backlogs (`docs/features/`) and
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
-Last updated for 0.101.25.
+Last updated for 0.101.37.
 
 ## Top priority: before the first release
 
@@ -122,10 +122,11 @@ list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps 
    (`features/home-page.md`).
 10. [ ] **Commenting in VR** (large): writing comments and replies with the VR keyboard (posting,
     threads, typing into the Comments panel).
-11. [ ] **StreamXR Home** (the maintainer, 2026-10-28): a toolbar popup and a page of
+11. [x] **StreamXR Dashboard** ("Home" in the code; 0.101.20 to 0.101.37, works in the headset): a toolbar popup and a page of
     StreamXR's own (status, Quick troubleshooting, Test VR in the shell, the sites, a
     first-run welcome), so StreamXR shows from day one that more sites are coming
-    ([Home-Page.md](Home-Page.md)).
+    ([Home-Page.md](Home-Page.md)). Cross-page VR (entering VR on a page opened from it) is
+    built but hidden until it works without the Skip Helper.
 12. [ ] **Chrome Web Store release, StreamXR 1.0** (last: it waits on the rest): the store
     listing, the privacy questions (the README's "Your privacy" covers them), review.
 
@@ -224,7 +225,7 @@ desktop Chrome. To do:
   test first on a real server. WebXR needs HTTPS or localhost (a plain `http://192.168…`
   address blocks VR); Plex's video comes from the server's own address and needs CORS; Plex's
   free movies and live TV may be DRM.
-- [ ] **StreamXR Home** (now part of 1.0: Road to 1.0, item 11): the plan and its steps are
+- [x] **StreamXR Dashboard** (Road to 1.0, item 11; done, its cross-page VR hidden): the plan and its steps are
   in [Home-Page.md](Home-Page.md). Both checks passed (`tools/xr-check/`): VR works on an
   extension page (0.101.17), and a site tab opened from it can start VR by itself through the
   Skip Helper (0.101.18).

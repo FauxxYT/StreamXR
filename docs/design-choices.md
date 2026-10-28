@@ -274,14 +274,28 @@ even where they look like something to "fix".
   body does, inside room left above and below, so the scrollbar's ends stay clear of the
   rounded corners (0.101.13).
 - **StreamXR Home** (the maintainer, 2026-10-28; the plan: `docs/Home-Page.md`): a 1.0
-  item, to show from the start that more sites are coming. Named **StreamXR Home**. Opens
+  item, to show from the start that more sites are coming. Named **StreamXR Dashboard** for
+  users (renamed from "StreamXR Home", 0.101.35, the maintainer, 2026-10-28; the code and the
+  docs still call it Home: `src/streamxr/home/`, `docs/Home-Page.md`). Opens
   once when StreamXR is installed (a first-run welcome). Its **Test VR** runs the real
   StreamXR shell (the placeholder screen and a panel), not a simple test scene: more work,
   but it proves what works on Home and what doesn't. The **toolbar popup** has the full
   Quick troubleshooting as a folded section (besides status, Open Home and the sites).
-  **Start VR when a site opens** is in, for Skip Helper users only: a note says so, and the
-  option is enabled when the Skip Helper is installed, greyed out when it isn't. The
-  developer test page `tools/xr-check/` stays.
+  **Enter VR when a site opens** (a switch on Home, on by default; replaces "Skip Helper users
+  only, greyed out without it", the maintainer, 2026-10-28, after Test 3): with the Skip
+  Helper, VR starts by itself on the site; without it, the site's tab shows "Press any key or
+  click anywhere to enter VR" (any real key press or click starts VR; Esc cancels). Home and
+  the toolbar popup say which you'll get. Only for tabs StreamXR itself opened (its background
+  remembers them): no link can start VR. Controller buttons mapped to keys (Steam Input) would
+  work too, but aren't asked of users (too much setup). The developer test page
+  `tools/xr-check/` stays.
+  **All cross-page VR is hidden for now** (the switch above, Enter Dashboard in VR, the Sites
+  panel; the maintainer, 2026-10-28, 0.101.36): too clumsy without the Skip Helper; back once
+  VR carries over without it (`docs/Home-Page.md`, "Hidden for now"). **In VR on Home: a Sites panel** (the right side; 2026-10-28): each site, "Opens in VR";
+  picking one leaves Home's VR and enters VR on the site (as above). **The toolbar popup's
+  buttons**: **Open StreamXR Dashboard** (renamed from "Open StreamXR Home") and **Enter
+  Dashboard in VR** (opens Home asking for a key press or click to enter VR: a click in the
+  popup can't start VR in another tab, and the Skip Helper can't click on StreamXR's pages).
 - **Glass** (0.59.0): the panels show the video behind them, blurred, under a tint of the
   surface colour. On by default at 43% (settled in the headset, 0.60.0); Settings → Appearance
   (the tab after 2D Cinema, palette icon) has the switch and a live Tint slider (20-90%).

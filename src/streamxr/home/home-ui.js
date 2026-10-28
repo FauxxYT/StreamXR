@@ -2,12 +2,16 @@
 // behave the same: the headset's status line, the sites list (from ns.homeSites; nothing here
 // names a site), and Quick troubleshooting (troubleshoot.js) kept up to date from the
 // diagnostics, which run right on these pages (diagnostics.js check(): an extension page can
-// ask WebXR itself). Opening a site's tab needs no permission (chrome.tabs.create).
+// ask WebXR itself). Sites open through StreamXR's background (background.js), which remembers
+// when VR is meant (no permission needed).
 //
 //   ns.homeUi.statusHtml()          the status line (filled in by watch())
 //   ns.homeUi.sitesHtml()           the sites' rows, then a plain "More sites coming"
 //   ns.homeUi.troubleHtml()         Quick troubleshooting, folded (<details>)
 //   ns.homeUi.wireSites(root, close) makes the rows open their site (then close this page if `close`)
+//   ns.homeUi.openSite(site, vr, after)  opens a site in a new tab (VR meant if `vr`); Home's VR ends first
+//   ns.homeUi.enterOnOpen(), setEnterOnOpen(on)   "Enter VR when a site opens" (remembered)
+//   ns.homeUi.renderEnterNote(el)   fills el with what opening a site will do (Skip Helper or a key)
 //   ns.homeUi.watch(root, onState)  checks the headset again and again and fills root's status
 //                                   and troubleshooting; onState({ state, diag }) on each check,
 //                                   state 'looking' | 'ready' | 'problem' | 'none'
@@ -51,11 +55,60 @@
     root.querySelectorAll('.streamxr-site').forEach(btn => {
       btn.addEventListener('click', () => {
         const site = ns.homeSites.all().find(s => s.id === btn.dataset.site);
-        if (!site) return;
-        try { chrome.tabs.create({ url: site.url }); } catch (_) { window.open(site.url, '_blank', 'noopener'); }
-        if (close) window.close();
+        if (site) openSite(site, enterOnOpen(), () => { if (close) window.close(); });
       });
     });
+  }
+
+  // Open a site in a new tab, VR meant there if `vr`; then `after()`. Home's own VR session
+  // (Test VR) ends first: Chrome allows one at a time, and it would keep running in Home's tab
+  // and stop the site from entering VR. Through StreamXR's background (background.js), which
+  // remembers, for that tab only, that VR is meant; a plain new tab if it can't be reached.
+  function openSite(site, vr, after = () => {}) {
+    if (ns.xrSession && ns.xrSession.isActive && ns.xrSession.isActive()) ns.xrSession.end();
+    const plain = () => { try { chrome.tabs.create({ url: site.url }); } catch (_) { window.open(site.url, '_blank', 'noopener'); } };
+    try {
+      chrome.runtime.sendMessage({ type: 'streamxr-open-site', url: site.url, vr: !!vr }, res => {
+        if (chrome.runtime.lastError || !res || !res.ok) plain();
+        after();
+      });
+    } catch (_) { plain(); after(); }
+  }
+
+  // Cross-page VR: entering VR on a page opened from here (a site, or the Dashboard itself)
+  // without clicking its VR button: the "Enter VR when a site opens" switch and note, the
+  // popup's "Enter Dashboard in VR", the Sites panel in the Dashboard's VR. All built and
+  // working (0.101.29 to 0.101.35), but HIDDEN for now (the maintainer, 2026-10-28): without
+  // the Skip Helper it needs a key press or click on the new page, too clumsy for users. Back
+  // (true) once it works without the Skip Helper (docs/Home-Page.md, "Hidden for now").
+  const CROSS_PAGE_VR = false;
+
+  // "Enter VR when a site opens" (Home's switch; on unless switched off), remembered in this
+  // extension's own storage (Home and the toolbar popup share it). Always off while cross-page
+  // VR is hidden.
+  const ENTER_KEY = 'streamxr.home.enterOnOpen';
+  function enterOnOpen() { if (!CROSS_PAGE_VR) return false; try { return localStorage.getItem(ENTER_KEY) !== '0'; } catch (_) { return true; } }
+  function setEnterOnOpen(on) { try { localStorage.setItem(ENTER_KEY, on ? '1' : '0'); } catch (_) { /* storage blocked */ } }
+
+  // Is the Skip Helper installed (it then starts VR by itself on a site opened from here)? Its
+  // extension ID is fixed by its manifest's key (the same list as src/sites/youtube/ui/
+  // skip-helper.js). -> Promise of bool
+  const HELPER_IDS = ['dbfmdfbpdpphbjnjlembolnmhnicbicm'];
+  function helperInstalled() {
+    const rt = globalThis.chrome && chrome.runtime;
+    if (!rt || !rt.sendMessage) return Promise.resolve(false);
+    return Promise.all(HELPER_IDS.map(id => new Promise(resolve => {
+      try { rt.sendMessage(id, { type: 'streamxr-helper-ping' }, res => resolve(!rt.lastError && !!(res && res.ok))); }
+      catch (_) { resolve(false); }
+    }))).then(r => r.some(Boolean));
+  }
+
+  // The one-line note saying what opening a site will do: off; on with the Skip Helper (VR
+  // starts by itself); on without it (press any key or click on the site). Fills `el`.
+  function renderEnterNote(el) {
+    if (!CROSS_PAGE_VR) { el.textContent = ''; el.hidden = true; return Promise.resolve(); }   // (hidden for now)
+    if (!enterOnOpen()) { el.textContent = t('home.enterOff'); return Promise.resolve(); }
+    return helperInstalled().then(has => { if (enterOnOpen()) el.textContent = t(has ? 'home.enterHelper' : 'home.enterKey'); });
   }
 
   // Check the headset now and again, filling root's status line and Quick troubleshooting
@@ -97,5 +150,5 @@
     }
   }
 
-  ns.homeUi = { statusHtml, sitesHtml, troubleHtml, wireSites, watch, esc };
+  ns.homeUi = { statusHtml, sitesHtml, troubleHtml, wireSites, openSite, watch, esc, enterOnOpen, setEnterOnOpen, renderEnterNote, CROSS_PAGE_VR };
 })(globalThis.__streamxr = globalThis.__streamxr || {});

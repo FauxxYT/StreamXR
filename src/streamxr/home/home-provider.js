@@ -69,8 +69,29 @@
     }
     return { model, event };
   }
+  // Sites (the right side; Options style, a grid of choices): each site (ns.homeSites), "Opens
+  // in VR" under its name; picking one leaves this VR session and opens the site, VR meant
+  // there (home-ui.js openSite: it starts by itself with the Skip Helper, on a key press or
+  // click without it). "More sites coming" in the corner.
+  function sitesPanel() {
+    function model() {
+      const sites = ns.homeSites.all();
+      const m = { tabs: [{ id: 'sites', label: t('home.sites'), icon: 'smart_display' }], tab: 'sites', corner: t('home.moreSites'),
+        content: { kind: 'choices', page: 0, items: sites.map(s => ({ label: s.name, sub: t('home.vr.opensInVr'), on: false })) } };
+      return { model: m, key: `${ns.i18n.version()}|${sites.length}` };
+    }
+    function event(ev) {
+      if (ev.type !== 'choice') return;
+      const site = ns.homeSites.all()[+ev.value];
+      if (site && ns.homeUi) ns.homeUi.openSite(site, true);
+    }
+    return { model, event };
+  }
   const PANELS = [
     { id: 'setup', zone: 'left', label: () => t('home.vr.panelTab'), icon: 'info', style: 'info', size: 'standard', create: setupPanel, default: true },
+    // (the Sites panel: hidden for now with the rest of cross-page VR, home-ui.js CROSS_PAGE_VR)
+    ...(ns.homeUi && ns.homeUi.CROSS_PAGE_VR
+      ? [{ id: 'sites', zone: 'right', label: () => t('home.sites'), icon: 'smart_display', style: 'options', size: 'standard', create: sitesPanel, default: true }] : []),
     { id: 'settings', zone: 'controls', label: () => t('settings.title'), icon: 'settings', style: 'options', size: 'standard', create: settingsPanel },
   ];
 
@@ -111,5 +132,5 @@
   ns.homeProvider = provider;
   // In the site registry for this page (core/page/sites.js), so anything asking for the
   // page's site finds it; its host is the extension's own (chrome-extension://<id>).
-  ns.sites.register({ id: 'streamxr-home', name: 'StreamXR Home', hosts: [location.hostname], provider });
+  ns.sites.register({ id: 'streamxr-home', name: 'StreamXR Dashboard', hosts: [location.hostname], provider });
 })(globalThis.__streamxr = globalThis.__streamxr || {});

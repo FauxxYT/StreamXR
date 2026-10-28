@@ -1,5 +1,8 @@
 # StreamXR Home: the plan (for 1.0)
 
+Users see it as the **StreamXR Dashboard** (renamed in 0.101.35); in the code and these docs
+it's still "Home" (`src/streamxr/home/`, `home.html`, the `home.*` strings).
+
 A page StreamXR owns (`chrome-extension://…/home.html`) and a popup on its toolbar button, so
 StreamXR is usable before any site is open: check the headset, fix the setup, test VR, pick a
 site. Agreed with the maintainer on 2026-10-28; decisions in `docs/design-choices.md`. It's
@@ -50,6 +53,28 @@ message (`chrome.tabs.sendMessage`, no permission); StreamXR acts only on messag
 extension. This replaces Test 2's address mark (`#streamxr-autovr`), which any web page could
 link to: the mark is removed before the release.
 
+**Without the Skip Helper** (the maintainer, 2026-10-28; Test 3 showed a key press works): the
+site's tab, when opened from Home with VR meant, shows a full-page **"Press any key or click
+anywhere to enter VR"** layer: any real key press (the keyboard's space bar, found by touch
+with the headset on) or a click (e.g. through SteamVR's desktop view) starts VR right inside
+it. "Or click": after the SteamVR dashboard or taking the headset off, Chrome can lose keyboard
+focus, and only a click brings it back. Never shown on a normal visit. Home and the toolbar
+popup say which you'll get ("starts by itself" with the Skip Helper, "press any key" without).
+Chrome has no way to carry VR to the next page (no `sessiongranted`, no flag: checked in
+Chrome 156); mapping a controller button to a key (Steam Input) works too, but isn't asked of
+users.
+
+**Hidden for now** (the maintainer, 2026-10-28, 0.101.36): all **cross-page VR**, i.e.
+entering VR on a page opened from the Dashboard without clicking its VR button: the "Enter VR
+when a site opens" switch and its note (sites just open), the toolbar popup's "Enter
+Dashboard in VR", and the Sites panel in the Dashboard's VR. All built and working (0.101.29
+to 0.101.35), but without the Skip Helper it needs a key press or click on the new page, too
+clumsy for users. One switch brings it all back: `CROSS_PAGE_VR` in
+`src/streamxr/home/home-ui.js` (the background script, `auto-enter.js` and the Skip Helper's
+Enter VR click stay in place; nothing asks for them meanwhile). Bring it back once VR can
+carry over to the next page without the Skip Helper (watch WebXR's `sessiongranted` in
+Chrome; `docs/hardware.md`).
+
 **Look:** Material 3 Expressive like the popup (its color roles, dark or light with the
 system), following Android's desktop guides: a fixed-width layout, keyboard first, hover and
 focus states, lines of about 60 characters, text that follows the browser's zoom and font size.
@@ -66,13 +91,20 @@ focus states, lines of about 60 characters, text that follows the browser's zoom
 3. [x] Home on the desktop: status, troubleshooting, sites, the first-run welcome: 0.101.23,
    (`src/streamxr/home/home.*`, `home-ui.*` shared with the popup, `background.js`),
    works.
-4. [ ] Test VR on Home (the shell with the placeholder screen and a panel): built in 0.101.24
-   (`home-provider.js`; Home loads the shell's page scripts), to check in the headset. Home's
+4. [x] Test VR on Home (the shell with the placeholder screen and a panel): 0.101.24 to 0.101.25, works
+   (`home-provider.js`; Home loads the shell's page scripts). Home's
    VR settings (glass, Safe Zone, theme ...) are its own: an extension page keeps its own
    storage, apart from YouTube's. 0.101.25: Settings (the shell's tabs: 2D Cinema to Language)
    added after the first headset check; the shell's tab code is now in two places (YouTube's
    settings.js and home-provider.js): to share later, a shell Settings panel that a site adds its
    own tabs to.
-5. [ ] Start VR when a site opens (Skip Helper users), by message; the address mark removed.
-6. [ ] Docs: design-choices, Future-Plans, ARCHITECTURE, README (Get started, privacy, the
-   Skip Helper), CHANGELOG.
+5. [x] Start VR when a site opens, by message: by itself with the Skip Helper, the "press any key
+   or click" layer without; the address mark removed: built in 0.101.29 (`background.js`,
+   `src/streamxr/ui/auto-enter.js`, Home's switch) to 0.101.32 (logo refresh, Esc countdown), works.
+5b. [x] **Added after step 5 (0.101.34, works; hidden in 0.101.36 with the rest of cross-page VR):** the Sites panel in Home's VR (right side), the toolbar
+   popup's "Open StreamXR Dashboard" (renamed) and "Enter Dashboard in VR" (Home with ?vr=1:
+   a key press or click enters VR), to check.
+6. [x] Docs (0.101.37): design-choices, Future-Plans, ARCHITECTURE, README (Get started, privacy, the
+   Skip Helper, the Dashboard), CHANGELOG; the temporary "WebXR check" link removed from the
+   toolbar popup (0.101.37) and Test 2's address mark (0.101.29). Left for the release: the
+   README's What's new and the version.

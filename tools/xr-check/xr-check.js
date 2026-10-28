@@ -46,30 +46,45 @@
     }
   }
 
-  // Enter VR (from the button's click): a WebGL canvas made XR-compatible, a 'local' space,
-  // and a frame loop clearing to a hue that turns once every 6 s. Ends on the trigger or
-  // after 15 s.
+  // Test 3 (a key press brings VR back): while `rearm`, each session's end arms the page to
+  // enter VR again on the next real key press or click (any, anywhere), e.g. a controller
+  // button mapped to a keyboard key in Steam Input. `waiting`: armed, nothing pressed yet.
+  let rearm = false, waiting = false, round = 0, endedAt = 0, inVr = false;   // (inVr: a session is running)
+
+  // Enter VR (from a click or, in Test 3, a key press): a WebGL canvas made XR-compatible, a
+  // 'local' space, and a frame loop clearing to a hue that turns once every 6 s. Ends on the
+  // trigger or after 15 s.
   async function enter() {
     enterBtn.disabled = true;
     let session;
     try {
       session = await navigator.xr.requestSession('immersive-vr', { optionalFeatures: ['local-floor'] });
+      inVr = true;
       log('requestSession: OK, session started');
       status('VR started. Look in the headset.', 'ok');
     } catch (err) {
       log(`requestSession FAILED: ${err.name}: ${err.message}`);
       status(`Couldn’t start VR (${err.name}). Copy the results and send them.`, 'bad');
       enterBtn.disabled = false;
+      // (re-armed only when no session runs: a press while in VR isn't a new try)
+      if (rearm && !inVr) { waiting = true; endedAt = performance.now(); log('Test 3: armed again (try another press)'); }
       return;
     }
     let endedBy = 'ended by SteamVR or the browser', frames = 0;
     session.addEventListener('visibilitychange', () => log(`visibility: ${session.visibilityState}`));
     session.addEventListener('select', () => { endedBy = 'trigger pressed'; session.end(); });
     session.addEventListener('end', () => {
+      inVr = false;
       log(`session ended (${endedBy}); frames drawn: ${frames}`);
+      enterBtn.disabled = false;
+      if (rearm) {
+        waiting = true; endedAt = performance.now();
+        log(`Test 3: armed; page focused: ${document.hasFocus()}; waiting for a key press or click`);
+        status('Test 3: out of VR. Press any key (e.g. the space bar) or click to go back in.', '');
+        return;
+      }
       if (frames > 0) status(`It works: VR ran on this page (${frames} frames). Copy the results and send them.`, 'ok');
       else status('VR started but drew nothing. Copy the results and send them.', 'bad');
-      enterBtn.disabled = false;
     });
     const timer = setTimeout(() => { endedBy = '15 s timeout'; session.end().catch(() => {}); }, 15000);
     session.addEventListener('end', () => clearTimeout(timer));
@@ -103,12 +118,52 @@
   }
 
   enterBtn.addEventListener('click', enter);
-  // Test 2: open YouTube's home page with the mark StreamXR looks for
-  // (src/sites/youtube/ui/skip-helper.js autoEnterTest): it then asks the Skip Helper to click
-  // its Enter VR target for real. No video, so VR starts on the placeholder screen.
+
+  // Test 3: start (the first session from this click), then every real key press or click
+  // while armed re-enters VR right inside its event (that input is what lets VR start). Logs
+  // what arrived (which key, from what), keys pressed while in VR, and the page's focus.
+  const t3Btn = document.getElementById('t3'), t3Stop = document.getElementById('t3stop');
+  t3Btn.addEventListener('click', () => {
+    // (once running, Start does nothing: a Space or Enter on it while it had focus restarted
+    // the test before; and it gives up focus so later key presses go to the test itself)
+    t3Btn.blur();
+    if (rearm) return;
+    rearm = true; round = 0; t3Stop.disabled = false;
+    log('Test 3: started');
+    enter();
+  });
+  t3Stop.addEventListener('click', () => {
+    rearm = false; waiting = false; t3Stop.disabled = true;
+    log('Test 3: stopped');
+    status('Test 3 stopped. Copy the results and send them.', '');
+  });
+  function onInput(e) {
+    if (!rearm) return;
+    if (e.target === t3Btn || e.target === t3Stop || (e.target.closest && e.target.closest('#t3, #t3stop'))) return;
+    const what = e.type === 'keydown' ? `key "${e.key}" (code ${e.code})` : `${e.type} (${e.pointerType || 'mouse'})`;
+    if (!waiting) { log(`Test 3: ${what} while not armed (in VR or starting): ignored`); return; }
+    // (a Space or Enter would also press the focused button, starting VR twice: not this time)
+    if (e.type === 'keydown') e.preventDefault();
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    waiting = false; round++;
+    log(`Test 3, round ${round}: ${what}, trusted: ${e.isTrusted}, ${((performance.now() - endedAt) / 1000).toFixed(1)} s after VR ended; entering VR`);
+    enter();
+  }
+  window.addEventListener('keydown', onInput, true);
+  window.addEventListener('pointerdown', onInput, true);
+  window.addEventListener('focus', () => { if (rearm) log('Test 3: page got focus'); });
+  window.addEventListener('blur', () => { if (rearm) log('Test 3: page lost focus'); });
+  // Test 2: open YouTube's home page the way StreamXR Home does with "Enter VR when a site
+  // opens" on (through StreamXR's background, src/streamxr/home/background.js): StreamXR's
+  // page there (src/streamxr/ui/auto-enter.js) asks the Skip Helper to click its Enter VR
+  // target for real, or asks for a key press or click without it. No video, so VR starts on
+  // the placeholder screen.
   document.getElementById('auto').addEventListener('click', () => {
-    log('Test 2: opened YouTube with #streamxr-autovr');
-    window.open('https://www.youtube.com/#streamxr-autovr', '_blank');
+    try {
+      chrome.runtime.sendMessage({ type: 'streamxr-open-site', url: 'https://www.youtube.com/', vr: true }, res => {
+        log(`Test 2: ${!chrome.runtime.lastError && res && res.ok ? `opened YouTube (tab ${res.tabId}) with VR meant` : 'couldn’t ask StreamXR to open YouTube'}`);
+      });
+    } catch (err) { log(`Test 2: couldn’t ask StreamXR (${err.message})`); }
   });
   document.getElementById('copy').addEventListener('click', async e => {
     const btn = e.currentTarget;

@@ -9,4 +9,18 @@ html, body { margin: 0; background: var(--m3-surfaceContainer, #1f1f1f); }
   box-shadow: none;
 }
 /* Open StreamXR Home: the main button, with room before the sites. */
-.streamxr-pop .streamxr-open-home { margin: 0 0 16px; }
+.streamxr-pop .streamxr-open-home { margin: 0 0 8px; }
+/* (room before the sites when "Enter Dashboard in VR" is hidden) */
+.streamxr-pop .streamxr-open-home + .streamxr-sites-label { margin-top: 16px; }
+/* Enter Dashboard in VR: an outlined pill under it, the headset beside its words. */
+.streamxr-pop .streamxr-home-vr {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; height: 40px; margin: 0 0 16px;
+  border: 1px solid var(--m3-outline, #8f8f8f); border-radius: 20px; background: none;
+  color: var(--m3-onSurface, #e6e1e1); font: 500 14px Roboto, Arial, sans-serif; cursor: pointer;
+  transition: border-radius 0.12s ease-out;
+}
+.streamxr-pop .streamxr-home-vr svg { width: 24px; height: 24px; color: var(--m3-brand, #ff0033); }
+.streamxr-pop .streamxr-home-vr:hover { background: rgba(255, 255, 255, 0.08); }
+.streamxr-pop .streamxr-home-vr:active { border-radius: 12px; }
+.streamxr-pop .streamxr-home-vr:focus-visible { outline: 3px solid var(--m3-brand, #ff0033); outline-offset: 2px; }

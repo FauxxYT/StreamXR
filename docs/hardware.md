@@ -22,6 +22,22 @@ Steam Frame with SteamVR, desktop Chrome). For supporting other hardware, see th
   desktop window only, as for Skip ad). Chrome's VR permission
   for YouTube had been granted weeks before, so whether a first-time prompt gets in the way
   is still to see.
+- **A key press brings VR back, no Skip Helper** (Test 3, `tools/xr-check/`, 0.101.26,
+  2026-10-28): after a session ended, the physical keyboard's space bar (or a click) started a
+  new one; every press arrived as real input (`isTrusted`). The page kept keyboard focus when
+  a session simply ended (`document.hasFocus()` true), but lost it after the session went
+  `hidden` (the SteamVR dashboard, or the headset off): then a key press went nowhere until a
+  click brought focus back. So StreamXR's fallback says "press any key **or click**". Mapping
+  a controller button to a key (Steam Input) would work the same, but is too much setup to
+  ask of users.
+- **Chrome 156's WebXR flags** (`chrome://flags`, "xr", 2026-10-28): WebXR Layers
+  (`#webxr-projection-layers`, Windows and Android), WebXR/WebGPU Binding (needs Layers),
+  WebXR Incubations, WebXR Internals Debugging Page (`#webxr-internals`: a developer page
+  for debugging WebXR), Plane Detection, Mesh Detection, Force WebXR Runtime, Hand
+  Anonymization Strategy. **No in-VR navigation flag**, and `'onsessiongranted' in
+  navigator.xr` is false: moving to another page still needs a fresh click or key press.
+  Layers are off by default; behind the flag they could make the video sharper later
+  (drawn straight by the compositor instead of resampled), but users won't turn on flags.
 - **Chrome on Windows ignores WebGPU's `powerPreference`** (crbug.com/369219127; it warns in
   the console and gives the same card for "high-performance" and "low-power"), so WebGPU can't
   tell a two-GPU laptop's cards apart there. Copy details' `gpus` isn't asked on Windows

@@ -55,7 +55,8 @@
   h1 svg { width: 32px; height: 32px; flex: none; color: var(--brand); }
   .lede { margin: 0 0 20px; color: var(--on-surface-variant); }
   h2 { margin: 28px 0 6px; padding-top: 20px; border-top: 1px solid rgba(127, 127, 127, 0.25); font: 600 18px/1.3 Roboto, Arial, sans-serif; }
-  #auto { background: var(--surface-container-high); color: var(--on-surface); }
+  #auto, #t3 { background: var(--surface-container-high); color: var(--on-surface); }
+  #t3stop { background: none; color: var(--on-surface); border: 1px solid var(--outline); }
   /* Steps: a short numbered list. */
   ol { margin: 0 0 20px; padding-left: 20px; color: var(--on-surface-variant); }
   li { margin: 2px 0; }
@@ -113,17 +114,34 @@
 
   <!-- Test 2: VR started on a page opened from here, with no click (the Skip Helper's real click). -->
   <h2>Test 2: start VR by itself</h2>
-  <p class="lede">Can VR start on a page opened from here, with no click of yours? Needs the
-    Skip Helper (1.4.0 or newer) installed and reloaded.</p>
+  <p class="lede">Can VR start on a page opened from here, as the StreamXR Dashboard opens sites? With
+    the Skip Helper installed, by itself; without it, on any key press or click.</p>
   <ol>
     <li>With SteamVR running and the headset streaming, press the button below.</li>
-    <li>YouTube opens in a new tab. Within a few seconds VR should start there by itself
-      (Chrome may ask to use VR devices the first time on YouTube).</li>
-    <li>On the YouTube tab: open the VR button's popup, then Details, and copy
-      <b>lastStart</b>. Also send the console's <b>[streamxr] auto Enter VR</b> lines (F12).</li>
+    <li>YouTube opens in a new tab with "Getting VR ready…", then VR starts by itself (Skip
+      Helper) or after "Press any key or click anywhere to enter VR".</li>
+    <li>On the YouTube tab: open the VR button's popup, then Details, and copy <b>lastStart</b>.</li>
   </ol>
   <div class="actions">
     <button id="auto">Open YouTube and start VR</button>
+  </div>
+
+  <!-- Test 3: a real key press (the keyboard's, or a controller button mapped to a key in
+       Steam Input) starts VR again with no Skip Helper (works: 0.101.27, the space bar). -->
+  <h2>Test 3: a key press brings VR back</h2>
+  <p class="lede">Chrome lets a page start VR from any real key press or click. Does one bring
+    VR back from inside the headset, with no Skip Helper?</p>
+  <ol>
+    <li>Keep this page as the window in front.</li>
+    <li>Press <b>Start Test 3</b>: VR starts with the changing color.</li>
+    <li>Press the trigger to leave VR (or wait 15 seconds). Then, still in the headset, press
+      the space bar (or any key): VR should come back by itself. Repeat a few times; also try
+      once after opening and closing the SteamVR dashboard.</li>
+    <li>Press <b>Stop</b>, then <b>Copy results</b> (above) and send them.</li>
+  </ol>
+  <div class="actions">
+    <button id="t3">Start Test 3</button>
+    <button id="t3stop" disabled>Stop</button>
   </div>
 </main>
 <script src="xr-check.js"></script>

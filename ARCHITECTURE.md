@@ -141,13 +141,14 @@ src/streamxr/                  STREAMXR (shell, part 2): the video player on the
     goggles-icon.js            the VR headset icon (Material Symbols' Head Mounted Device) for the VR buttons and popup
     panel.js                   "Watch in VR" popup (format picker, Enter VR, help, Quick troubleshooting, Details)
     troubleshoot.js            Quick troubleshooting and Copy details, shared (the popup, the toolbar popup, Home)
+    auto-enter.js              on a site opened from Home with VR meant: VR by itself (the site's helper) or "press any key or click"
     popup.css                  its styles (Material 3; colours from the site's palette, asked of the page world)
   home/                        StreamXR Home and the toolbar popup (extension pages; docs/Home-Page.md)
     sites.js                   the sites they list (each site adds its entry from src/sites/<site>/home/)
     home.html, .js, .css       StreamXR Home: the first-run welcome, the headset, Quick troubleshooting, the sites
     home-ui.js, .css           what Home and the toolbar popup share: the status line, the sites' rows, troubleshooting
     action-popup.html, .js, .css   the toolbar popup: headset status, Open StreamXR Home, the sites, Quick troubleshooting
-    background.js              opens Home once on install (with its welcome)
+    background.js              opens Home once on install (with its welcome); opens sites for Home and the popup, remembering when VR is meant
     home-provider.js           Home's side of the VR shell for Test VR: no video, StreamXR's logo, a "Your setup" panel
 src/sites/youtube/             YOUTUBE
   page/

@@ -25,6 +25,8 @@
       const k = Math.min(W * 0.42 / lw, H * 0.3 / lh), w = lw * k, h = lh * k;
       g.drawImage(logo, (W - w) / 2, (H - h) / 2, w, h);
     }
+    // (which logo it shows, to tell a later look apart: its image's address, '' with none)
+    cv.logoKey = lw && lh ? String(logo.src || (logo.toDataURL ? logo.toDataURL() : '1')) : '';
     return cv;
   }
 
@@ -106,6 +108,17 @@
       // null): that picture on the screen instead (posterCanvas), uploaded once per view.
       let poster = { key: '', canvas: null, for: null };
       placeholderCanvas(provider).then(c => { placeholder = c; }, () => {});
+      // Looked at again 1.5, 4 and 8 s in: a page that just opened (e.g. VR started by itself
+      // from StreamXR Home) may not have drawn its logo yet, or may still show its plain one
+      // (YouTube switches to its Premium logo a moment later). A different logo replaces it.
+      for (const ms of [1500, 4000, 8000]) {
+        setTimeout(() => {
+          if (!active || active.session !== session) return;
+          placeholderCanvas(provider).then(c => {
+            if (c.logoKey && (!placeholder || c.logoKey !== placeholder.logoKey)) { placeholder = c; placeholderFor = null; }
+          }, () => {});
+        }, ms);
+      }
       let lastHead = null;                    // where you were (and faced) at the last recenter: { position, yaw, pitch }
 
       // Formats offered in the VR panel, named in the interface language (asked each frame,

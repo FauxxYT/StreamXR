@@ -200,3 +200,25 @@
 /* Opened from a button outside the player (the top bar's VR button): fixed in the window,
    just under that button, its right edge in line with the button's (panel.js sets top / right). */
 .streamxr-pop.streamxr-pop-fixed { position: fixed; bottom: auto; max-height: calc(100vh - 80px); z-index: 3000; }
+
+/* Entering VR on a page opened from StreamXR Home (auto-enter.js): a dim layer over the whole
+   page with a card in the middle: the headset in the brand colour, one large line ("Press any
+   key or click anywhere to enter VR"), a small note. Above the page, below StreamXR's
+   see-through Enter VR target. */
+.streamxr-enter-layer {
+  position: fixed; inset: 0; z-index: 2147483646;
+  display: grid; place-items: center;
+  background: rgba(0, 0, 0, 0.72);
+  cursor: pointer;
+}
+.streamxr-enter-card {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  max-width: min(560px, calc(100vw - 48px)); padding: 32px 36px;
+  border-radius: 28px;
+  background: var(--m3-surfaceContainer, #1f1f1f); color: var(--m3-onSurface, #e6e1e1);
+  font: 14px/1.45 Roboto, Arial, sans-serif; text-align: center;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
+}
+.streamxr-enter-card svg { width: 64px; height: 64px; color: var(--m3-brand, #ff0033); }
+.streamxr-enter-card b { font: 600 24px/1.3 Roboto, Arial, sans-serif; }
+.streamxr-enter-card span { color: var(--m3-onSurfaceVariant, #c4c4c4); }
