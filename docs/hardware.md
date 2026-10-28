@@ -7,6 +7,15 @@ Steam Frame with SteamVR, desktop Chrome). For supporting other hardware, see th
 ## Steam Frame
 
 - **Start SteamVR before Chrome:** Chromium only looks for a headset when it launches.
+- **SteamVR must be the OpenXR runtime:** on Windows, Chromium reaches headsets through the
+  active OpenXR runtime, which other VR software (Quest Link, Virtual Desktop, ...) can take
+  over; SteamVR games still work then (they use SteamVR's own API), but the browser finds no
+  headset (`isSessionSupported('immersive-vr')` is false with no error). SteamVR → Settings →
+  OpenXR sets it back. Suspected behind three "no headset" / "couldn't start" reports after
+  v0.101.7 (not confirmed yet); Details now also shows the browser, the GPU, the last Enter
+  VR error and the browser's device-change events (0.101.8), the graphics cards WebGPU sees,
+  whether WebXR is the browser's own (not an extension's stand-in), a headset timeline and
+  StreamXR's recent warnings with ids removed (0.101.14).
 - **Streaming with no game:** the Frame is ready for WebXR once it streams SteamVR itself: in
   the headset, **Streaming Status** → the PC running SteamVR → **Advanced** → **Stream VR
   without game**.

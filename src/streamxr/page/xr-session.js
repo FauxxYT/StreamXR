@@ -70,7 +70,11 @@
     try {
       const ar = !!opts.passthrough && await navigator.xr.isSessionSupported('immersive-ar').catch(() => false);
       session = await navigator.xr.requestSession(ar ? 'immersive-ar' : 'immersive-vr', { optionalFeatures: ['local-floor'] });
-    } catch (err) { source.stop(); throw err; }
+    } catch (err) {
+      source.stop();
+      try { err.streamxrStep = 'requestSession'; } catch (_) { /* a frozen error */ }   // (for Details: where it failed)
+      throw err;
+    }
     // See-through (passthrough): where nothing is drawn, the room shows instead of black.
     const seeThrough = !!session.environmentBlendMode && session.environmentBlendMode !== 'opaque';
     active = { session };
