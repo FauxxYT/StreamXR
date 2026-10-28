@@ -1,0 +1,27 @@
+<!doctype html>
+<!-- StreamXR's toolbar popup (manifest.json "action"; docs/Home-Page.md): the headset's status,
+     the sites (opening one), and Quick troubleshooting folded, opened by itself when something's
+     wrong. Built by action-popup.js; styled by the site popup's popup.css (the same panel)
+     plus action-popup.css. Scripts in load order, plain (no modules); extension pages can't
+     run inline scripts. -->
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../ui/popup.css">
+<link rel="stylesheet" href="action-popup.css">
+</head>
+<body>
+<div class="streamxr-pop streamxr-pop-action"></div>
+<script src="../../core/ui/shared/i18n.js"></script>
+<script src="../../core/ui/shared/strings-en.js"></script>
+<script src="../../core/ui/shared/strings-es.js"></script>
+<script src="../ui/shared/strings-en.js"></script>
+<script src="../ui/shared/strings-es.js"></script>
+<script src="../ui/goggles-icon.js"></script>
+<script src="../ui/troubleshoot.js"></script>
+<script src="../../core/page/diagnostics.js"></script>
+<script src="sites.js"></script>
+<script src="../../sites/youtube/home/site.js"></script>
+<script src="action-popup.js"></script>
+</body>
+</html>

@@ -140,8 +140,11 @@ src/streamxr/                  STREAMXR (shell, part 2): the video player on the
   ui/                          isolated world
     goggles-icon.js            the VR headset icon (Material Symbols' Head Mounted Device) for the VR buttons and popup
     panel.js                   "Watch in VR" popup (format picker, Enter VR, help, Quick troubleshooting, Details)
-    troubleshoot.js            Quick troubleshooting and Copy details, shared (the popup; StreamXR Home next)
+    troubleshoot.js            Quick troubleshooting and Copy details, shared (the popup, the toolbar popup, Home)
     popup.css                  its styles (Material 3; colours from the site's palette, asked of the page world)
+  home/                        StreamXR Home and the toolbar popup (extension pages; docs/Home-Page.md)
+    sites.js                   the sites they list (each site adds its entry from src/sites/<site>/home/)
+    action-popup.html, .js, .css   the toolbar popup: headset status, the sites, Quick troubleshooting
 src/sites/youtube/             YOUTUBE
   page/
     youtube-data.js            plumbing: text helpers, watch-page data, /youtubei/v1 requests,
@@ -171,6 +174,8 @@ src/sites/youtube/             YOUTUBE
     topbar-button.js           the VR button in YouTube's top bar (next to "+ Create"), on every page
     skip-helper.js             talks to the optional Skip Helper extension
     main.js                    isolated-world entry: keeps the button in the page
+  home/
+    site.js                    YouTube's entry on StreamXR Home and the toolbar popup (name, address, color)
 icons/                         the extension's icons, 16-128 px (tools/icons/make-icons.html)
 skip-helper/                   SEPARATE optional extension: presses YouTube's Skip ad button
 third_party/material-symbols/  the Material Symbols license (Apache 2.0), for symbols.js

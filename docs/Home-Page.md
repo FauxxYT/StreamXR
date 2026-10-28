@@ -38,7 +38,12 @@ its own.
    existing plain scripts with `<script>` tags (no modules, no build step); both script
    "worlds" run in its one page, so the bridge's events work as they are.
 4. **Sites on Home** come from a small entry each in `src/sites/<site>/` (name, address,
-   icon), so nothing outside the site folders names a site.
+   icon), so nothing outside the site folders names a site. A site's icon is loaded from the
+   site itself when shown (e.g. YouTube's `favicon.ico`), never copied into StreamXR's files
+   (its logo isn't ours to redistribute); a plain mark on its color stands in if it can't load.
+5. **"No headset" waits a moment**: a newly opened page doesn't see the headset for a few
+   seconds (Chrome answers "none", then reports its devices changed), so Home and the popup
+   say "Looking for a headset…" until Chrome reports in, or for 8 s (0.101.22).
 
 **Starting VR by itself, safely:** Home opens the site tab itself and then sends that tab a
 message (`chrome.tabs.sendMessage`, no permission); StreamXR acts only on messages from its own
@@ -54,9 +59,10 @@ focus states, lines of about 60 characters, text that follows the browser's zoom
 
 ## Order of work (each step checked in the headset before the next)
 
-1. [ ] Quick troubleshooting in a shared file (nothing visible changes): built in 0.101.20
-   (`src/streamxr/ui/troubleshoot.js`), to check in the headset.
-2. [ ] The toolbar popup.
+1. [x] Quick troubleshooting in a shared file (nothing visible changes): 0.101.20, checked
+   on YouTube (`src/streamxr/ui/troubleshoot.js`).
+2. [ ] The toolbar popup: built in 0.101.21 (`src/streamxr/home/action-popup.*`), to check;
+   its Open StreamXR Home button comes with step 3.
 3. [ ] Home on the desktop: status, troubleshooting, sites, the first-run welcome.
 4. [ ] Test VR on Home (the shell with the placeholder screen and a panel).
 5. [ ] Start VR when a site opens (Skip Helper users), by message; the address mark removed.

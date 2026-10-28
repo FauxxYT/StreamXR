@@ -40,6 +40,15 @@
     'popup.details': 'Details',
     'popup.format': 'Format',
     'popup.controls': 'Controls',
+    // StreamXR Home and its toolbar popup (src/streamxr/home/). home.name is the product's name.
+    'home.name': 'StreamXR',
+    'home.statusChecking': 'Looking for a headset…',
+    'home.statusReady': 'Headset ready',
+    'home.statusNone': 'No headset found: see Quick troubleshooting',
+    'home.statusProblem': 'Something’s wrong: see Quick troubleshooting',
+    'home.sites': 'Sites',
+    'home.openSite': 'Open {site}',
+    'home.moreSites': 'More sites coming',
     // Quick troubleshooting: the most likely issue (from what Details shows), then a short checklist.
     'trouble.title': 'Quick troubleshooting',
     'trouble.likely': 'Most likely issue',

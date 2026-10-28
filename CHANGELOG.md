@@ -6,6 +6,31 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.101.22
+
+### Changed
+- **The toolbar popup says "Looking for a headset…" first**: a newly opened page doesn't
+  see the headset for a few seconds (Chrome answers "none", then reports its VR devices
+  changed), so it said "No headset found" with Quick troubleshooting open before turning
+  green. Now "no headset" only counts once Chrome has reported in, or after 8 s; meanwhile
+  the status is neutral, troubleshooting stays folded, and it checks every 0.5 s.
+- **Sites show their own icon** in the toolbar popup (YouTube's, on a light tile), loaded
+  from the site itself, not copied into StreamXR; the plain mark on the site's color shows
+  if it can't load. A site's entry names its icon (`icon`).
+
+## 0.101.21
+
+### Added
+- **A popup on StreamXR's toolbar button** (StreamXR Home, step 2; `docs/Home-Page.md`): the
+  headset's status ("Headset ready", or what's wrong), **Open YouTube** (a new tab), a plain
+  "More sites coming", and **Quick troubleshooting** folded, opened by itself when something's
+  wrong, with its Copy details. It checks the headset itself, again every 2 s while open.
+  No new permission (`manifest.json` `action` popup; `chrome.tabs.create`). Its Open StreamXR
+  Home button comes with Home (step 3).
+- For other sites: `ns.homeSites` (`src/streamxr/home/sites.js`), where each site adds its
+  entry (name, address, color) from `src/sites/<site>/home/site.js`, so Home and the popup
+  never name a site.
+
 ## 0.101.20
 
 ### Changed
