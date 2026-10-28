@@ -11,16 +11,26 @@
   right: 12px;
   bottom: 60px;
   z-index: 1000;
-  width: 312px;
-  padding: 16px;
+  width: 344px;
+  /* (room above and below the scrolling body so its scrollbar ends clear of the 28 px
+     rounded corners; little on the right, where the scrollbar stands) */
+  padding: 20px 4px 20px 16px;
   border-radius: 28px;
   background: var(--m3-surfaceContainer, #1f1f1f);
   color: var(--m3-onSurface, #e6e1e1);
   font: 14px/1.45 Roboto, Arial, sans-serif;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
   box-sizing: border-box;
-  /* Never taller than the player (which clips) or the window; scroll everything inside. */
+  /* Never taller than the player (which clips) or the window: the panel itself doesn't
+     scroll, its body (everything in it) does, inside the padding. */
   max-height: min(calc(100% - 72px), calc(100vh - 96px));
+  display: flex;
+  flex-direction: column;
+}
+.streamxr-pop .streamxr-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-right: 8px;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
@@ -142,6 +152,27 @@
 .streamxr-pop .streamxr-help div { color: var(--m3-onSurface, #e6e1e1); font-weight: 500; }
 .streamxr-pop .streamxr-help ul { margin: 2px 0 0; padding-left: 16px; }
 .streamxr-pop .streamxr-help li { margin: 1px 0; }
+/* Quick troubleshooting: the most likely issue (in the error colours when something's wrong),
+   then the numbered checklist, in the same card as Controls. */
+.streamxr-pop .streamxr-trouble p { margin: 2px 0 8px; padding: 6px 8px; border-radius: 10px; color: var(--m3-onSurface, #e6e1e1); }
+.streamxr-pop .streamxr-trouble p.problem { background: var(--m3-errorContainer, #8c1d18); color: var(--m3-onErrorContainer, #f9dedc); }
+.streamxr-pop .streamxr-trouble p[hidden] { display: none; }
+.streamxr-pop .streamxr-trouble ol { margin: 2px 0 0; padding-left: 18px; }
+.streamxr-pop .streamxr-trouble li { margin: 3px 0; }
+.streamxr-pop .streamxr-trouble a { color: var(--m3-primary, #a8c7fa); text-decoration: underline; }
+/* (its last check's Copy details: a small outlined pill in the line, like Details' own) */
+.streamxr-pop .streamxr-trouble-copy {
+  height: 24px;
+  padding: 0 10px;
+  border: 1px solid var(--m3-outline, #8f8f8f);
+  border-radius: 12px;
+  background: none;
+  color: var(--m3-onSurface, #e6e1e1);
+  font: 500 11.5px Roboto, Arial, sans-serif;
+  vertical-align: middle;
+  cursor: pointer;
+}
+.streamxr-pop .streamxr-trouble-copy:hover { background: rgba(255, 255, 255, 0.08); }
 /* Details: the Copy details / Save video frame buttons as outlined pills, then the JSON. */
 .streamxr-pop .streamxr-tools { display: flex; gap: 8px; margin-top: 6px; }
 .streamxr-pop .streamxr-tools button {

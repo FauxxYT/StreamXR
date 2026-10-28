@@ -7,7 +7,7 @@ taking your headset off. 🎬✨
 **Works with:**<br> 🖥️ Windows · 🌐 Chrome · 🎮 SteamVR · 🥽 Valve Steam Frame · 🥽 Meta Quest 2 (reported by [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack)) · ([full requirements](#-what-you-need))<br> 
 **Jump to:** [Get started](#-get-started-in-a-minute) ·
 [Quick troubleshooting](#-quick-troubleshooting) · [Controls](#-controls) ·
-[Your privacy](#-your-privacy) · [What's new](#-whats-new-in-v01017) · [Roadmap](#-roadmap) · [How you can help](#-how-you-can-help)
+[Your privacy](#-your-privacy) · [What's new](#-whats-new-in-v010116) · [Roadmap](#-roadmap) · [How you can help](#-how-you-can-help)
 
 > **Early access** (version 0.101). Free and open source, forever. It already works every day; it's
 > still growing fast, and your feedback shapes what comes next.
@@ -16,37 +16,30 @@ taking your headset off. 🎬✨
 > Bug fixes, updates and support for more headsets and sites are coming, so please be
 > patient with me. 😭🙏
 
-## ✨ What's new in v0.101.7
+## ✨ What's new in v0.101.16
 
-The latest release, in short (every version's details are in the [changelog](CHANGELOG.md)):
+A quick update for anyone whose headset isn't found, or whose VR won't start (every
+version's details are in the [changelog](CHANGELOG.md)):
 
-- 🧭 **Explore's new tabs:** **Live**, **Gaming**, **Music**, **Hype**, **Courses**, **Podcasts**
-  and **Memberships**, each with its sections as pills (Gaming's game shelves too, signed in),
-  and "View all" behind each one. Podcasts show with their square covers.
-- 📃 **See a playlist before playing it:** click a playlist card anywhere (Explore, You,
-  Search, Channel, Up Next) to open its page: details, **Play all**, **Shuffle**, **Save**, and
-  its videos as a list. Up Next's playlist tab shows the playing playlist the same way.
-- 📋 **Add to queue:** point at a video card and click the queue button on its thumbnail; the
-  queue gets its own tab in Up Next and plays after the current video. **Clear** empties it,
-  and **Save** keeps it as a new playlist (named on the VR keyboard) or adds it to Watch later
-  or one of yours.
-- ℹ️ **Info cards:** a **Cards** button on the controls panel lists the video's cards, and
-  each card's teaser pops up above it at the right moment (click it to watch).
-- 🔚 **End screens:** when a video's end screen starts, Up Next shows its suggested videos,
-  playlists and channels, and **Autoplay** (now a button on the controls panel) shows what's up
-  next with a countdown.
-- 🧲 **Follow your head:** turn it on in Settings → 2D Cinema, and on regular videos the screen
-  and panels glide back in front of you when you turn (with adjustable delay and speed).
-  Thanks to [u/boatOV](https://www.reddit.com/user/boatOV) for asking for it!
-- ⭐ **Channel memberships:** members-only videos say so (and show their thumbnail), a
-  channel's **Membership** tab shows its levels and perks, and on channels you're a member of:
-  your level, perks, members-only videos and posts.
-- 🎛️ **A wider controls panel** with room for the new buttons, and **Settings tabs that
-  scroll** when they have more than fits.
-- 🩹 **Fixes:** no more seams on 360° cubemap videos (thanks to
-  [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack) and
-  [@MinuteHistoryX](https://x.com/MinuteHistoryX) for reporting them!), the Channel panel's
-  Subscribe button, and many smaller ones.
+- 🩺 **Quick troubleshooting in the VR button's popup:** it shows the **most likely issue** on
+  your PC (for example "the browser can't see SteamVR", "SteamVR wouldn't start VR" or
+  "another extension is standing in for the browser's VR"), then a short checklist of what to
+  try, with links to a WebXR test page and to opening an issue. It opens by itself when
+  something's wrong.
+- 🧩 **The most common fix, spelled out:** Chrome reaches your headset through the **OpenXR
+  runtime**, and other VR software (Quest Link, Virtual Desktop and others) can take it over.
+  In SteamVR, **Settings → OpenXR → set SteamVR as the OpenXR runtime**, then quit the browser
+  fully and open it again.
+- 📋 **Better bug reports:** **Copy details** (now right in Quick troubleshooting too) adds
+  your browser and graphics cards, how the last Enter VR went, and StreamXR's recent warnings
+  (with video, playlist and channel IDs removed), so problems can be fixed without a long
+  back-and-forth.
+- 🩹 **Fixes:** "Couldn't start VR" now names the kind of error, and the popup is a little
+  wider with its scrollbar kept inside its rounded corners.
+
+Missed **v0.101.7**? It brought Explore's new tabs, playlist pages, Add to queue, info cards,
+end screens, Follow your head and channel memberships: see the
+[changelog](CHANGELOG.md#01017).
 
 ## 💡 Why I made this
 
@@ -190,8 +183,12 @@ their own websites do. That's it.
 - **No servers, no analytics, no tracking.** I don't collect anything, and there's nowhere for
   it to go.
 - **Your settings stay in your browser.**
-- **Copy details** (in the VR button's menu) only copies headset and video-format info to your
-  clipboard when you click it, so you can paste it into a bug report if you want to.
+- **Copy details** (in the VR button's menu) copies troubleshooting info to your clipboard only
+  when you click it, so you can paste it into a bug report if you want to: your browser and
+  operating system versions, your graphics cards, whether a headset is found, headset and
+  video-format info, and StreamXR's own recent warnings (with video, playlist and channel IDs
+  removed). It never includes what you watch or your account, and it never leaves your PC
+  unless you paste it somewhere yourself.
 - **The [Skip Helper](#-skipping-ads)** asks for Chrome's scary-sounding `debugger` permission
   because it's the only way to press YouTube's Skip button for real. It only works in YouTube
   tabs, only presses Skip, and lets go right away. It's optional and
@@ -256,9 +253,14 @@ automatic.)
 
 ## 🔧 Quick troubleshooting
 
+VR won't start? Open the 🥽 VR button's popup: its **Quick troubleshooting** section shows the
+**most likely issue** on your PC, with a short checklist.
+
 | If... | Try this |
 |---|---|
 | 🚫 **"No VR headset found"** / Enter VR is greyed out | Chrome only looks for a headset when it starts. Start **SteamVR**, get the Steam Frame streaming (**Streaming Status** → your PC → **Advanced** → **Stream VR without game**), then close **every** Chrome window and open Chrome again. |
+| 🧩 **Still "No VR headset found"** with SteamVR running | Chrome reaches your headset through the **OpenXR runtime**, and other VR software (Quest Link, Virtual Desktop and others) can take it over. In SteamVR, open **Settings → OpenXR** and set **SteamVR as the OpenXR runtime**. Then quit Chrome fully: turn off **Settings → System → Continue running background apps when Chrome is closed** (in Edge, also **Startup boost**), close every window and open it again. |
+| ⚠️ **"Couldn't start VR: InvalidStateError…"** | The headset was found but SteamVR wouldn't start a session. Close any other tab or browser that's in VR, check the headset for a SteamVR prompt or error, then restart SteamVR and try again. |
 | 🔍 **No VR button on YouTube** | Make sure StreamXR is turned on in `chrome://extensions`, then reload the YouTube tab. |
 | 🔄 **Just updated StreamXR and nothing changed** | Reload your YouTube tab too: an open tab keeps the old version until it's reloaded. |
 | 🌀 **A video looks stretched, doubled or split into squares** | Pick another format in the popup before entering VR, or with the **Format** button on the controls panel. |

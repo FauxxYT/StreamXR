@@ -6,6 +6,109 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.101.16
+
+The release after v0.101.7: everything from 0.101.8 to here (help for a headset that isn't
+found or VR that won't start). The README's "What's new" describes it.
+
+### Added
+- **Copy details in Quick troubleshooting**: its last check reads "Still stuck? [Copy details]
+  and open an issue on GitHub", so a report needs no trip into Details (which stays as its own
+  section, with Save video frame and the live readout).
+
+## 0.101.15
+
+### Changed
+- **Quick troubleshooting's checklist**: check 5 is for any PC with two graphics cards (most
+  gaming laptops, and desktops with built-in graphics too), not only laptops; check 6 adds
+  turning off other VR or WebXR extensions (like the WebXR API Emulator).
+
+## 0.101.14
+
+### Added
+- **More in Copy details:**
+  - `gpus`: the computer's high-performance and low-power graphics cards as WebGPU sees them,
+    and `twoGpus` when they're different cards (filled in a moment after the first check).
+  - `xrNative`: whether the page's WebXR is the browser's own, or another extension's
+    stand-in (e.g. the WebXR API Emulator).
+  - `timeline`: the first headset check (how long after the page loaded, and whether a
+    headset was there), and when one was first found and last lost.
+  - `warnings`: StreamXR's last 10 warnings and errors (its `[streamxr]` console lines and
+    uncaught errors from its own files), with video, playlist and channel ids and every
+    URL's query replaced by "…".
+- **Quick troubleshooting uses them**: "Another extension is standing in for the browser's
+  VR" when WebXR isn't the browser's own; the graphics card line says for sure when the
+  browser draws with the low-power card of two (and stays quiet on a one-card PC); a headset
+  found earlier and gone now counts as "went away".
+
+## 0.101.13
+
+### Fixed
+- **The popup's scrollbar ends sat on its rounded corners**: the popup itself no longer
+  scrolls; its contents scroll inside it, with room above and below, so Chrome's own thin
+  scrollbar (arrows and all) stays clear of the corners.
+
+## 0.101.12
+
+### Changed
+- **The popup's scrollbar is Chrome's own thin one again** (as before 0.101.9): the custom
+  scrollbar of 0.101.9 to 0.101.11 looked worse on YouTube.
+
+## 0.101.11
+
+### Changed
+- **Quick troubleshooting's "can't see SteamVR"** now says that other VR software (Quest
+  Link, Virtual Desktop) can take over the OpenXR runtime, without reading the checklist.
+
+### Fixed
+- **The popup's scrollbar arrows still sat on its rounded corners** on YouTube: YouTube's own
+  scrollbar color is inherited, which makes Chrome ignore the popup's scrollbar style; the
+  popup now resets it.
+
+## 0.101.10
+
+### Changed
+- **Quick troubleshooting** has a new check: other VR software (Quest Link, Virtual Desktop…)
+  can take over OpenXR even while closed, and how to set SteamVR back. The **WebXR samples**
+  and **open an issue on GitHub** are now links (opening in a new tab).
+- **The popup is a little wider** (344 px, was 312).
+
+### Fixed
+- **The popup's scrollbar arrows stuck out past its rounded corners**: the arrows are gone
+  and the bar sits further in from the edge.
+
+## 0.101.9
+
+### Added
+- **Quick troubleshooting in the popup** (between Controls and Details, opened by itself when
+  something's wrong): a **Most likely issue** worked out from the Details (the browser can't
+  see SteamVR; the headset came and went; SteamVR wouldn't start VR; the browser blocked it;
+  plus a line when the browser draws with a built-in graphics card), then a short checklist:
+  SteamVR before the browser, SteamVR as the OpenXR runtime, quitting the browser fully, two
+  graphics cards, one VR app at a time, the WebXR samples, and opening an issue. It updates
+  every second while open.
+
+### Changed
+- **"No VR headset found" is shorter** and points to Quick troubleshooting for the rest.
+
+### Fixed
+- **The popup's scrollbar stuck out past its rounded corners**: it's now a thin rounded bar
+  inside them.
+
+## 0.101.8
+
+### Added
+- **More in the popup's Details** (Copy details), to find out why a browser sees no headset:
+  `browser` (its brands and full versions, e.g. Chrome / Edge / Vivaldi, and the OS),
+  `gpu` (the graphics card WebGL draws with), `lastStart` (how the last Enter VR went: the
+  error's kind, message, where it failed and when), `deviceChanges` (the browser's "VR
+  devices changed" events) and `vrActive`. With no headset found, `headset` says what to try
+  instead of "enter VR first".
+- **"Couldn't start VR" names the error's kind** (e.g. `InvalidStateError: …`).
+- **The "No VR headset found" message** and the README's Quick troubleshooting now cover
+  setting SteamVR as the OpenXR runtime, quitting a browser that keeps running in the
+  background, and what to do about "Couldn't start VR: InvalidStateError".
+
 ## 0.101.7
 
 The release after v0.93.3: everything from 0.93.4 to here. The README's "What's new" describes

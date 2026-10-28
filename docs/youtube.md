@@ -210,17 +210,17 @@ The formats are in `src/streamxr/shared/formats.js`; YouTube's detection is the 
   from VR.
 
 - Desktop YouTube sends **one eye only** for most 3D videos (checked 2026-10-17 with frames
-  from the page's `<video>`): the "Left Right Test in VR 180" (`kle719aQvsc`, 1920×2160) and
-  a 3D VR180 tour (`KJ-_LUrGhYE`, 3840×2160, 2160s at most on desktop) hold the left eye
+  from the page's `<video>`): the "Left Right Test in VR 180" (1920×2160) and
+  a 3D VR180 tour (3840×2160, 2160s at most on desktop) hold the left eye
   only. **Some arrive side by side** (both eyes in one frame): "VR180 Left/Right"
-  (`ccU0imlNp5Q`, 3840×2160, LEFT | RIGHT). Nothing in the player response tells them apart
+  (3840×2160, LEFT | RIGHT). Nothing in the player response tells them apart
   (all `MESH`, `vrConfig.partialSpherical`, no stereo field). The Quest app gets both eyes
   and higher resolutions, most likely as a VR client; StreamXR doesn't bypass the page's
   player to get them ([decisions/0002](decisions/0002-site-player-only.md)).
-- 8K reaches desktop where YouTube offers it, e.g. an 8K 360° video (`tR8ZtyhSDYw`):
+- 8K reaches desktop where YouTube offers it, e.g. an 8K 360° video:
   `4320s`, 7680×3840, AV1 (itag 571).
 - Formats: `flat` (cinema screen), `flatsbs` (the cinema screen in 3D side by side: 0.93.0;
-  e.g. "Demo 3D[SBS]", `u0hmMt5znX0`, a RECTANGULAR 16:9 frame, each eye squeezed into half),
+  e.g. "Demo 3D[SBS]", a RECTANGULAR 16:9 frame, each eye squeezed into half),
   `360mono`, `360eac`, `180mono`, `180sbs` (3D side by side,
   picked by hand: 0.89.0).
 - "MESH" 360° videos use an **equi-angular cubemap**, 3×2: top row left | front | right,
@@ -234,16 +234,16 @@ The formats are in `src/streamxr/shared/formats.js`; YouTube's detection is the 
   (metadataBadgeRenderer.label on older cards, badgeViewModel.badgeText on lockups);
   `badgeKind()` reads them first, the title only as a fallback. Up Next's merge keeps a
   180 / 360 kind from either the page text or the data.
-- VR180 test video: "how TV screens made watching movies worse" by Noodle (`wlUV6y5TUko`):
+- VR180 test video: "how TV screens made watching movies worse" by Noodle:
   no "180" in the title, 16:9 below 2160p.
 
 ## Movies
 
 - **YouTube's movies are copy-protected, the free ones too** (checked 2026-10-18, signed out:
-  "Matilda", `_F8kU1vb_rk`, "Free with ads", PG): playable on the page, but every format
+  "Matilda", "Free with ads", PG): playable on the page, but every format
   carries `drmFamilies` (WIDEVINE, PLAYREADY, FAIRPLAY) and `streamingData.drmParams`, so
   StreamXR can't draw them in VR (as Netflix: ARCHITECTURE.md "Known limits"). An R-rated one
-  ("Life", `SosdXyFcL7c`) asks signed-out viewers to sign in to confirm their age.
+  ("Life") asks signed-out viewers to sign in to confirm their age.
 - In search results a movie is a `movieRenderer` with `badges` of
   `metadataBadgeRenderer`s: the price as style `BADGE_STYLE_TYPE_YPC` ("Free with ads", or a
   price), the rating and "CC" as `BADGE_STYLE_TYPE_MEDIA` ("PG", "TV-G", "R", "Unrated");
@@ -541,7 +541,7 @@ snippets); read by `youtube-chat.js` since 0.79.0:
 
 ## Audio, channels, storyboards
 
-- Audio tracks (checked on OLEG ZAYANOV, `DbKDX-AyJIQ`: "English (US)" auto-dub = default,
+- Audio tracks (checked on a video by OLEG ZAYANOV: "English (US)" auto-dub = default,
   "Russian original"): the player's track id starts with the stream format ("251;..."), so
   tracks are named by their language id ("ru.4"); setAudioTrack switches live.
 - Featured video: a channel's trailer is shown to NON-subscribers; subscribers only see a
