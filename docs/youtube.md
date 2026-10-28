@@ -259,7 +259,9 @@ Probed 2026-10-28, signed in (it was unreachable through the API before: `featur
   `videoDetails`, else the overlay's `reelTitleText`; the vertical `thumbnail`), Shorts already
   listed skipped. In practice only a page's first entry carries `videoDetails` (the maintainer,
   0.101.48): the others are filled when shown, from `player` `{ videoId }`'s `videoDetails` (0.101.49).
-## Movies
+- **A Short ending on the watch page triggers YouTube's own autoplay** to a related Short of its
+  choosing (seen 0.101.52: it won over StreamXR opening the feed's next one at the end). The Shorts
+  run hands over 0.35 s before the end instead (0.101.53, `provider/shorts-run.js`).## Movies
 
 - **YouTube's movies are copy-protected, the free ones too** (checked 2026-10-18, signed out:
   "Matilda", "Free with ads", PG): playable on the page, but every format

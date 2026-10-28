@@ -87,6 +87,7 @@
     'yt.recs.endScreen': 'End screen',
     'yt.recs.playlist': 'Playlist · {index} / {count}',
     'yt.recs.queue': 'Queue · {index} / {count}',
+    'yt.recs.shorts': 'Shorts',                     // the next Shorts of the Shorts feed, while one of them plays
     'yt.queue.clear': 'Clear',
     'yt.queue.clearTitle': 'Clear the queue?',
     'yt.queue.clearText': 'Its videos leave the queue; the video playing now keeps playing.',

@@ -6,6 +6,33 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.101.53
+
+### Fixed
+- **Shorts: a random Short played instead of the next one in Up Next**: when a Short ended,
+  YouTube's own autoplay jumped to a related Short of its choosing, and won over the feed's next
+  one. A Short of a run now hands over to the next one just before it ends (0.35 s), so YouTube's
+  autoplay never starts (its countdown is cancelled if it does); not within 1.5 s of a Short
+  opening (the player can still report the last one's time), and not with Loop on.
+- **Up Next's Shorts tab showed no "+" on its page count**: the Queue style now takes `more`
+  ("1 / 4+", as Explore), set while the Shorts feed can load more.
+
+## 0.101.52
+
+### Added
+- **Up Next shows the next Shorts**: while Shorts picked in Explore → Shorts play one after another,
+  Up Next has a Shorts tab (it opens when such a run starts and goes when it ends) listing the
+  coming Shorts on tall cards, with their titles, channels and views; it reads more of the feed
+  as you page. Picking one plays it, and the run carries on from there. The Queue style gained the
+  tall layout (`shape: 'tall'`, `perPageFor`).
+
+## 0.101.51
+
+### Added
+- **Shorts play one after another**: a Short picked in Explore → Shorts, when it ends, opens the
+  next one in the feed if YouTube's Autoplay is on (else it stays paused), reading more of the
+  feed as it goes. Opening any other video ends the run. New `shorts-run.js` (YouTube provider).
+
 ## 0.101.50
 
 ### Fixed

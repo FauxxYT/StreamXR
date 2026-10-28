@@ -77,6 +77,7 @@
     'yt.recs.endScreen': 'Pantalla final',
     'yt.recs.playlist': 'Lista · {index} / {count}',
     'yt.recs.queue': 'Cola · {index} / {count}',
+    'yt.recs.shorts': 'Shorts',
     'yt.queue.clear': 'Borrar',
     'yt.queue.clearTitle': '¿Borrar la cola?',
     'yt.queue.clearText': 'Sus videos salen de la cola; el video que se reproduce sigue.',

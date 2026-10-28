@@ -480,6 +480,7 @@
     const extras = ns.ytVr.extras.create();
 
     function state() {
+      ns.ytVr.shortsRun.tick();                                    // (a Short of the Shorts feed ended: the next one, shorts-run.js)
       const l = liveNow(), pl = playlist(), details = page.details(), title = youtube.title(), channel = youtube.channel();
       ns.ytVr.queue.setQueued(pl && pl.queue ? pl.items.map(it => it.id).filter(Boolean) : []);   // (the cards' Add to queue checks)
       const q = youtube.quality() || { current: null, levels: [] };

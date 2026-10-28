@@ -86,14 +86,15 @@
   // "Coming soon"; with `blocked`, the key of a line saying why it can't be, e.g. Movies & TV:
   // copy-protected, so it can't play in VR). card (optional): how an item becomes a card (default: a video card);
   // pick(host, item) (optional): what clicking one does (default: play it). shape (optional): the
-  // cards' layout ('tall': 9:16, for Shorts; default: square when most items are, else 16:9). chips: 'home'
+  // cards' layout ('tall': 9:16, for Shorts; default: square when most items are, else 16:9). run (optional):
+  // the list plays on, one after another (the Shorts feed: shorts-run.js). chips: 'home'
   // (the Home feed's topic chips, from its pager), 'sorts' (the choices its pager offers:
   // p.sorts: [{ text (its id), label (optional), selected }], e.g. sorts or sections), or a
   // fixed list of chip ids (named
   // 'yt.channel.<id>'), the first one chosen at first.
   const EXPLORE = [
     { id: 'home', icon: 'home', load: (a, chip) => a.browseHome(chip), chips: 'home' },
-    { id: 'shorts', icon: 'smart_display', load: a => a.browseShorts(), shape: 'tall' },
+    { id: 'shorts', icon: 'smart_display', load: a => a.browseShorts(), shape: 'tall', run: true },
     { id: 'music', icon: 'music_note', load: (a, chip) => sectionList(a, 'music', chip), chips: 'sorts' },
     { id: 'movies', icon: 'movie', soon: true, blocked: 'yt.browse.moviesBlocked' },   // (copy-protected: can't play in VR)
     { id: 'hype', icon: 'local_fire_department', load: (a, chip) => sectionList(a, 'hype', chip), chips: 'sorts' },
@@ -264,7 +265,10 @@
         // a creator card: their channel, on its Membership tab when its offer can be asked for
         else if (it && it.type === 'channel') showChannel(host, it, it.offerParams ? { tab: 'membership', offerParams: it.offerParams } : {});
         else if (ns.ytVr.playlist.opens(it)) playlist.open(it);           // a playlist: its page, in place of the list
-        else if (it) actions.openVideo(it.id, it.playlistId || current().list);
+        else if (it) {
+          if (current().run) ns.ytVr.shortsRun.start(pager, it.id);       // (the Shorts feed: the next one follows: shorts-run.js)
+          actions.openVideo(it.id, it.playlistId || current().list);
+        }
       }
     }
 

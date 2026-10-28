@@ -2,7 +2,7 @@
 
 One list of what's still open, gathered from the feature backlogs (`docs/features/`) and
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
-Last updated for 0.101.50.
+Last updated for 0.101.53.
 
 ## Top priority: before the first release
 
@@ -52,7 +52,7 @@ until another headset or two has been tried and the unverified items are cleared
 2. Done: Add to queue (0.100.0 to 0.101.7; free on desktop, not Premium; how the page's queue is driven:
    `features/video-page.md`).
 3. Explore page tabs: Live, Gaming, Music, Hype, Courses, Podcasts and Memberships done (0.94.0 to
-   0.96.6); Shorts being built (the tab 0.101.48); Movies & TV explains why it can't be (0.101.45).
+   0.96.6); Shorts done (0.101.48 to 0.101.53); Movies & TV explains why it can't be (0.101.45).
 4. Done: Live chat (0.79.0 to 0.88.1), YouTube Premium (1080p Premium 0.91.0, Jump ahead 0.92.3).
 5. Commenting in-headset (writing comments and replies with the VR keyboard).
 6. Chrome Web Store release as **1.0** (the maintainer, 2026-10-17: once the YouTube features are
@@ -118,10 +118,10 @@ list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps 
    the maintainer, 2026-10-19): probe how desktop YouTube's queue can be driven, then
    a way to add from cards, the queue in Up Next, and what plays when a video ends
    (`features/video-page.md`).
-9. [ ] **Explore's other tabs** (large): Shorts being built in steps (`features/home-page.md`: the tab on
-   tall cards 0.101.48; next, the next Short when one ends, then the next Shorts in Up Next; Learning deferred). Movies & TV:
-   not built, as every film is copy-protected; its tabs explain that instead of "Coming soon" (0.101.45)
-   (`features/home-page.md`).
+9. [x] **Explore's other tabs**: Shorts done and working in the headset (`features/home-page.md`:
+   the tab on tall cards 0.101.48, the next Short when one ends 0.101.51, the next Shorts in Up Next
+   0.101.52 to 0.101.53). Movies & TV: not built, as every film is copy-protected; its tabs explain
+   that instead of "Coming soon" (0.101.45). Learning deferred.
 10. [ ] **Commenting in VR** (large): writing comments and replies with the VR keyboard (posting,
     threads, typing into the Comments panel).
 11. [x] **StreamXR Dashboard** ("Home" in the code; 0.101.20 to 0.101.37, works in the headset): a toolbar popup and a page of
@@ -170,8 +170,8 @@ movies are copy-protected, so they can't play in VR yet: `features/video-page.md
   with it). 1080p Premium (0.91.0) and Jump ahead (0.92.3) work in the headset. **Add to queue** is its own item
   (not Premium on desktop).
 - [x] **Explore's "Coming Soon" tabs**: Live, Gaming, Music, Hype, Courses, Podcasts,
-  Memberships (0.94.0 to 0.96.6, work in the headset, released in v0.101.7); Shorts, Movies &
-  TV, Learning need more first (Road to 1.0, item 9; `features/home-page.md`).
+  Memberships (0.94.0 to 0.96.6, work in the headset, released in v0.101.7); Shorts (0.101.48 to
+  0.101.53, works in the headset); Movies & TV explains it can't play; Learning deferred.
 - [x] **News** (0.94.1, works in the headset): its own tabs as pills (Top stories, Sports,
   Entertainment, Business ...) on Explore's News tab (Road to 1.0, item 6).
 - [x] **Subscriptions** (0.90.0 to 0.92.2, work in the headset): the Channels tab with its sort pills, the bell on the Channel
