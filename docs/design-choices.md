@@ -273,6 +273,15 @@ even where they look like something to "fix".
   (a custom one looked worse on YouTube, 0.101.12); the popup itself doesn't scroll, its
   body does, inside room left above and below, so the scrollbar's ends stay clear of the
   rounded corners (0.101.13).
+- **StreamXR Home** (the maintainer, 2026-10-28; the plan: `docs/Home-Page.md`): a 1.0
+  item, to show from the start that more sites are coming. Named **StreamXR Home**. Opens
+  once when StreamXR is installed (a first-run welcome). Its **Test VR** runs the real
+  StreamXR shell (the placeholder screen and a panel), not a simple test scene: more work,
+  but it proves what works on Home and what doesn't. The **toolbar popup** has the full
+  Quick troubleshooting as a folded section (besides status, Open Home and the sites).
+  **Start VR when a site opens** is in, for Skip Helper users only: a note says so, and the
+  option is enabled when the Skip Helper is installed, greyed out when it isn't. The
+  developer test page `tools/xr-check/` stays.
 - **Glass** (0.59.0): the panels show the video behind them, blurred, under a tint of the
   surface colour. On by default at 43% (settled in the headset, 0.60.0); Settings → Appearance
   (the tab after 2D Cinema, palette icon) has the switch and a live Tint slider (20-90%).

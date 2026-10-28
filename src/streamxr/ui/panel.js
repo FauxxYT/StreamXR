@@ -78,73 +78,6 @@
     return null;
   }
 
-  // Quick troubleshooting's checklist links: the WebXR samples (a quick test of the PC's VR
-  // setup without StreamXR) and the project's new-issue page (a fork changes ISSUES_URL).
-  const SAMPLES_URL = 'https://immersive-web.github.io/webxr-samples/';
-  const ISSUES_URL = 'https://github.com/FauxxYT/StreamXR/issues/new/choose';
-  const CHECK_LINKS = { 7: [SAMPLES_URL, 'trouble.samplesLink'], 8: [ISSUES_URL, 'trouble.issueLink'] };
-  // One checklist item as HTML: its text escaped, its {link} (if any) a link opening in a new
-  // tab, and its {copy} (if any) a small Copy details button (wired up in open()).
-  function checkHtml(n) {
-    const link = CHECK_LINKS[n], LINK = '\u0001', COPY = '\u0002';
-    let text = esc(t(`trouble.check${n}`, { link: LINK, copy: COPY }));
-    if (link) text = text.replace(LINK, `<a href="${link[0]}" target="_blank" rel="noopener noreferrer">${esc(t(link[1]))}</a>`);
-    return text.replace(COPY, `<button class="streamxr-trouble-copy">${esc(t('popup.copy'))}</button>`);
-  }
-
-  // Quick troubleshooting's "Most likely issue", worked out from what Details shows (the
-  // page world's diagnostics, diagnostics.js): { text, problem (something's wrong), gpu (a
-  // line about the graphics card, or '') }. First match wins, from "StreamXR can't run" down
-  // to "VR started, then failed".
-  function likelyIssue(d) {
-    const last = d.lastStart && typeof d.lastStart === 'object' ? d.lastStart : null;
-    const failed = last && !last.ok;
-    const issue = (key, vars) => ({ text: t(key, vars), problem: true });
-    let out;
-    if (d.timedOut) out = issue('trouble.noResponse');
-    else if (!d.webxrAllowedHere) out = issue('trouble.blocked', { site: siteName() });
-    else if (d.xrError === 'navigator.xr missing') out = issue('trouble.noWebxr');
-    else if (d.xrNative && d.xrNative.native === false) out = issue('trouble.xrReplaced');   // another extension's WebXR in its place
-    else if (d.xrError) out = issue('trouble.xrError', { error: d.xrError });
-    // No headset: never seen since the page loaded (no runtime at all), or seen then gone.
-    else if (!d.headsetFound) out = issue((d.timeline && d.timeline.foundAfter != null) || (d.deviceChanges && d.deviceChanges.count > 0) ? 'trouble.lost' : 'trouble.noRuntime');
-    // Found, but the last Enter VR failed: by the error's kind.
-    else if (failed && last.name === 'InvalidStateError') out = issue('trouble.busy');
-    else if (failed && last.name === 'NotSupportedError') out = issue('trouble.lost');
-    else if (failed && /^(SecurityError|NotAllowedError)$/.test(last.name)) out = issue('trouble.blockedStart');
-    else if (failed) out = issue('trouble.failed', { error: `${last.name}: ${last.message}` });
-    else out = { text: t(last ? 'trouble.okStarted' : 'trouble.ok'), problem: false };
-    // With a problem, a word on the graphics card the browser draws with when it's the wrong
-    // one on a two-GPU computer (the headset uses the other). Known for sure when WebGPU saw
-    // two cards (d.gpus.twoGpus) and the drawing one is the low-power card's maker; without
-    // that answer, guessed from the name (Intel, or AMD's "Radeon Graphics" without a model).
-    const r = d.gpu && typeof d.gpu === 'object' ? String(d.gpu.renderer || '') : '';
-    const g = d.gpus && typeof d.gpus === 'object' ? d.gpus : null;
-    const maker = c => (c && c.vendor ? String(c.vendor).toLowerCase() : '');
-    const onLow = g && g.twoGpus && maker(g.lowPower) && maker(g.lowPower) !== maker(g.highPerformance) &&
-      r.toLowerCase().includes(maker(g.lowPower));
-    const builtIn = /Intel|Radeon\(TM\) Graphics|Radeon Graphics/i.test(r) && !/NVIDIA|Radeon RX|Arc\b/i.test(r);
-    // (its model from "ANGLE (Intel, Intel(R) UHD Graphics 620 (0x…) Direct3D11 …)")
-    const name = r.replace(/^ANGLE \([^,]*,\s*/, '').replace(/\s*(\(0x|Direct3D|OpenGL|Vulkan|,).*$/, '') || r;
-    out.gpu = !out.problem ? '' : onLow ? t('trouble.gpuTwo', { gpu: name })
-      : builtIn && !(g && g.twoGpus === false) ? t('trouble.gpu', { gpu: name }) : '';
-    return out;
-  }
-
-  // "3840x2160" -> "1.78:1" (helps tell mono 360 = 2:1, top/bottom 360 = 1:1, side-by-side 360 = 4:1 apart).
-  function aspectOf(size) {
-    const m = /^(\d+)x(\d+)$/.exec(size || '');
-    return m && +m[2] ? `${(+m[1] / +m[2]).toFixed(2)}:1` : null;
-  }
-
-  // Extension version from the manifest, if the runtime API is reachable (it is in Chromium and Firefox).
-  function extensionVersion() {
-    try {
-      const rt = (globalThis.browser && globalThis.browser.runtime) || (globalThis.chrome && globalThis.chrome.runtime);
-      return rt.getManifest().version;
-    } catch (_) { return null; }
-  }
-
   // Download the raw video frame as the site delivers it, at full size, so the actual
   // layout (one image, top/bottom or side-by-side; equirectangular or cubemap) can be seen.
   // Returns an error message, or null on success.
@@ -230,12 +163,7 @@
       <div class="streamxr-msg" hidden></div>
       <details class="streamxr-controls"><summary>${esc(t('popup.controls'))}</summary><div class="streamxr-help"></div></details>
       <details class="streamxr-trouble"><summary>${esc(t('trouble.title'))}</summary>
-        <div class="streamxr-help">
-          <div>${esc(t('trouble.likely'))}</div>
-          <p class="streamxr-likely"></p><p class="streamxr-likely-gpu" hidden></p>
-          <div>${esc(t('trouble.checklist'))}</div>
-          <ol>${[1, 2, 3, 4, 5, 6, 7, 8].map(n => `<li>${checkHtml(n)}</li>`).join('')}</ol>
-        </div>
+        ${ns.troubleshoot.sectionHtml()}
       </details>
       <details class="streamxr-details"><summary>${esc(t('popup.details'))}</summary>
         <div class="streamxr-tools">
@@ -257,35 +185,17 @@
     }
     help.appendChild(list);
     // Details = what the page world knows (video info + VR/headset/controller diagnostics),
-    // as JSON for "Copy details" - what to send when something doesn't work.
+    // as JSON for "Copy details" (troubleshoot.js) - what to send when something doesn't
+    // work; and Quick troubleshooting's "Most likely issue" from the same diagnostics (opened
+    // at once when something's wrong).
     const pre = pop.querySelector('pre');
-    const renderDetails = (i, d) => {
-      const text = JSON.stringify({
-        version: extensionVersion(),
-        browser: d.browser, gpu: d.gpu, gpus: d.gpus, xrNative: d.xrNative,
-        projection: i.projection, stereo: i.stereo, spherical: i.spherical,
-        video: i.video, videoAspect: aspectOf(i.video),
-        webxrAllowedHere: d.webxrAllowedHere, headsetFound: d.headsetFound, xrError: d.xrError, passthrough: d.passthrough,
-        vrActive: d.vrActive, lastStart: d.lastStart, deviceChanges: d.deviceChanges, timeline: d.timeline,
-        checkedFrom: d.checkedFrom || (d.timedOut ? 'page script not responding' : '?'),
-        headset: d.headset, controllerModels: d.controllerModels, controllers: d.controllers,
-        warnings: d.warnings,
-      }, null, 1);
-      if (pre.textContent !== text) pre.textContent = text;        // keeps scroll position when unchanged
-      renderTrouble(d);
-    };
-    // Quick troubleshooting's "Most likely issue", from the same diagnostics (opened at once
-    // when something's wrong).
     const trouble = pop.querySelector('.streamxr-trouble');
-    const likelyEl = pop.querySelector('.streamxr-likely'), gpuEl = pop.querySelector('.streamxr-likely-gpu');
-    const renderTrouble = d => {
-      const li = likelyIssue(d);
-      if (likelyEl.textContent !== li.text) likelyEl.textContent = li.text;
-      likelyEl.classList.toggle('problem', li.problem);
-      gpuEl.textContent = li.gpu; gpuEl.hidden = !li.gpu;
+    const renderDetails = (i, d) => {
+      const text = ns.troubleshoot.detailsText(i, d);
+      if (pre.textContent !== text) pre.textContent = text;        // keeps scroll position when unchanged
+      return ns.troubleshoot.render(trouble, d, siteName());
     };
-    renderDetails(info, diag);
-    if (likelyIssue(diag).problem) trouble.open = true;
+    if (renderDetails(info, diag).problem) trouble.open = true;
 
     // While Details or Quick troubleshooting is expanded, refresh them about once a second
     // (e.g. to watch button presses arrive while you're in VR, or the headset turn up once

@@ -140,6 +140,7 @@ src/streamxr/                  STREAMXR (shell, part 2): the video player on the
   ui/                          isolated world
     goggles-icon.js            the VR headset icon (Material Symbols' Head Mounted Device) for the VR buttons and popup
     panel.js                   "Watch in VR" popup (format picker, Enter VR, help, Quick troubleshooting, Details)
+    troubleshoot.js            Quick troubleshooting and Copy details, shared (the popup; StreamXR Home next)
     popup.css                  its styles (Material 3; colours from the site's palette, asked of the page world)
 src/sites/youtube/             YOUTUBE
   page/
@@ -178,6 +179,7 @@ third_party/material-color-utilities/   Google's Material Color Utilities (Apach
 tools/sync-shared.js           shared/ -> ui/shared/ copies (core and streamxr), manifest checks
 tools/icons/make-icons.html    draws the extension icons (icons/, skip-helper/icons/) from Material Symbols
 tools/controller-models/       dev-only: rebuilds models.js from Valve's CAD (see README)
+tools/xr-check/                dev-only: does WebXR work on an extension page? (a Home page's first check)
 docs/
   youtube.md                   the YouTube modules + what's been learned about YouTube
   hardware.md                  the Steam Frame and its controllers in Chrome

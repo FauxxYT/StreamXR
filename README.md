@@ -191,8 +191,9 @@ their own websites do. That's it.
   unless you paste it somewhere yourself.
 - **The [Skip Helper](#-skipping-ads)** asks for Chrome's scary-sounding `debugger` permission
   because it's the only way to press YouTube's Skip button for real. It only works in YouTube
-  tabs, only presses Skip, and lets go right away. It's optional and
-  [short enough to read](skip-helper/service-worker.js) (under 100 lines).
+  tabs, only presses Skip (and, in a test of starting VR by itself, StreamXR's own Enter VR
+  button), and lets go right away. It's optional and
+  [short enough to read](skip-helper/service-worker.js) (about 110 lines).
 - It's all open source, so you don't have to take my word for it. 🙂
 
 ## 🎨 Designed like a real XR app

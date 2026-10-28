@@ -169,6 +169,11 @@
   }
   function gpusLookup() {
     if (!navigator.gpu || !navigator.gpu.requestAdapter) return Promise.resolve('no WebGPU');
+    // Chrome on Windows ignores powerPreference (crbug.com/369219127, seen 2026-10-28: it
+    // warns in the console and gives the same card both times), so it can't tell two cards
+    // apart there; not asked, and the popup falls back to guessing from the card's name.
+    const ua = navigator.userAgentData;
+    if ((ua && ua.platform === 'Windows') || /Windows/.test(navigator.userAgent)) return Promise.resolve('not on Windows (Chrome ignores powerPreference)');
     const one = async powerPreference => {
       const a = await navigator.gpu.requestAdapter({ powerPreference });
       if (!a) return null;

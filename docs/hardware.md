@@ -7,6 +7,25 @@ Steam Frame with SteamVR, desktop Chrome). For supporting other hardware, see th
 ## Steam Frame
 
 - **Start SteamVR before Chrome:** Chromium only looks for a headset when it launches.
+- **VR on an extension page works** (`tools/xr-check/`, 0.101.17, Chrome 156, 2026-10-28):
+  `chrome-extension://…` is a secure context and `requestSession('immersive-vr')` starts,
+  WebGL 2, blend mode opaque. Chrome asks first ("StreamXR wants to use virtual reality
+  devices and data": Allow while visiting the site / Allow this time / Never allow). The
+  session's visibility went `hidden` at the start, then `visible-blurred` and `visible`;
+  opening the SteamVR dashboard turns it `visible-blurred`, and frames keep coming (the
+  picture kept changing), back to `visible` when it closes.
+- **VR can start with no click of yours** (Test 2, `tools/xr-check/`, 0.101.18 with Skip Helper
+  1.4.0, 2026-10-28): on a YouTube tab opened from the check page, the Skip Helper's debugger
+  click on StreamXR's see-through target counted as real input; target clicked 0.3 s after the
+  headset was found, VR started at 0.6 s (YouTube's logo on the screen). Chrome's "is debugging
+  this browser" bar wasn't noticed (the helper attaches for a fraction of a second, on the
+  desktop window only, as for Skip ad). Chrome's VR permission
+  for YouTube had been granted weeks before, so whether a first-time prompt gets in the way
+  is still to see.
+- **Chrome on Windows ignores WebGPU's `powerPreference`** (crbug.com/369219127; it warns in
+  the console and gives the same card for "high-performance" and "low-power"), so WebGPU can't
+  tell a two-GPU laptop's cards apart there. Copy details' `gpus` isn't asked on Windows
+  (0.101.19); the popup guesses a built-in card from WebGL's renderer name instead.
 - **SteamVR must be the OpenXR runtime:** on Windows, Chromium reaches headsets through the
   active OpenXR runtime, which other VR software (Quest Link, Virtual Desktop, ...) can take
   over; SteamVR games still work then (they use SteamVR's own API), but the browser finds no

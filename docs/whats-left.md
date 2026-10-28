@@ -2,7 +2,7 @@
 
 One list of what's still open, gathered from the feature backlogs (`docs/features/`) and
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
-Last updated for 0.101.16.
+Last updated for 0.101.20.
 
 ## Top priority: before the first release
 
@@ -122,7 +122,11 @@ list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps 
    (`features/home-page.md`).
 10. [ ] **Commenting in VR** (large): writing comments and replies with the VR keyboard (posting,
     threads, typing into the Comments panel).
-11. [ ] **Chrome Web Store release, StreamXR 1.0** (last: it waits on the rest): the store
+11. [ ] **StreamXR Home** (the maintainer, 2026-10-28): a toolbar popup and a page of
+    StreamXR's own (status, Quick troubleshooting, Test VR in the shell, the sites, a
+    first-run welcome), so StreamXR shows from day one that more sites are coming
+    ([Home-Page.md](Home-Page.md)).
+12. [ ] **Chrome Web Store release, StreamXR 1.0** (last: it waits on the rest): the store
     listing, the privacy questions (the README's "Your privacy" covers them), review.
 
 Set aside: the Back button (0.73.0; comes back on demand). Deferred: Movies in Up Next (YouTube's
@@ -220,15 +224,48 @@ desktop Chrome. To do:
   test first on a real server. WebXR needs HTTPS or localhost (a plain `http://192.168…`
   address blocks VR); Plex's video comes from the server's own address and needs CORS; Plex's
   free movies and live TV may be DRM.
-- [ ] **On hold, with BrowseXR** (`docs/Future-Plans.md`): a Home page the extension owns
-  (`chrome-extension://…/home.html`) holding the VR session for local video files (a folder
-  granted once with `showDirectoryPicker()`, formats from file-name tags like `_180`, `_360`,
-  `_sbs`). Video sites still need their own tab: a page can only draw video playing in it.
-  Not decided; new permissions.
+- [ ] **StreamXR Home** (now part of 1.0: Road to 1.0, item 11): the plan and its steps are
+  in [Home-Page.md](Home-Page.md). Both checks passed (`tools/xr-check/`): VR works on an
+  extension page (0.101.17), and a site tab opened from it can start VR by itself through the
+  Skip Helper (0.101.18).
+- [ ] **On hold, with BrowseXR** (`docs/Future-Plans.md`): Home holding the VR session for
+  local video files (a folder granted once with `showDirectoryPicker()`, formats from
+  file-name tags like `_180`, `_360`, `_sbs`). Not decided; new permissions.
 
 Not for StreamXR: libraries (three.js, mp4box.js), a helper app, Electron / Tauri / CEF, a
 native rewrite, a bundled Chromium (a build step or a second product), and recommending
 unofficial browser builds to users.
+
+## From Android's XR and desktop design guides (2026-10-28)
+
+Read in full: the XR guides' sidebar (get started, foundations, spatial UI, environments,
+anchors, 3D models, OpenXR / Unity / WebXR and its "Considerations", visual design, Glimmer,
+motion) and the desktop guides (get started, across form factors, pointer, cursors,
+keyboard, system bars, multitasking). Most XR pages are for native Android XR apps (Home
+Space, environments, anchors, 3D models, Glimmer for glasses) and don't apply to a WebXR
+page. What does:
+
+- [ ] **Either hand** ("Considerations": usable with either hand, essential actions with one):
+  check that everything works from the left controller as well as the right (lasers, clicks,
+  scrolling, grabbing, the keyboard), and list in `shared/controls.js` / the README's
+  Controls any action that's on one hand only.
+- [ ] **A Back for VR** ("Considerations": WebXR apps don't get the system's back, so build
+  one): bring the set-aside Back button back (0.73.0) as one consistent way back, e.g. a
+  controller button that steps back (a page's back button, then closing a menu or dialog),
+  before 1.0.
+- [ ] **Recenter without a jump** (Motion: whole-world movement should fade, not jump):
+  check how recentering looks; if everything leaps, a short fade out and in around it.
+- [ ] **Small targets easier to hit** (anchors: a target catcher behind small targets; about
+  7° targets): give small buttons (close, chevrons, the queue's quick button) a hit area a
+  little bigger than they look, so the laser doesn't slip off them.
+
+Already in line, nothing to do: 72 fps (the headset's rate; the session stats under
+"Diagnostics" would show it), seated use without locomotion, panels sized in dp at a set distance,
+Follow your head off by default (motion the user controls), captions. Not for StreamXR:
+hand-tracking sizes (controllers only), button remapping (later, if asked), SDF fonts (the
+panels draw text into canvases at full size). For the Home page and popup (desktop guides):
+content and buttons at a max width, short lines (about 60 characters), text sizes that
+follow the browser's zoom and font size, hover and focus states, keyboard first.
 
 ## Known quirks (`known-issues.md`)
 
@@ -243,11 +280,14 @@ unofficial browser builds to users.
 
 - Signed-in Home feeds other than the main one.
 - The Captions button greyed out on a video with no captions.
-- The SteamVR dashboard while in VR: WebXR makes the session `visible-blurred` (no
-  controller input); does StreamXR pause the laser and clicks and pick up cleanly after?
+- The SteamVR dashboard while in VR: the session turns `visible-blurred` and the picture keeps
+  drawing (seen with `tools/xr-check/`); does StreamXR pause the laser and clicks and pick up
+  cleanly after?
 - Switching tabs or minimizing Chrome while in VR: does the session pause, end, or go on? If
   it ends or freezes, say so instead of failing silently.
 - WebXR hand input on the Frame through Chrome and SteamVR (expected: none; if so, a known
   limit in `docs/hardware.md`).
-- Whether Chrome asks for a "Virtual reality" permission on a fresh profile (for the README's
-  Get started steps).
+- Chrome does ask before VR starts ("… wants to use virtual reality devices and data": Allow
+  while visiting the site / Allow this time / Never allow; seen on the extension page,
+  2026-10-28). Still to see: its wording on YouTube on a fresh profile, then add it to the
+  README's Get started ("choose Allow while visiting the site").

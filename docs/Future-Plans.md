@@ -22,6 +22,15 @@ changes: tick off what's done, and add anything new that BrowseXR would need or 
   work with it unchanged. Since 0.78.0 a source can have no video yet (VR starts without one;
   the screen shows the site's logo, `provider.logo()`), which a BrowseXR session would need too.
 
+## Planned: StreamXR Home (a 1.0 item, 2026-10-28)
+
+[Home-Page.md](Home-Page.md): a page StreamXR owns (`chrome-extension://…/home.html`) with a
+toolbar popup. Its Test VR runs the shell on a page that isn't a site, which is BrowseXR's
+starting point (the shell hosting a VR session on its own page). Checked first: VR works on
+an extension page, and a site tab opened from it can start VR by itself through the Skip
+Helper (`docs/hardware.md`). What Home needs from the shell (a session with no site, sites
+listed from their own folders) goes on this list as it's built.
+
 ## Still to do for BrowseXR (not started)
 
 ### 1. A message-shaped provider boundary (the big one)

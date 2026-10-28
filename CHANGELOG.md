@@ -6,6 +6,57 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.101.20
+
+### Changed
+- **StreamXR Home, step 1** (the plan: `docs/Home-Page.md`): Quick troubleshooting and Copy
+  details moved from the popup's code into a shared file, `src/streamxr/ui/troubleshoot.js`,
+  for the toolbar popup and StreamXR Home to use too. Nothing visible changes (the popup's
+  HTML compared identical before and after from the same mock data).
+
+### Docs
+- **StreamXR Home is a 1.0 item**: the agreed plan in `docs/Home-Page.md`, the decisions in
+  `docs/design-choices.md`, and Road to 1.0's new item 11 in `docs/whats-left.md`.
+
+## 0.101.19
+
+### Fixed
+- **Copy details' `gpus` on Windows**: Chrome there ignores WebGPU's "high-performance" /
+  "low-power" choice (it warned in the console every check and always reported one card),
+  so the two-card check couldn't work and Quick troubleshooting hid its graphics card hint.
+  It's no longer asked on Windows (`gpus` says why); the hint goes back to guessing a
+  built-in card from its name.
+
+### Notes
+- Test 2 (0.101.18) works: VR started by itself on a YouTube tab opened from the check
+  page, 0.6 s after the headset was found, through the Skip Helper's real click
+  (`docs/hardware.md`).
+
+## 0.101.18 (Skip Helper 1.4.0)
+
+### Added
+- For developers: **Test 2 in `tools/xr-check/`**: can VR start on a page opened from
+  elsewhere with no click of yours? "Open YouTube and start VR" opens YouTube's home page
+  marked `#streamxr-autovr`; StreamXR then puts a see-through Enter VR target on the page
+  and asks the Skip Helper to click it for real (VR only starts from real input). Results in
+  the console's "[streamxr] auto Enter VR" lines and Details' `lastStart`. Nothing happens
+  without the mark.
+- **Skip Helper 1.4.0** can press one more thing, still only in YouTube tabs and only when
+  StreamXR asks: StreamXR's own Enter VR target (`#streamxr-autoenter`), found by itself,
+  no coordinates taken.
+
+## 0.101.17
+
+### Added
+- For developers: **`tools/xr-check/`**, a test page the extension owns
+  (`chrome-extension://<id>/tools/xr-check/xr-check.html`) that checks whether WebXR works on
+  an extension page: what the page can see, then Enter VR into a plain changing color, and
+  how the session started and ended (a one-line outcome, and Copy results). The first check
+  toward a StreamXR Home page; nothing users see changes. Styled like the popup (Material 3
+  Expressive: its color roles, dark or light with the system, a 28 px card, pill buttons with
+  hover and press states) and following Android's desktop design principles (a fixed-width
+  card, buttons at their own width, a visible focus ring, Enter VR focused first).
+
 ## 0.101.16
 
 The release after v0.101.7: everything from 0.101.8 to here (help for a headset that isn't
