@@ -284,6 +284,7 @@ setup without any site.
 | 🔄 **Just updated StreamXR and nothing changed** | Reload your YouTube tab too: an open tab keeps the old version until it's reloaded. |
 | 🌀 **A video looks stretched, doubled or split into squares** | Pick another format in the popup before entering VR, or with the **Format** button on the controls panel. |
 | 🎯 **The laser feels jittery** | Settings → **Laser** → turn up the steadiness. |
+| 🔍 **Want it sharper?** | StreamXR draws at the size SteamVR asks for. Raise it in **SteamVR → Settings → Video → Render Resolution** (or a custom resolution for Chrome alone): sharper text and video, more work for your graphics card. The Steam Frame's stream can still limit how much you see. |
 | 🫥 **The panels are in the way, or out of reach** | Press **Grip** (pointing at nothing) to recenter, or tune the **Safe Zone** in Settings. |
 | ⏩ **The panel says "Skip on desktop"** | That's normal without the optional [Skip Helper](#-skipping-ads): click Skip ad in the browser window, or install the helper. |
 | ♻️ **Settings got into a weird state** | Hold the **right stick click** for 3 seconds to reset everything to the defaults. |

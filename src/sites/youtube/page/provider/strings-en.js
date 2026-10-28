@@ -222,18 +222,11 @@
     'yt.channel.tabFailed': 'Couldn’t load this tab ({error}).',
     'yt.channel.aboutFailed': 'Couldn’t load the About page ({error}).',
 
-    // Settings panel (the shell adds its own tabs' words: 2D Cinema, Laser, Keyboard, Language).
+    // Settings panel: YouTube's own tabs (the shared panel's: the 'settings.*' words, StreamXR's).
     'yt.settings.playback': 'Playback',
     'yt.settings.audio': 'Audio',
-    'yt.settings.cinema': '2D Cinema',
-    'yt.settings.appearance': 'Appearance',
     'yt.theme.material': 'Material 3',
     'yt.theme.youtube': 'YouTube',
-    'yt.settings.safezone': 'Safe zone',
-    'yt.settings.fade': 'Auto-hide',
-    'yt.settings.laser': 'Laser',
-    'yt.settings.keyboard': 'Keyboard',
-    'yt.settings.language': 'Language',
     'yt.settings.loop': 'Loop',
     'yt.settings.loopHint': 'Replays this video',
     'yt.settings.autoplay': 'Autoplay',

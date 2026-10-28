@@ -182,9 +182,9 @@
       g.fillText(v.muted ? tr('panel.muted') : `${Math.round(v.level)}%`, slider.x + slider.w + 24, cy);
     }
 
+    // (a control smaller than the 56 dp target, e.g. a scroll arrow, reaches out to it: kit.js regionAt)
     function hitTest(u, v) {
-      const x = u * W, y = v * H;
-      const r = regions.find(q => inside(q, x, y));
+      const r = ns.vrKit.regionAt(regions, u, v, W, H);
       if (!r) return null;
       return r.id === 'vol:slider' ? { id: r.id, fraction: volumeFraction(u) } : { id: r.id };
     }
@@ -252,7 +252,8 @@
         enabled: !d.field || !!(d.field.text || '').trim() }, ui);
       if (d.cancel != null) button(g, regions, 'dialog:cancel', W - PAD - cw - 16 - kw, by, kw, BTN_H, { label: d.cancel, kind: 'tonal' }, ui);
     }
-    function hitTest(u, v) { const x = u * W, y = v * H; const r = regions.find(q => inside(q, x, y)); return r ? { id: r.id } : null; }
+    // (small controls reach out to the 56 dp target, as everywhere: kit.js regionAt)
+    function hitTest(u, v) { const r = ns.vrKit.regionAt(regions, u, v, W, H); return r ? { id: r.id } : null; }
     return { canvas, aspect: H / W, draw, hitTest, solidAt: () => true, moving: motion.moving };
   }
 

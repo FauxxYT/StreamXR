@@ -43,32 +43,11 @@
     }
     return { model, event, afterDraw: () => { scroll = host.style.shownScroll(); } };
   }
-  // Settings (the controls panel's pill; Options style): the shell's own tabs, the same as on a
-  // site minus the site's (YouTube's Playback and Audio): 2D Cinema, Appearance, Safe zone,
-  // Auto-hide, Laser, Keyboard, Language (each tab's rows from its options file). The chosen
-  // tab is remembered (Home's own storage).
-  const SETTINGS_TABS = ['cinema', 'appearance', 'safezone', 'fade', 'laser', 'keyboard', 'language'];
-  const SETTINGS_ICONS = { cinema: 'theaters', appearance: 'palette', safezone: 'center_focus_strong', fade: 'timer', laser: 'ads_click', keyboard: 'keyboard', language: 'translate' };
-  function settingsPanel(host) {
-    const TAB_KEY = 'settingsTab';
-    let tab = SETTINGS_TABS.includes(ns.storage.get(TAB_KEY)) ? ns.storage.get(TAB_KEY) : 'appearance', vs = {};
-    const scrolls = {};
-    const options = { appearance: ns.vrAppearanceOptions, safezone: ns.vrSafeZoneOptions, fade: ns.vrFadeOptions, laser: ns.vrLaserOptions, keyboard: ns.vrKeyboardOptions, language: ns.vrLanguageOptions };
-    function model(frame) {
-      vs = frame.st.viewSettings || {};
-      const tabs = SETTINGS_TABS.map(id => ({ id, label: t(`settings.${id}`), icon: SETTINGS_ICONS[id] }));
-      const content = tab === 'cinema' ? ns.vrCinemaOptions.content(vs) : options[tab].content();
-      const m = { tabs, tab, content, scroll: scrolls[tab] || 0 };
-      return { model: m, key: JSON.stringify(m) };
-    }
-    function event(ev) {
-      if (ev.type === 'tab' && SETTINGS_TABS.includes(ev.value)) { tab = ev.value; ns.storage.set(TAB_KEY, tab); }
-      else if (ev.type === 'scroll') scrolls[tab] = Math.max(0, Math.min(host.style.maxScroll(), ev.value));
-      else if (ev.type === 'text') { /* (a press on the rows: a drag may follow) */ }
-      else if (!Object.values(options).some(o => o.event(ev))) ns.vrCinemaOptions.event(ev, vs, host.actions);
-    }
-    return { model, event };
-  }
+  // Settings (the controls panel's pill): the shell's shared Settings panel
+  // (streamxr/page/settings-panel.js) with no site tabs of its own: 2D Cinema to Language,
+  // Appearance shown first until a tab is remembered (the Dashboard's own storage).
+  const settingsPanel = host => ns.vrSettingsPanel.create(host, { first: 'appearance' });
+
   // Sites (the right side; Options style, a grid of choices): each site (ns.homeSites), "Opens
   // in VR" under its name; picking one leaves this VR session and opens the site, VR meant
   // there (home-ui.js openSite: it starts by itself with the Skip Helper, on a key press or

@@ -136,6 +136,8 @@ src/streamxr/                  STREAMXR (shell, part 2): the video player on the
     pause-overlay.js           dims the video, pause symbol, buffering loading indicator
     captions-overlay.js        the site's caption lines drawn in VR (over the 2D screen's bottom, or below your view)
     xr-session.js              one VR session: setup + per-frame loop (takes a provider)
+    fade-pass.js               the recenter's short fade: a black veil over the whole view
+    settings-panel.js          the Settings panel, shared: the shell's tabs (2D Cinema to Language) after a site's own
     main.js                    page-world entry: picks the site's provider (sites.js), answers the popup
   ui/                          isolated world
     goggles-icon.js            the VR headset icon (Material Symbols' Head Mounted Device) for the VR buttons and popup

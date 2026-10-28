@@ -6,6 +6,44 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.101.44
+
+### Removed
+- **Settings → Appearance → Sharpness** (0.101.42): Chrome caps the drawing size at the
+  headset's recommended size (Copy details: `framebuffer` 5288×2644 at both Standard and
+  Sharpest, `nativeScale` 1 on the Steam Frame), so it changed nothing. Copy details still
+  records the drawing size each time it changes.
+
+### Docs
+- README, Quick troubleshooting: **Want it sharper?** Raise SteamVR's own Render Resolution
+  (Settings → Video), which decides the size StreamXR draws at.
+
+## 0.101.43
+
+### Changed
+- **Copy details records the drawing size again after each Sharpness change** (the
+  headset's `framebuffer`, now with the `sharpness` asked for, beside Chrome's maximum
+  `nativeScale`): it was recorded once per VR session. To see whether Sharper and Sharpest
+  really draw more pixels on a given PC (they looked the same on the maintainer's).
+
+## 0.101.42
+
+### Added
+- **Sharpness** (Settings → Appearance): Standard, Sharper or Sharpest draws the headset's
+  picture with more pixels (WebXR's `framebufferScaleFactor`: 1, 1.25, 1.5) for sharper
+  video and text, at more work for the graphics card. Remembered; changes right away.
+
+### Changed
+- **Recentering fades instead of jumping** (the Recenter button and Grip): the view dims to
+  black for a moment, recenters, and comes back (0.12 s out, 0.18 s in), as Android XR's
+  motion guide asks for whole-world moves (`src/streamxr/page/fade-pass.js`). The recenter as
+  VR starts stays instant.
+- **Menus and dialogs have easier small targets**, like every panel already did: a control
+  drawn smaller than 72 px (Android XR's 56 dp) can be hit anywhere within that size.
+- **One shared Settings panel** (`src/streamxr/page/settings-panel.js`): the shell's tabs
+  (2D Cinema to Language) are built once; YouTube adds Playback and Audio before them, the
+  Dashboard adds none. The same panel as before (compared tab by tab from the same data).
+
 ## 0.101.41
 
 ### Fixed

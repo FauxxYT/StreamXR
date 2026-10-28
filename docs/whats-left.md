@@ -2,7 +2,7 @@
 
 One list of what's still open, gathered from the feature backlogs (`docs/features/`) and
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
-Last updated for 0.101.41.
+Last updated for 0.101.44.
 
 ## Top priority: before the first release
 
@@ -182,7 +182,7 @@ movies are copy-protected, so they can't play in VR yet: `features/video-page.md
 - [x] **End screen** (0.98.0 to 0.98.2) and **Info cards** (0.97.0 to 0.97.4) done (`features/video-page.md`).
 - [ ] **Back button**: set aside (0.73.0); now "A Back for VR" under "From Android's XR and
   desktop design guides" below (one item, not two).
-- [ ] **One shared Settings panel** (cleanup): the shell's Settings tabs (2D Cinema to
+- [x] **One shared Settings panel** (0.101.42: `streamxr/page/settings-panel.js`; YouTube adds Playback and Audio, the Dashboard nothing; the same panel as before, compared tab by tab) (cleanup): the shell's Settings tabs (2D Cinema to
   Language) are built twice, in YouTube's `settings.js` and the Dashboard's
   `home-provider.js`; a shell Settings panel that a site adds its own tabs to (YouTube's
   Playback, Audio) would keep them in one place.
@@ -218,9 +218,10 @@ uses the site's in-page navigation), Enter VR only from a real click, everything
 on canvases, no copy-protected (DRM) video, no passthrough, eye tracking or WebXR Layers on
 desktop Chrome. To do:
 
-- [ ] **A sharpness setting** (render scale): `framebufferScaleFactor` above the headset's
-  default sharpens the video and panels on fast PCs, at a cost in frame rate. A setting
-  (e.g. Settings → Appearance), its value in Copy details next to `nativeScale`.
+- [x] ~~**A sharpness setting**~~ (render scale): built in 0.101.42, removed in 0.101.44: Chrome
+  caps `framebufferScaleFactor` at the headset's recommended size (`nativeScale` 1 on the Frame:
+  5288×2644 at both 1 and 1.5), so it changed nothing. SteamVR's Render Resolution is the real
+  setting (the README's "Want it sharper?"; `docs/hardware.md`).
 - [x] **Upload video frames only when a new one arrives** (`requestVideoFrameCallback`): already
   done: `media-source.js` uploads only on a new frame where the browser has it (audit, 2026-10-28).
 - [ ] **A second site: Twitch** (needs the maintainer's OK for its host permission): an
@@ -260,9 +261,9 @@ page. What does:
   one): bring the set-aside Back button back (0.73.0) as one consistent way back, e.g. a
   controller button that steps back (a page's back button, then closing a menu or dialog),
   before 1.0.
-- [ ] **Recenter without a jump** (Motion: whole-world movement should fade, not jump):
+- [x] **Recenter without a jump** (0.101.42: 0.12 s to dark, recenter, 0.18 s back; Recenter button and Grip; `fade-pass.js`) (Motion: whole-world movement should fade, not jump):
   check how recentering looks; if everything leaps, a short fade out and in around it.
-- [ ] **Small targets easier to hit** (anchors: a target catcher behind small targets; about
+- [x] **Small targets easier to hit** (mostly there already: every panel style and the controls panel stretch a control smaller than 72 px (56 dp) to that size, kit.js `regionAt`; 0.101.42 adds the menus and dialogs) (anchors: a target catcher behind small targets; about
   7° targets): give small buttons (close, chevrons, the queue's quick button) a hit area a
   little bigger than they look, so the laser doesn't slip off them.
 

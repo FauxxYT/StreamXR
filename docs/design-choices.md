@@ -101,6 +101,14 @@ even where they look like something to "fix".
   **A setting for the other way (the maintainer, 2026-10-16; 0.86.0):** Settings → Safe zone →
   "Recenter resets panels" (off by default, remembered; the global reset turns it off):
   while on, recentering also puts the moved panels back.
+- **Recentering fades** (the maintainer, 2026-10-28; 0.101.42; Android XR's motion guide:
+  whole-world movement fades, it doesn't jump): the Recenter button and Grip dim the view to
+  black over 0.12 s, recenter while dark, and bring it back over 0.18 s. The recenter as VR
+  starts stays instant.
+- **No Sharpness setting** (the maintainer, 2026-10-28; added in 0.101.42, removed in 0.101.44):
+  Chrome caps the drawing size at the headset's recommended size (`nativeScale` 1 on the Steam
+  Frame), so Sharper and Sharpest drew exactly as Standard. Sharpness is SteamVR's render
+  resolution instead; the README's Quick troubleshooting says where ("Want it sharper?").
 
 ## Look
 

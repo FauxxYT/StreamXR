@@ -82,6 +82,11 @@ Steam Frame with SteamVR, desktop Chrome). For supporting other hardware, see th
   `immersive-ar`; the session then clears to transparent).
 - WebXR never names the headset, so nothing detects it by name. Don't detect a headset by
   its refresh rate either: it's a user setting.
+- **The drawing size is SteamVR's** (checked 2026-10-28, 0.101.43): the headset's recommended
+  size is 2644×2644 per eye (5288×2644 both) on the maintainer's Frame, and
+  `getNativeFramebufferScaleFactor` is 1: asking for more (`framebufferScaleFactor` 1.5) drew
+  exactly the same, so Chrome caps it there. More pixels only through SteamVR → Settings →
+  Video → Render Resolution (the Frame's stream may still limit what shows).
 - **No hand tracking through WebXR** (checked 2026-10-28): with the controllers down and the
   hands held up in VR, nothing happens. StreamXR is built for the controllers and doesn't use
   hand input; whether Chrome offers the Frame's hands to web pages at all (WebXR's
