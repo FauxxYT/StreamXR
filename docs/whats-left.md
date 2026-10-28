@@ -2,7 +2,7 @@
 
 One list of what's still open, gathered from the feature backlogs (`docs/features/`) and
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
-Last updated for 0.101.44.
+Last updated for 0.101.50.
 
 ## Top priority: before the first release
 
@@ -52,7 +52,7 @@ until another headset or two has been tried and the unverified items are cleared
 2. Done: Add to queue (0.100.0 to 0.101.7; free on desktop, not Premium; how the page's queue is driven:
    `features/video-page.md`).
 3. Explore page tabs: Live, Gaming, Music, Hype, Courses, Podcasts and Memberships done (0.94.0 to
-   0.96.6); Shorts and Movies & TV are next.
+   0.96.6); Shorts being built (the tab 0.101.48); Movies & TV explains why it can't be (0.101.45).
 4. Done: Live chat (0.79.0 to 0.88.1), YouTube Premium (1080p Premium 0.91.0, Jump ahead 0.92.3).
 5. Commenting in-headset (writing comments and replies with the VR keyboard).
 6. Chrome Web Store release as **1.0** (the maintainer, 2026-10-17: once the YouTube features are
@@ -118,7 +118,9 @@ list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps 
    the maintainer, 2026-10-19): probe how desktop YouTube's queue can be driven, then
    a way to add from cards, the queue in Up Next, and what plays when a video ends
    (`features/video-page.md`).
-9. [ ] **Explore's other tabs** (large): Shorts and Movies & TV need new readers first (Learning deferred)
+9. [ ] **Explore's other tabs** (large): Shorts being built in steps (`features/home-page.md`: the tab on
+   tall cards 0.101.48; next, the next Short when one ends, then the next Shorts in Up Next; Learning deferred). Movies & TV:
+   not built, as every film is copy-protected; its tabs explain that instead of "Coming soon" (0.101.45)
    (`features/home-page.md`).
 10. [ ] **Commenting in VR** (large): writing comments and replies with the VR keyboard (posting,
     threads, typing into the Comments panel).
@@ -286,9 +288,9 @@ follow the browser's zoom and font size, hover and focus states, keyboard first.
 
 ## Still to check in the headset
 
-- Signed-in Home feeds other than the main one (History, Playlists, Watch later, Liked).
-  The main feed's chips work (2026-10-28); they re-shuffled once a chip's videos loaded,
-  fixed in 0.101.39.
+- ~~Signed-in Home feeds other than the main one~~ (History, Playlists, Watch later, Liked): work
+  (2026-10-28); the main feed's chips too (they re-shuffled once a chip's videos loaded,
+  fixed in 0.101.39).
 - ~~The Captions button greyed out on a video with no captions~~: works (2026-10-28).
 - ~~The SteamVR dashboard while in VR~~: the video plays on and the panels fade as usual; the
   controllers and lasers stayed frozen in the air (no controller updates while the session is

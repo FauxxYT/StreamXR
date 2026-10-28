@@ -6,6 +6,57 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.101.50
+
+### Fixed
+- **Shorts: a few cards had no view count** (each page's first one): it came with its title and
+  channel but not always its views, and only untitled cards were looked up. Any card missing its
+  title, channel or views is now looked up.
+
+## 0.101.49
+
+### Fixed
+- **Shorts: two cards filled the Explore panel**: the tall layout took one row as tall as all the
+  standard rows. It now uses as many rows as keep the cards at least 150 px wide (Explore: 4 x 2,
+  8 a page).
+- **Shorts: most cards had no title or channel**: YouTube's Shorts feed names only the first Short
+  of each page. The Shorts on screen now have their title, channel and views looked up (once each,
+  YouTube's `player` request) and appear as they arrive.
+
+## 0.101.48
+
+### Added
+- **Explore → Shorts**: YouTube's endless Shorts feed (what the left menu's Shorts button opens),
+  on tall 9:16 cards, four to a page, more loading as you page through. Clicking one plays it on
+  the cinema screen. A new tall card layout in the Catalog style (`shape: 'tall'`, grid.js) and a
+  feed reader (`youtube-home.js` `shorts()`: the reel sequence API). Next: the next Short when one
+  ends (following Autoplay), then the next Shorts in Up Next.
+
+## 0.101.47
+
+### Fixed
+- **The cinema screen's move bar ran into the corner handles on a narrow screen** (a Short):
+  it was always 0.9 m wide. It now shrinks with the screen, leaving room for the corners (a Short
+  at the default size: about 0.4 m), never under 0.2 m; its grab zone shrinks with it.
+
+## 0.101.46
+
+### Fixed
+- **A Short on the cinema screen came out very tall, and resizing it made the next regular
+  video small**: the screen kept one width for every video, its height following the video's
+  shape. It now keeps a 16:9 frame and fits each video inside it, as a TV does: 16:9 and wider
+  fill its width (as before), taller ones fill its height (a Short at the default size: 1.0 x
+  1.8 m instead of 3.2 x 5.7 m). The remembered size is the frame's, so one size suits both.
+
+## 0.101.45
+
+### Changed
+- **The Movies & TV tabs (Explore, You) explain instead of promising**: "Coming Soon" is now
+  "YouTube's movies and shows are copy-protected, so they can't play in VR yet. Watch them on
+  the desktop." under the Movie icon. Every film on YouTube, free ones too, is DRM-protected,
+  so this tab won't be built. A placeholder too long for one line now wraps, centered, with its
+  icon above (short ones like "Coming Soon" look as before).
+
 ## 0.101.44
 
 ### Removed

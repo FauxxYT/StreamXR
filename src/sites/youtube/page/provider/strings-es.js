@@ -105,6 +105,7 @@
     'yt.browse.shorts': 'Shorts',
     'yt.browse.music': 'Música',
     'yt.browse.movies': 'Películas y TV',
+    'yt.browse.moviesBlocked': 'Las películas y series de YouTube tienen protección anticopia, así que aún no se pueden ver en VR. Míralas en el escritorio.',
     'yt.browse.hype': 'Hype',
     'yt.browse.live': 'En directo',
     'yt.browse.gaming': 'Videojuegos',

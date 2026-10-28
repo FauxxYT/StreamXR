@@ -19,9 +19,9 @@
     minDistance: 1.0,   // limits for the Distance slider (the nearest is also kept behind the panels: minDistance())
     behindPanels: 0.3,  // metres the screen stays behind the VR panels at the least (their distance: vr-panel/config.js layout)
     maxDistance: 12.0,
-    width: 3.2,         // metres (height follows the video's shape)
+    width: 3.2,         // metres: the 16:9 frame each video fits in (wider ones fill its width, taller ones its height)
     raise: 0.05,        // metres above eye level for the screen's centre
-    minWidth: 1.0,      // limits for resizing with the corner handles
+    minWidth: 1.0,      // limits for resizing with the corner handles (the frame's width)
     maxWidth: 12.0,
     curve: false,       // curved screen on/off (default)
     curveAmount: 0.5,   // 0..1; 1 = curved so every column is equally far from you
@@ -199,10 +199,10 @@
 
   // Handle geometry (metres). Corner handles: a quarter-circle arc (a bit more, `halfSpan`
   // each side of the diagonal) around each bottom corner of the screen, `radius` out from it.
-  // Move bar: a capsule `below` the bottom edge.
+  // Move bar: a capsule `below` the bottom edge (narrower on a narrow screen: barW).
   const HANDLE = {
     corner: { radius: 0.13, halfSpan: 57 * Math.PI / 180, thick: 0.045, hitRadius: 0.22 },
-    move: { below: 0.16, width: 0.90, thick: 0.045, hitW: 1.10, hitH: 0.20 },
+    move: { below: 0.16, width: 0.90, thick: 0.045, hitW: 1.10, hitH: 0.20, corners: 0.6, minWidth: 0.2 },
   };
   // Handle colours: white normally (faint) and when pointed at (bright), blue while dragged.
   const IDLE = [1, 1, 1], HOT = [1, 1, 1], ACTIVE = [0.24, 0.65, 1.0];
@@ -254,8 +254,17 @@
     // screen's pose, its distance from you (for the curve and the Distance slider), the
     // curve, which handles to show/highlight, and the current drag (if any).
     const prefs = loadPrefs();
-    let width = clampWidth(prefs.width || SETTINGS.width);
+    // The screen's size is a 16:9 frame (frameW: its width, the one remembered and resized),
+    // and each video is fitted inside it, as a TV does: 16:9 and wider fill its width; taller
+    // ones (Shorts, 9:16; 4:3) fill its height, narrower. So one size suits every video, and a
+    // Short after a regular video is as tall as it, not much taller. `width` is the screen's
+    // width as shown now (fitted: fit()).
+    const FRAME = 16 / 9;
+    let frameW = clampWidth(prefs.width || SETTINGS.width);
     let aspect = 16 / 9;
+    let width = frameW;
+    const fit = () => (aspect >= FRAME ? frameW : frameW / FRAME * aspect);
+    const frameOf = shown => (aspect >= FRAME ? shown : shown / aspect * FRAME);   // the frame a shown width fills
     // The screen's shape from the frame's (width / height): 3D side by side, one eye's picture:
     // half the frame when it's two full pictures (wider than 2.5:1, e.g. 32:9), else the frame
     // itself (half side by side: each eye squeezed into half of a 16:9 frame, shown at 16:9).
@@ -333,7 +342,7 @@
     // with resetPrefs, then places the screen again, which takes the default distance).
     function reset() {
       grab = null; highlight.active = null;
-      width = SETTINGS.width;
+      frameW = SETTINGS.width; width = fit();
       dist = SETTINGS.distance;
       curve = curvePrefs();
       glow = glowPrefs();
@@ -349,7 +358,7 @@
       gl.bindTexture(gl.TEXTURE_2D, tex);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
       mipped = G.videoMipmaps(gl, ns.vrTokens.glass.on || glow.on);
-      if (video.videoWidth && video.videoHeight) aspect = eyeAspect(video.videoWidth / video.videoHeight);
+      if (video.videoWidth && video.videoHeight) { aspect = eyeAspect(video.videoWidth / video.videoHeight); width = fit(); }
     }
 
     // What's behind the panels, for the glass look (vr-panel/panel-pass.js): the video's
@@ -370,12 +379,17 @@
     // (metres from that frame), arc (direction of the arc's middle, corner handles only) or
     // w, h (capsule size, move bar) }. Corner arcs are centred on the screen's corners and
     // bow out from them (down-left / down-right).
+    // The move bar's width now: HANDLE.move.width, or less on a narrow screen (a Short) so it
+    // stays clear of the corner handles (`corners` m left for them), never under `minWidth`;
+    // its clickable zone keeps hitW's margin around it.
+    const barW = () => Math.min(HANDLE.move.width, Math.max(HANDLE.move.minWidth, width - HANDLE.move.corners));
+    const barHitW = () => barW() + (HANDLE.move.hitW - HANDLE.move.width);
     function handles() {
       const hh = height() / 2, m = HANDLE.move;
       return [
         { id: 'resize-left',  frame: edgeFrame(-width / 2), x: 0, y: -hh, arc: -3 * Math.PI / 4 },
         { id: 'resize-right', frame: edgeFrame(width / 2),  x: 0, y: -hh, arc: -Math.PI / 4 },
-        { id: 'move',         frame: edgeFrame(0),          x: 0, y: -hh - m.below, w: m.width, h: m.thick },
+        { id: 'move',         frame: edgeFrame(0),          x: 0, y: -hh - m.below, w: barW(), h: m.thick },
       ];
     }
     // A handle's pose in the world (just in front of the screen's surface).
@@ -511,7 +525,7 @@
           if (!p) continue;
           const [x, y] = p.local;
           const inside = h.arc == null
-            ? Math.abs(x) <= m.hitW / 2 && Math.abs(y) <= m.hitH / 2
+            ? Math.abs(x) <= barHitW() / 2 && Math.abs(y) <= m.hitH / 2
             : Math.hypot(x - c.radius * Math.cos(h.arc), y - c.radius * Math.sin(h.arc)) <= c.hitRadius;
           if (inside) return { t: p.t, point: p.point, id: h.id };
         }
@@ -545,7 +559,9 @@
         // Resize around the centre by how far along the corner's diagonal the laser points.
         const p = planeHit(origin, dir);
         if (!p) return;
-        width = clampWidth(grab.startWidth * diagonalScale(grab.id, p.local, grab.startWidth) / grab.startScale);
+        // (the frame follows: a tall video resized changes the 16:9 frame it sits in)
+        frameW = clampWidth(frameOf(grab.startWidth * diagonalScale(grab.id, p.local, grab.startWidth) / grab.startScale));
+        width = fit();
       },
 
       grabEnd(head) {
@@ -555,7 +571,7 @@
         // Remember size, plus distance and height relative to you, for next time.
         const c = centre();
         dist = clampDistance(Math.hypot(c[0] - head[0], c[2] - head[2]));
-        savePrefs({ width, distance: dist, raise: c[1] - head[1] });
+        savePrefs({ width: frameW, distance: dist, raise: c[1] - head[1] });   // (the 16:9 frame's width)
       },
 
       // show: draw the handles at all; hover: ids under a laser right now.

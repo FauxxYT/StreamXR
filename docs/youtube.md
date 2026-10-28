@@ -32,7 +32,7 @@ backlogs in [features/](features/)):
   videos" = 360/VR content; YouTube sends the personalised chips in a different order on
   each load, so the first order shown is kept while the page is open: `steadyChips()`,
   0.101.39), Explore feeds (Live, News, Gaming, Sports, Music, Podcasts,
-  Courses, Hype, Memberships), signed-in feeds (unverified), the left menu (`guide()`), your
+  Courses, Hype, Memberships), signed-in feeds (verified 2026-10-28), the left menu (`guide()`), your
   own channel's id (`myChannelId()`: the menu's "Your channel" entry, else the account menu; verified signed in, 0.74.0) and
   search `suggestions()`.
 - `youtube-subscriptions.js` (`ns.youtubeSubscriptions`): the Subscriptions feed, the Manage
@@ -239,6 +239,26 @@ The formats are in `src/streamxr/shared/formats.js`; YouTube's detection is the 
 - VR180 test video: "how TV screens made watching movies worse" by Noodle:
   no "180" in the title, 16:9 below 2160p.
 
+## Shorts (the endless feed)
+
+Probed 2026-10-28, signed in (it was unreachable through the API before: `features/home-page.md`).
+- **The left menu's Shorts entry** (`guide` → `reelWatchEndpoint`) has no video: `params`,
+  `sequenceProvider: REEL_WATCH_SEQUENCE_PROVIDER_RPC`, `inputType: REEL_WATCH_INPUT_TYPE_SEEDLESS`.
+- **`reel/reel_item_watch`** `{ playerRequest: { videoId: '' }, params, inputType }` answers with
+  the first Short (`playerResponse`) and a **`sequenceContinuation`**.
+- **`reel/reel_watch_sequence`** `{ sequenceParams: <that> }` → `entries` (25 on the first page),
+  each `command.reelWatchEndpoint` { `videoId`, `thumbnail`, `overlay`, `params`,
+  `unserializedPrefetchData` (titles are in there), ... }, `prevEntries`, and
+  `continuationEndpoint.continuationCommand.token`: the next page's `sequenceParams` (page 2: 9
+  entries, new videos, and a page 3). Endless.
+- One of them through `player` `{ videoId }`: playable (`OK`), titled, 59 s. In VR a Short plays on
+  the cinema screen in its own shape (9:16), fitted to the screen's 16:9 frame since 0.101.46;
+  when it ends it stays paused (no next Short) (the maintainer, 2026-10-28).
+- **The Shorts tab** reads this sequence (`youtube-home.js` `shorts()`, 0.101.48): items from each
+  entry's `reelWatchEndpoint` (title, channel and views from `unserializedPrefetchData`'s
+  `videoDetails`, else the overlay's `reelTitleText`; the vertical `thumbnail`), Shorts already
+  listed skipped. In practice only a page's first entry carries `videoDetails` (the maintainer,
+  0.101.48): the others are filled when shown, from `player` `{ videoId }`'s `videoDetails` (0.101.49).
 ## Movies
 
 - **YouTube's movies are copy-protected, the free ones too** (checked 2026-10-18, signed out:

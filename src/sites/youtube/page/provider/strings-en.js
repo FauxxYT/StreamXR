@@ -115,6 +115,7 @@
     'yt.browse.shorts': 'Shorts',
     'yt.browse.music': 'Music',
     'yt.browse.movies': 'Movies & TV',
+    'yt.browse.moviesBlocked': 'YouTube’s movies and shows are copy-protected, so they can’t play in VR yet. Watch them on the desktop.',
     'yt.browse.hype': 'Hype',
     'yt.browse.live': 'Live',
     'yt.browse.gaming': 'Gaming',

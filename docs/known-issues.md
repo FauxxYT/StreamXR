@@ -15,8 +15,6 @@ permissions, Firefox) are in [ARCHITECTURE.md](../ARCHITECTURE.md#known-limits).
   troubleshooting in the popup names the likely one (both in v0.101.16). Waiting on the
   reporters' Copy details from v0.101.16 to confirm the cause; move this out once known.
 
-- **Signed-in Home feeds** other than the main one, History, Playlists, Watch later and
-  Liked videos (those were verified in 0.35) (`youtube-home.js`).
 - **Live chat typing (0.81.0)**: sending a message was checked from the console (text only);
   in the headset, check typing, Send / Enter, a channel emoji in a message (sent by its id, as
   YouTube's client does), and a chat you can't type in (YouTube's reason should show instead

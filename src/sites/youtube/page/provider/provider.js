@@ -419,6 +419,7 @@
       // feed, the signed-in left-menu feeds ('history', 'playlists'), your own lists ('WL' =
       // Watch later, 'LL' = Liked videos) and your channel's id.
       browseHome: chip => ns.youtubeHome.home(chip),
+      browseShorts: () => ns.youtubeHome.shorts(),                     // the Shorts feed (endless)
       search: query => ns.youtubeContent.search(query),                 // the Search panel
       suggest: text => ns.youtubeHome.suggestions(text),                // and its suggestions
       browseSubscriptions: () => ns.youtubeSubscriptions.feed(),

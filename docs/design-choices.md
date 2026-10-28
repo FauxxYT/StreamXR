@@ -134,7 +134,10 @@ even where they look like something to "fix".
   chips; 0.74.1: the left side stays about the playing video), History,
   Playlists, Watch later, Liked videos, Movies & TV. Pages not built yet show "Coming Soon"
   with the Construction icon (Home, News and the You feeds work). Shorts uses
-  "smart_display" (Material Symbols has no Shorts icon).
+  "smart_display" (Material Symbols has no Shorts icon). **Movies & TV says why instead** (the
+  maintainer, 2026-10-28; 0.101.45): every YouTube film is copy-protected, so it won't be built;
+  its tabs show "YouTube's movies and shows are copy-protected, so they can't play in VR yet.
+  Watch them on the desktop." under the Movie icon (a sentence wraps, centred, icon above).
 - **Sliding rows (0.74.0, the maintainer):** a tab or chip row too long for its panel slides like
   a marquee while the laser is near either end (faster nearer the end), its hidden ends
   faded; tabs keep their full size instead of shrinking.
@@ -173,6 +176,10 @@ even where they look like something to "fix".
 - The panel style names: Info, Catalog, Queue, Profile, Options. The product name: StreamXR.
 - **Cinema screen corners (0.75.0, the maintainer):** a 2D video is a rounded rectangle (corner
   radius 2.5% of the screen's width: `SETTINGS.cornerRadius`, cinema-screen.js).
+- **Cinema screen size is a 16:9 frame (0.101.46, after the maintainer's Shorts report):** the
+  remembered size is a 16:9 frame and each video fits inside it, as on a TV: 16:9 and wider fill
+  its width, taller ones (Shorts 9:16, 4:3) fill its height and come out narrower. A Short after a
+  regular video is as tall as it, and resizing one resizes the frame for all.
 - **Cinema screen distance (0.78.5, the maintainer):** never in front of the VR panels: the Distance
   slider's nearest is 30 cm behind them (2.0 m with the panels at 1.7 m; `cinema-screen.js`
   `behindPanels`), up to 12 m.
@@ -198,8 +205,11 @@ even where they look like something to "fix".
 
 ## Behavior
 
-- **Shorts** play on the cinema screen at its full width, so they're very tall. Left as is
-  on purpose: don't resize vertical videos.
+- **Shorts** play on the cinema screen in their own shape, fitted to its 16:9 frame (0.101.46: see
+  "Cinema screen size" above). **The Shorts tab (the maintainer, 2026-10-28):** Explore → Shorts
+  is YouTube's endless Shorts feed on **tall 9:16 cards** (0.101.48); **when a Short ends, the next
+  one plays if Autoplay is on** (else it stays paused); and **while a Short plays, Up Next shows
+  the next Shorts from the feed**. Built in that order, tested between.
 - The video title opens the Description tab (and folds it again); the channel name opens
   the Channel panel (and folds it again).
 - A title too long for the controls panel scrolls like a marquee: still for 2 s, slides at
