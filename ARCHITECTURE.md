@@ -148,6 +148,7 @@ src/streamxr/                  STREAMXR (shell, part 2): the video player on the
     home-ui.js, .css           what Home and the toolbar popup share: the status line, the sites' rows, troubleshooting
     action-popup.html, .js, .css   the toolbar popup: headset status, Open StreamXR Home, the sites, Quick troubleshooting
     background.js              opens Home once on install (with its welcome)
+    home-provider.js           Home's side of the VR shell for Test VR: no video, StreamXR's logo, a "Your setup" panel
 src/sites/youtube/             YOUTUBE
   page/
     youtube-data.js            plumbing: text helpers, watch-page data, /youtubei/v1 requests,

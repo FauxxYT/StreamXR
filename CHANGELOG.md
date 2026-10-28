@@ -6,6 +6,30 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.101.25
+
+### Added
+- **Settings in Test VR on StreamXR Home**: the controls panel's Settings pill (it was
+  missing: Settings is a site's panel), with the shell's own tabs: 2D Cinema, Appearance,
+  Safe zone, Auto-hide, Laser, Keyboard and Language (a site's Settings adds its own, e.g.
+  YouTube's Playback and Audio).
+
+### Fixed
+- **The grab bar's handle stuck out of a short toolbar's grab bar** (a side with one panel,
+  as on Home): the handle is now shorter on a short grab bar, inside it with room at each end.
+
+## 0.101.24
+
+### Added
+- **Test VR on StreamXR Home** (step 4; `docs/Home-Page.md`): a red **Test VR** button under
+  the headset's status (usable once a headset is found; Exit VR while in VR) enters VR right
+  on Home with the real StreamXR shell: StreamXR's logo on the screen, the controls panel
+  saying your setup works, and a **Your setup** side panel with what to try and what to do
+  next. A failure says why, opens Quick troubleshooting and goes into Copy details. Home's
+  VR settings are its own (an extension page keeps its own storage).
+- For other sites and BrowseXR: the shell now also runs on a page that isn't a site, with
+  Home's own provider (`src/streamxr/home/home-provider.js`); nothing in the shell changed.
+
 ## 0.101.23
 
 ### Added

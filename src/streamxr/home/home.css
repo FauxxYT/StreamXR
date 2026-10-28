@@ -41,6 +41,31 @@ body { padding: 48px 16px; box-sizing: border-box; }
 }
 .streamxr-pop .streamxr-welcome-done:active { border-radius: 12px; }
 .streamxr-pop .streamxr-welcome-done:focus-visible { outline: 3px solid var(--m3-brand, #ff0033); outline-offset: 2px; }
+/* Test VR: the popup's red Enter VR pill (popup.css .streamxr-go's look) at its own width,
+   its note beside it. */
+.streamxr-pop .streamxr-test { display: flex; align-items: center; gap: 16px; margin: 4px 0 8px; }
+.streamxr-pop .streamxr-test p { margin: 0; color: var(--m3-onSurfaceVariant, #c4c4c4); font-size: 13px; }
+.streamxr-pop .streamxr-test-vr {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 24px 0 18px;
+  border: 0;
+  border-radius: 24px;
+  background: var(--m3-brand, #ff0033);
+  color: var(--m3-onBrand, #fff);
+  font: 500 16px Roboto, Arial, sans-serif;
+  cursor: pointer;
+  transition: border-radius 0.15s;
+}
+.streamxr-pop .streamxr-test-vr svg { width: 28px; height: 28px; }
+.streamxr-pop .streamxr-test-vr:hover { background-image: linear-gradient(rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.08)); }
+.streamxr-pop .streamxr-test-vr:active { border-radius: 16px; }
+.streamxr-pop .streamxr-test-vr:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.streamxr-pop .streamxr-test-vr:disabled { background: rgba(255, 255, 255, 0.12); color: rgba(255, 255, 255, 0.38); cursor: default; }
+.streamxr-pop .streamxr-test-vr:disabled svg { opacity: 0.5; }
 /* Quick troubleshooting under the status, its summary like a section's. */
 .streamxr-pop.streamxr-home .streamxr-trouble { margin-top: 4px; }
 .streamxr-pop .streamxr-version { color: var(--m3-onSurfaceVariant, #c4c4c4); opacity: 0.7; font-size: 12px; }

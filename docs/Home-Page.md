@@ -63,10 +63,16 @@ focus states, lines of about 60 characters, text that follows the browser's zoom
    on YouTube (`src/streamxr/ui/troubleshoot.js`).
 2. [x] The toolbar popup: 0.101.21 to 0.101.22, works (`src/streamxr/home/action-popup.*`);
    its Open StreamXR Home button came with step 3.
-3. [ ] Home on the desktop: status, troubleshooting, sites, the first-run welcome: built in
-   0.101.23 (`src/streamxr/home/home.*`, `home-ui.*` shared with the popup, `background.js`),
-   to check.
-4. [ ] Test VR on Home (the shell with the placeholder screen and a panel).
+3. [x] Home on the desktop: status, troubleshooting, sites, the first-run welcome: 0.101.23,
+   (`src/streamxr/home/home.*`, `home-ui.*` shared with the popup, `background.js`),
+   works.
+4. [ ] Test VR on Home (the shell with the placeholder screen and a panel): built in 0.101.24
+   (`home-provider.js`; Home loads the shell's page scripts), to check in the headset. Home's
+   VR settings (glass, Safe Zone, theme ...) are its own: an extension page keeps its own
+   storage, apart from YouTube's. 0.101.25: Settings (the shell's tabs: 2D Cinema to Language)
+   added after the first headset check; the shell's tab code is now in two places (YouTube's
+   settings.js and home-provider.js): to share later, a shell Settings panel that a site adds its
+   own tabs to.
 5. [ ] Start VR when a site opens (Skip Helper users), by message; the address mark removed.
 6. [ ] Docs: design-choices, Future-Plans, ARCHITECTURE, README (Get started, privacy, the
    Skip Helper), CHANGELOG.

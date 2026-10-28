@@ -31,6 +31,12 @@ an extension page, and a site tab opened from it can start VR by itself through 
 Helper (`docs/hardware.md`). What Home needs from the shell (a session with no site, sites
 listed from their own folders) goes on this list as it's built.
 
+- **0.101.24: the shell runs on a page of its own.** Home loads the shell's page scripts
+  (manifest.json's page-world list without the sites' files and `main.js`) and starts VR with
+  its own provider (`src/streamxr/home/home-provider.js`: no video, a logo, one panel),
+  registered in `sites.js` for the extension's own host. Nothing in the shell needed to
+  change. Its settings live in the extension's own storage, apart from each site's.
+
 ## Still to do for BrowseXR (not started)
 
 ### 1. A message-shaped provider boundary (the big one)
