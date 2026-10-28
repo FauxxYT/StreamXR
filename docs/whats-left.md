@@ -2,7 +2,7 @@
 
 One list of what's still open, gathered from the feature backlogs (`docs/features/`) and
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
-Last updated for 0.101.7.
+Last updated for 0.101.16.
 
 ## Top priority: before the first release
 
@@ -137,23 +137,23 @@ movies are copy-protected, so they can't play in VR yet: `features/video-page.md
    meet, so the GPU picks the smallest mipmap along those lines. Check first: the seams should
    go away with the glass off (Settings → Appearance). Fix: in cubemap mode, sample the video
    at full resolution (an explicit level of detail, or gradients from the smooth view direction).
-   - Test: [SheiKra 8K 360° roller coaster](https://www.youtube.com/watch?v=tR8ZtyhSDYw)
+   - Test: "SheiKra 8K 360° roller coaster"
      (cubemap, 8K); for comparison, with no seams:
-     [a regular 360° video](https://www.youtube.com/watch?v=Q7UwGaom0XA).
+     a regular 360° video.
 2. [x] **3D side-by-side videos** (0.89.0, works in the headset; the glass per eye fixed in 0.90.1): some VR180 videos reach desktop with both eyes in
    one frame (LEFT | RIGHT), and StreamXR stretches the whole frame over the half sphere. Add a
    side-by-side format to the Format menu that gives each eye its half (`video-sphere.js`
    `uUvXform`, the per-eye hook); picked by hand, since YouTube's data doesn't mark these
    videos (auto-detecting by comparing the frame's halves could come later).
-   - Test: [VR180 Left/Right](https://www.youtube.com/watch?v=ccU0imlNp5Q) (side by side:
+   - Test: "VR180 Left/Right" (side by side:
      LEFT in the left eye, RIGHT in the right). For comparison, one eye only, which stays flat:
-     [Left Right Test in VR 180](https://youtu.be/kle719aQvsc?t=8).
+     "Left Right Test in VR 180".
    - Not planned: 3D for videos that reach desktop as one eye, and more than 4K where desktop
-     YouTube caps it (e.g. [this VR180 tour](https://www.youtube.com/watch?v=KJ-_LUrGhYE)):
+     YouTube caps it (e.g. a 3D VR180 tour):
      desktop YouTube limits ([decisions/0002](decisions/0002-site-player-only.md)).
 3. [x] **3D side by side on the cinema screen** (0.93.0, works in the headset): the same for
    regular (not VR180) 3D videos, each eye its half on the cinema screen.
-   - Test: [Demo 3D[SBS] (HD : 1080P)](https://www.youtube.com/watch?v=u0hmMt5znX0) (half side
+   - Test: "Demo 3D[SBS] (HD : 1080P)" (half side
      by side: a 16:9 frame, each eye squeezed into half).
 
 ## Features to build (easiest first)
@@ -175,6 +175,29 @@ movies are copy-protected, so they can't play in VR yet: `features/video-page.md
   README's "How you can help" asks users to check (`features/video-page.md`).
 - [x] **End screen** (0.98.0 to 0.98.2) and **Info cards** (0.97.0 to 0.97.4) done (`features/video-page.md`).
 - [ ] **Back button**: set aside (0.73.0); comes back on demand.
+
+## Diagnostics: more for Copy details (later)
+
+Copy details covers "VR won't start" (0.101.8 to 0.101.14; `src/core/page/diagnostics.js`,
+shown by `src/streamxr/ui/panel.js`). Left for later, most useful first:
+
+- [ ] **Last VR session's stats**, for "it stutters" and "it kicks me out" reports: how long
+  it ran, frames drawn, average and worst frame time, and how it ended (Exit pressed, or the
+  session ended by SteamVR / the browser). Kept by `xr-session.js` (counted in its frame loop,
+  noted on the session's `end` event), reported like `lastStart`. Quick troubleshooting could
+  then name a likely issue (slow frames: turn Glass panels off; ended by SteamVR: check
+  SteamVR).
+- [ ] **Check the graphics card can draw for the headset** (`gl.makeXRCompatible()` on a
+  throwaway canvas): would confirm a two-GPU mismatch directly instead of inferring it from
+  `gpus`. Held back: it can briefly reset the page's graphics on some PCs. Only worth it if
+  `gpus` proves not enough; run it only when asked (a button in Details), never on its own.
+- [ ] **Screen size, language, signed-in state**: not needed for VR problems; add only if a
+  report needs them.
+- [ ] **A logger instead of wrapping the console** (optional cleanup): `diagnostics.js` wraps
+  the page's `console.warn` / `console.error` to keep StreamXR's warnings, so DevTools links
+  every warning (YouTube's too) to `diagnostics.js`. An `ns.log.warn()` that keeps the copy
+  and then calls the real console would keep the links right; it means switching the 67
+  `console.warn` / `console.error` calls in 21 files over to it.
 
 ## Known quirks (`known-issues.md`)
 

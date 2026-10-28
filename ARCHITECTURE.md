@@ -85,7 +85,7 @@ src/core/                      THE CORE (shell, part 1): the VR interface, site-
     storage.js                 remembered settings (streamxr.* in localStorage)
     sites.js                   the site registry: each site registers its provider; current()
     frame-clock.js             waits that keep time in VR (ticked by the frame loop)
-    diagnostics.js             WebXR checks + headset clues + controller reports (Details)
+    diagnostics.js             WebXR checks + headset and setup clues + controller reports + recent warnings (Details)
     input.js                   controller state -> actions, via controls.js
     controllers/
       config.js                fit offsets, colours, button->part map, icon placement  <- tune here
@@ -139,7 +139,7 @@ src/streamxr/                  STREAMXR (shell, part 2): the video player on the
     main.js                    page-world entry: picks the site's provider (sites.js), answers the popup
   ui/                          isolated world
     goggles-icon.js            the VR headset icon (Material Symbols' Head Mounted Device) for the VR buttons and popup
-    panel.js                   "Watch in VR" popup (format picker, Enter VR, help, Details)
+    panel.js                   "Watch in VR" popup (format picker, Enter VR, help, Quick troubleshooting, Details)
     popup.css                  its styles (Material 3; colours from the site's palette, asked of the page world)
 src/sites/youtube/             YOUTUBE
   page/

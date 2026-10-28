@@ -78,6 +78,59 @@
     return null;
   }
 
+  // Quick troubleshooting's checklist links: the WebXR samples (a quick test of the PC's VR
+  // setup without StreamXR) and the project's new-issue page (a fork changes ISSUES_URL).
+  const SAMPLES_URL = 'https://immersive-web.github.io/webxr-samples/';
+  const ISSUES_URL = 'https://github.com/FauxxYT/StreamXR/issues/new/choose';
+  const CHECK_LINKS = { 7: [SAMPLES_URL, 'trouble.samplesLink'], 8: [ISSUES_URL, 'trouble.issueLink'] };
+  // One checklist item as HTML: its text escaped, its {link} (if any) a link opening in a new
+  // tab, and its {copy} (if any) a small Copy details button (wired up in open()).
+  function checkHtml(n) {
+    const link = CHECK_LINKS[n], LINK = '\u0001', COPY = '\u0002';
+    let text = esc(t(`trouble.check${n}`, { link: LINK, copy: COPY }));
+    if (link) text = text.replace(LINK, `<a href="${link[0]}" target="_blank" rel="noopener noreferrer">${esc(t(link[1]))}</a>`);
+    return text.replace(COPY, `<button class="streamxr-trouble-copy">${esc(t('popup.copy'))}</button>`);
+  }
+
+  // Quick troubleshooting's "Most likely issue", worked out from what Details shows (the
+  // page world's diagnostics, diagnostics.js): { text, problem (something's wrong), gpu (a
+  // line about the graphics card, or '') }. First match wins, from "StreamXR can't run" down
+  // to "VR started, then failed".
+  function likelyIssue(d) {
+    const last = d.lastStart && typeof d.lastStart === 'object' ? d.lastStart : null;
+    const failed = last && !last.ok;
+    const issue = (key, vars) => ({ text: t(key, vars), problem: true });
+    let out;
+    if (d.timedOut) out = issue('trouble.noResponse');
+    else if (!d.webxrAllowedHere) out = issue('trouble.blocked', { site: siteName() });
+    else if (d.xrError === 'navigator.xr missing') out = issue('trouble.noWebxr');
+    else if (d.xrNative && d.xrNative.native === false) out = issue('trouble.xrReplaced');   // another extension's WebXR in its place
+    else if (d.xrError) out = issue('trouble.xrError', { error: d.xrError });
+    // No headset: never seen since the page loaded (no runtime at all), or seen then gone.
+    else if (!d.headsetFound) out = issue((d.timeline && d.timeline.foundAfter != null) || (d.deviceChanges && d.deviceChanges.count > 0) ? 'trouble.lost' : 'trouble.noRuntime');
+    // Found, but the last Enter VR failed: by the error's kind.
+    else if (failed && last.name === 'InvalidStateError') out = issue('trouble.busy');
+    else if (failed && last.name === 'NotSupportedError') out = issue('trouble.lost');
+    else if (failed && /^(SecurityError|NotAllowedError)$/.test(last.name)) out = issue('trouble.blockedStart');
+    else if (failed) out = issue('trouble.failed', { error: `${last.name}: ${last.message}` });
+    else out = { text: t(last ? 'trouble.okStarted' : 'trouble.ok'), problem: false };
+    // With a problem, a word on the graphics card the browser draws with when it's the wrong
+    // one on a two-GPU computer (the headset uses the other). Known for sure when WebGPU saw
+    // two cards (d.gpus.twoGpus) and the drawing one is the low-power card's maker; without
+    // that answer, guessed from the name (Intel, or AMD's "Radeon Graphics" without a model).
+    const r = d.gpu && typeof d.gpu === 'object' ? String(d.gpu.renderer || '') : '';
+    const g = d.gpus && typeof d.gpus === 'object' ? d.gpus : null;
+    const maker = c => (c && c.vendor ? String(c.vendor).toLowerCase() : '');
+    const onLow = g && g.twoGpus && maker(g.lowPower) && maker(g.lowPower) !== maker(g.highPerformance) &&
+      r.toLowerCase().includes(maker(g.lowPower));
+    const builtIn = /Intel|Radeon\(TM\) Graphics|Radeon Graphics/i.test(r) && !/NVIDIA|Radeon RX|Arc\b/i.test(r);
+    // (its model from "ANGLE (Intel, Intel(R) UHD Graphics 620 (0x…) Direct3D11 …)")
+    const name = r.replace(/^ANGLE \([^,]*,\s*/, '').replace(/\s*(\(0x|Direct3D|OpenGL|Vulkan|,).*$/, '') || r;
+    out.gpu = !out.problem ? '' : onLow ? t('trouble.gpuTwo', { gpu: name })
+      : builtIn && !(g && g.twoGpus === false) ? t('trouble.gpu', { gpu: name }) : '';
+    return out;
+  }
+
   // "3840x2160" -> "1.78:1" (helps tell mono 360 = 2:1, top/bottom 360 = 1:1, side-by-side 360 = 4:1 apart).
   function aspectOf(size) {
     const m = /^(\d+)x(\d+)$/.exec(size || '');
@@ -133,7 +186,7 @@
     if (site.theme && site.theme.accent) pop.style.setProperty('--m3-brand', site.theme.accent);
     if (site.theme && site.theme.onAccent) pop.style.setProperty('--m3-onBrand', site.theme.onAccent);
     pop.addEventListener('click', e => e.stopPropagation());
-    pop.innerHTML = `${title()}<div class="streamxr-src">${esc(t('popup.reading'))}</div>`;
+    pop.innerHTML = `<div class="streamxr-body">${title()}<div class="streamxr-src">${esc(t('popup.reading'))}</div></div>`;
     if (playerEl) playerEl.appendChild(pop);
     else {
       const r = anchor.getBoundingClientRect();
@@ -160,7 +213,7 @@
     // (diagnostics: passthrough.immersiveAr); otherwise greyed out, saying why.
     const arOffered = !!(diag.passthrough && diag.passthrough.immersiveAr === true);
     const arWanted = readPassthrough();
-    pop.innerHTML = `
+    pop.innerHTML = `<div class="streamxr-body">
       ${title()}
       <div class="streamxr-field"${noVideo ? ' hidden' : ''}><label>${esc(t('popup.format'))}</label>
         <select class="streamxr-fmt">${formats.IDS.map(k =>
@@ -176,13 +229,21 @@
       <button class="streamxr-go">${ns.gogglesIcon.standalone()}<span>${esc(t('popup.enter'))}</span></button>
       <div class="streamxr-msg" hidden></div>
       <details class="streamxr-controls"><summary>${esc(t('popup.controls'))}</summary><div class="streamxr-help"></div></details>
+      <details class="streamxr-trouble"><summary>${esc(t('trouble.title'))}</summary>
+        <div class="streamxr-help">
+          <div>${esc(t('trouble.likely'))}</div>
+          <p class="streamxr-likely"></p><p class="streamxr-likely-gpu" hidden></p>
+          <div>${esc(t('trouble.checklist'))}</div>
+          <ol>${[1, 2, 3, 4, 5, 6, 7, 8].map(n => `<li>${checkHtml(n)}</li>`).join('')}</ol>
+        </div>
+      </details>
       <details class="streamxr-details"><summary>${esc(t('popup.details'))}</summary>
         <div class="streamxr-tools">
           <button class="streamxr-copy">${esc(t('popup.copy'))}</button>
           <button class="streamxr-frame">${esc(t('popup.saveFrame'))}</button>
         </div>
         <pre></pre>
-      </details>`;
+      </details></div>`;
     // Help list built with createElement/textContent (not innerHTML) from the shared bindings.
     const help = pop.querySelector('.streamxr-help');
     const heading = document.createElement('div');
@@ -201,22 +262,38 @@
     const renderDetails = (i, d) => {
       const text = JSON.stringify({
         version: extensionVersion(),
+        browser: d.browser, gpu: d.gpu, gpus: d.gpus, xrNative: d.xrNative,
         projection: i.projection, stereo: i.stereo, spherical: i.spherical,
         video: i.video, videoAspect: aspectOf(i.video),
         webxrAllowedHere: d.webxrAllowedHere, headsetFound: d.headsetFound, xrError: d.xrError, passthrough: d.passthrough,
+        vrActive: d.vrActive, lastStart: d.lastStart, deviceChanges: d.deviceChanges, timeline: d.timeline,
         checkedFrom: d.checkedFrom || (d.timedOut ? 'page script not responding' : '?'),
         headset: d.headset, controllerModels: d.controllerModels, controllers: d.controllers,
+        warnings: d.warnings,
       }, null, 1);
       if (pre.textContent !== text) pre.textContent = text;        // keeps scroll position when unchanged
+      renderTrouble(d);
+    };
+    // Quick troubleshooting's "Most likely issue", from the same diagnostics (opened at once
+    // when something's wrong).
+    const trouble = pop.querySelector('.streamxr-trouble');
+    const likelyEl = pop.querySelector('.streamxr-likely'), gpuEl = pop.querySelector('.streamxr-likely-gpu');
+    const renderTrouble = d => {
+      const li = likelyIssue(d);
+      if (likelyEl.textContent !== li.text) likelyEl.textContent = li.text;
+      likelyEl.classList.toggle('problem', li.problem);
+      gpuEl.textContent = li.gpu; gpuEl.hidden = !li.gpu;
     };
     renderDetails(info, diag);
+    if (likelyIssue(diag).problem) trouble.open = true;
 
-    // While Details is expanded, refresh it about once a second (e.g. to watch button
-    // presses arrive while you're in VR).
+    // While Details or Quick troubleshooting is expanded, refresh them about once a second
+    // (e.g. to watch button presses arrive while you're in VR, or the headset turn up once
+    // SteamVR starts).
     const details = pop.querySelector('.streamxr-details');
     let refreshing = false;
     refreshTimer = setInterval(async () => {
-      if (!pop || !details.open || refreshing) return;
+      if (!pop || (!details.open && !trouble.open) || refreshing) return;
       refreshing = true;
       try {
         const [i, d] = await Promise.all([
@@ -239,17 +316,23 @@
     onStateUI = s => {
       if (s.state === 'started') { setActive(); close(); }           // in VR: out of the way (reopen it for Exit VR)
       else if (s.state === 'ended') setIdle();
-      else if (s.state === 'error') { setIdle(); showMsg(s.message || t('popup.stopped')); }
+      else if (s.state === 'error') { setIdle(); showMsg(s.message || t('popup.stopped')); trouble.open = true; }   // (its likely issue follows at the next refresh)
       else if (s.state === 'format' && s.fmt) pop.querySelector('.streamxr-fmt').value = s.fmt;   // changed in VR
     };
     if (vrState === 'active') setActive();
 
-    const copyBtn = pop.querySelector('.streamxr-copy');
-    copyBtn.onclick = async () => {
-      try { await navigator.clipboard.writeText(pre.textContent); copyBtn.textContent = t('popup.copied'); }
-      catch (_) { copyBtn.textContent = t('popup.copyFailed'); }
-      setTimeout(() => { copyBtn.textContent = t('popup.copy'); }, 1500);
+    // Copy details: the Details text to the clipboard, the button saying how it went for a
+    // moment. Two buttons do it: Details' own and Quick troubleshooting's (its last check),
+    // so a report needs no look inside Details.
+    const copyOn = btn => {
+      btn.onclick = async () => {
+        try { await navigator.clipboard.writeText(pre.textContent); btn.textContent = t('popup.copied'); }
+        catch (_) { btn.textContent = t('popup.copyFailed'); }
+        setTimeout(() => { btn.textContent = t('popup.copy'); }, 1500);
+      };
     };
+    copyOn(pop.querySelector('.streamxr-copy'));
+    copyOn(pop.querySelector('.streamxr-trouble-copy'));
     const frameBtn = pop.querySelector('.streamxr-frame');
     frameBtn.onclick = () => {
       const msgText = saveVideoFrame(playerEl || document.getElementById('movie_player') || document.body);

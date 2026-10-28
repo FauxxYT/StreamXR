@@ -261,6 +261,18 @@ even where they look like something to "fix".
   Exit VR); if VR can't start it stays open and says why. Enter VR and Exit VR are both
   YouTube red (the popup's most important button). The controller help is folded into a
   Controls section, like Details.
+- **Quick troubleshooting** (0.101.9, the maintainer, 2026-10-28): a folded section between
+  Controls and Details, opened by itself when something's wrong. First the **Most likely
+  issue**, worked out from what Details shows (no headset ever seen → SteamVR not the OpenXR
+  runtime or the browser opened first; seen then gone; the last Enter VR's error kind; a
+  built-in graphics card as an extra line), in the error colors when something's wrong; then
+  a short numbered checklist in plain words, its WebXR samples and new-issue page as links
+  (opening in a new tab), and a Copy details button in its last check. Details stays its own
+  section (the maintainer, 2026-10-28: it also has Save video frame and the live readout,
+  and its JSON would bury the simple steps). The popup is 344 px wide and keeps Chrome's own thin scrollbar
+  (a custom one looked worse on YouTube, 0.101.12); the popup itself doesn't scroll, its
+  body does, inside room left above and below, so the scrollbar's ends stay clear of the
+  rounded corners (0.101.13).
 - **Glass** (0.59.0): the panels show the video behind them, blurred, under a tint of the
   surface colour. On by default at 43% (settled in the headset, 0.60.0); Settings → Appearance
   (the tab after 2D Cinema, palette icon) has the switch and a live Tint slider (20-90%).

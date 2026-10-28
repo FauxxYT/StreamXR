@@ -6,6 +6,15 @@ permissions, Firefox) are in [ARCHITECTURE.md](../ARCHITECTURE.md#known-limits).
 
 ## Not verified yet
 
+- **No headset found on some PCs (reported after v0.101.7, three users)**: two saw
+  `headsetFound: false` with SteamVR running before the browser (Chrome, Edge, Vivaldi;
+  Windows 11), one had the headset found but "Couldn't start VR" with an InvalidStateError.
+  Suspected: SteamVR not the active OpenXR runtime (`docs/hardware.md`), a browser left
+  running in the background, or a two-GPU laptop. The README's Quick troubleshooting covers
+  them; 0.101.8's Details adds the clues to tell them apart, and 0.101.9's Quick
+  troubleshooting in the popup names the likely one (both in v0.101.16). Waiting on the
+  reporters' Copy details from v0.101.16 to confirm the cause; move this out once known.
+
 - **Signed-in Home feeds** other than the main one, History, Playlists, Watch later and
   Liked videos (those were verified in 0.35) (`youtube-home.js`).
 - **Live chat typing (0.81.0)**: sending a message was checked from the console (text only);

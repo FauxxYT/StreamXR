@@ -30,8 +30,9 @@
     bridge.send(E.THEME_RESPONSE, { palette: { ...ns.vrTokens.m3 } });
   });
 
-  // "Can VR work here?" -> WebXR availability, headset clues, controller reports.
-  bridge.on(E.DIAG_REQUEST, async () => bridge.send(E.DIAG_RESPONSE, await diagnostics.check()));
+  // "Can VR work here?" -> WebXR availability, headset clues, controller reports, and whether
+  // a VR session is running in this tab now.
+  bridge.on(E.DIAG_REQUEST, async () => bridge.send(E.DIAG_RESPONSE, { ...await diagnostics.check(), vrActive: xrSession.isActive() }));
 
   // Simple remote controls (play/pause, seek), usable from either world.
   bridge.on(E.CMD, cmd => {
@@ -45,8 +46,13 @@
   // `passthrough`: the popup's "See your room" checkbox (used only if the browser offers it).
   bridge.on(E.ENTER, ({ fmt, passthrough }) => {
     xrSession.start(provider, fmt || formats.DEFAULT, state => bridge.send(E.STATE, state), { passthrough: !!passthrough })
-      .then(() => bridge.send(E.STATE, { state: 'started' }))
-      .catch(err => bridge.send(E.STATE, { state: 'error', message: ns.i18n.t('vr.cantStart', { error: err && err.message }) }));
+      .then(() => { diagnostics.noteStart(null); bridge.send(E.STATE, { state: 'started' }); })
+      .catch(err => {
+        diagnostics.noteStart(err);
+        // (the error's kind too, e.g. "InvalidStateError: ...", when it's a named one)
+        const named = err && err.name && err.name !== 'Error' ? `${err.name}: ${err.message}` : err && err.message;
+        bridge.send(E.STATE, { state: 'error', message: ns.i18n.t('vr.cantStart', { error: named }) });
+      });
   });
 
   // Leave VR (the panel's button turns into "Exit VR" while a session runs).
