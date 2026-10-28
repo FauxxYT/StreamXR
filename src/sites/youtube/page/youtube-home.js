@@ -131,6 +131,17 @@
     return [...older, ...newer].filter(c => c.text);
   }
 
+  // The Home feed's chips in a steady order: YouTube sends its personalised chips in a
+  // different order on each load, and every chip picked loads the feed again, so the row
+  // re-shuffled once the chip's videos came in (seen 2026-10-28). The order first shown is kept
+  // while the page is open; chips new since then go at the end; ones no longer offered drop out.
+  let homeChipOrder = null;                    // chip texts in the order first shown
+  function steadyChips(list) {
+    if (!homeChipOrder) homeChipOrder = list.map(c => c.text);
+    else list.forEach(c => { if (!homeChipOrder.includes(c.text)) homeChipOrder.push(c.text); });
+    return list.slice().sort((a, b) => homeChipOrder.indexOf(a.text) - homeChipOrder.indexOf(b.text));
+  }
+
   // ---------------------------------------------------------------- home feed
   // home(chip) -> pager over the Home feed's videos (Shorts included, flagged `short`).
   //   chip: a chip's text ('All' by default; e.g. 'Immersive videos', 'Gaming', 'Live',
@@ -143,7 +154,7 @@
       if (token) r = await more(token);
       else {
         r = await browse(FEEDS.home);
-        p.chips = chipsOf(r).map(({ text, selected }) => ({ text, selected }));
+        p.chips = steadyChips(chipsOf(r).map(({ text, selected }) => ({ text, selected })));
         const c = chip !== 'All' && chipsOf(r).find(x => x.text.toLowerCase() === chip.toLowerCase());
         if (c && c.token) {
           r = await more(c.token);

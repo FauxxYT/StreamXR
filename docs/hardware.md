@@ -13,7 +13,9 @@ Steam Frame with SteamVR, desktop Chrome). For supporting other hardware, see th
   devices and data": Allow while visiting the site / Allow this time / Never allow). The
   session's visibility went `hidden` at the start, then `visible-blurred` and `visible`;
   opening the SteamVR dashboard turns it `visible-blurred`, and frames keep coming (the
-  picture kept changing), back to `visible` when it closes.
+  picture kept changing), back to `visible` when it closes. Meanwhile no controller updates
+  arrive: StreamXR's controllers and lasers stayed frozen in the air, so they're hidden while
+  the session isn't `visible` (0.101.41); the video plays on and the panels fade as usual.
 - **VR can start with no click of yours** (Test 2, `tools/xr-check/`, 0.101.18 with Skip Helper
   1.4.0, 2026-10-28): on a YouTube tab opened from the check page, the Skip Helper's debugger
   click on StreamXR's see-through target counted as real input; target clicked 0.3 s after the
@@ -80,6 +82,10 @@ Steam Frame with SteamVR, desktop Chrome). For supporting other hardware, see th
   `immersive-ar`; the session then clears to transparent).
 - WebXR never names the headset, so nothing detects it by name. Don't detect a headset by
   its refresh rate either: it's a user setting.
+- **No hand tracking through WebXR** (checked 2026-10-28): with the controllers down and the
+  hands held up in VR, nothing happens. StreamXR is built for the controllers and doesn't use
+  hand input; whether Chrome offers the Frame's hands to web pages at all (WebXR's
+  `hand-tracking` feature) is unchecked. Hands would be a later feature, if Chrome offers them.
 - **No controller vibration through WebXR** (checked in 0.73.1): Chrome gives the
   controllers' gamepads neither `hapticActuators` (WebXR's `pulse()`) nor
   `vibrationActuator` (the Gamepad API's), so the hover / click buzz can't work. The

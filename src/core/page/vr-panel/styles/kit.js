@@ -430,7 +430,8 @@
   //   const strip = createStrip();
   //   strip.draw(g, regions, box, contentW, key, paint): box { x, y, w, h } is the row's room
   //     on the canvas; contentW how wide the row is; key changes when its contents do (back
-  //     to the start, unless the new key only adds to the end of the old one). paint(ctx,
+  //     to the start, unless the new key only adds to the end of the old one; an empty key
+  //     changes nothing). paint(ctx,
   //     regions, x) draws the row starting at x on ctx (canvas coordinates); a row that fits
   //     is painted straight onto g, else onto the strip's own canvas (shifted, faded, then
   //     copied in) and its regions are cut to what shows.
@@ -453,7 +454,9 @@
     function draw(g, regions, b, contentW, key, paint) {
       box = b; max = Math.max(0, contentW - b.w);
       // New contents: back to the start, unless they only added to the end (more pills arriving).
-      if (key !== lastKey) { if (!(lastKey && key.startsWith(lastKey))) offset = 0; lastKey = key; }
+      // An empty row for a moment (e.g. a feed's chips while the picked chip's page loads)
+      // changes nothing: the same row coming back keeps its place.
+      if (key && key !== lastKey) { if (!(lastKey && key.startsWith(lastKey))) offset = 0; lastKey = key; }
       const now = performance.now(), dt = last ? Math.min(0.05, (now - last) / 1000) : 0;
       last = now;
       offset = Math.min(max, Math.max(0, offset + speed() * dt));

@@ -203,7 +203,13 @@
       const p = pager;
       loading = true; bump();
       p.next().then(() => {
-        if (p === pager && current().chips === 'home' && p.chips && p.chips.length) homeChips = orderChips(p.chips);
+        // The Home feed's chips: those already shown stay, in place, with new ones after them
+        // (as the sorts below): after a chip is picked YouTube may offer a slightly different set,
+        // and the pill row, its labels changed, would slide back to its start.
+        if (p === pager && current().chips === 'home' && p.chips && p.chips.length) {
+          const fresh = orderChips(p.chips);
+          homeChips = homeChips.length ? [...homeChips, ...fresh.filter(t => !homeChips.includes(t))] : fresh;
+        }
         // A list with its own choices (the Channels list's sorts, a feed's sections): offered as its pills, the one
         // it shows chosen. Choices already offered stay, in place, with new ones after them: a
         // chosen section reads fewer pages, so it would offer fewer (and the pill row, its

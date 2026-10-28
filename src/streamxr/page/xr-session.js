@@ -438,11 +438,16 @@
         // camera image never reaches the page, so passthrough gets the tint alone).
         panelSafely('drawing', () => panel.drawPanel(pose, layer, !seeThrough && view.backdrop ? view.backdrop() : null));
 
-        if (controllers) {
-          try { controllers.draw(frame, refSpace, pose, layer, session.inputSources, panel ? panel.iconSwaps() : null, input.holds()); }
-          catch (err) { console.warn('[streamxr] controller drawing failed, turning it off:', err); controllers = null; }
+        // The controllers and lasers only while the session is fully visible: with the SteamVR
+        // dashboard (or another overlay) open it's 'visible-blurred' and the browser gets no
+        // controller updates, so they'd stay frozen in the air; they come back when it closes.
+        if (!session.visibilityState || session.visibilityState === 'visible') {   // (no visibilityState: an older browser)
+          if (controllers) {
+            try { controllers.draw(frame, refSpace, pose, layer, session.inputSources, panel ? panel.iconSwaps() : null, input.holds()); }
+            catch (err) { console.warn('[streamxr] controller drawing failed, turning it off:', err); controllers = null; }
+          }
+          panelSafely('laser drawing', () => panel.drawLasers(pose, layer, controllers ? controllers.alphas() : null));
         }
-        panelSafely('laser drawing', () => panel.drawLasers(pose, layer, controllers ? controllers.alphas() : null));
       };
 
       // Session over (you took the headset off, pressed Exit VR, or an error ended it):

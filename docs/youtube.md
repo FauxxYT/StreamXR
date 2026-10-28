@@ -29,7 +29,9 @@ backlogs in [features/](features/)):
   shelves, Videos / Shorts / Live (latest / popular / oldest), Playlists, Shows, Posts,
   Store, channel search.
 - `youtube-home.js` (`ns.youtubeHome`): the Home feed with its topic chips ("Immersive
-  videos" = 360/VR content), Explore feeds (Live, News, Gaming, Sports, Music, Podcasts,
+  videos" = 360/VR content; YouTube sends the personalised chips in a different order on
+  each load, so the first order shown is kept while the page is open: `steadyChips()`,
+  0.101.39), Explore feeds (Live, News, Gaming, Sports, Music, Podcasts,
   Courses, Hype, Memberships), signed-in feeds (unverified), the left menu (`guide()`), your
   own channel's id (`myChannelId()`: the menu's "Your channel" entry, else the account menu; verified signed in, 0.74.0) and
   search `suggestions()`.

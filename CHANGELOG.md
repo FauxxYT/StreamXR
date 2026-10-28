@@ -6,6 +6,43 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.101.41
+
+### Fixed
+- **The controllers and lasers froze in the air while the SteamVR dashboard was open**: the
+  browser gets no controller updates then (the session is "visible-blurred"). They're now
+  hidden while it's open and come back when it closes; the video keeps playing as before.
+
+## 0.101.40
+
+### Fixed
+- **The Home feed's chip row slid back to its start after picking a chip** (signed in): after
+  a pick YouTube may offer a slightly different set of chips, and a row whose contents change
+  slides back. The chips already shown now stay, in place, with new ones after them (as
+  Gaming's pills since 0.96.6). A sliding row (tabs, chips) also keeps its place through a
+  moment with nothing in it.
+
+## 0.101.39
+
+### Fixed
+- **The Home feed's chips re-shuffled once a chip's videos loaded** (signed in): picking a
+  chip loads the feed again, and YouTube sends its personalised chips in a different order
+  each time. The order first shown now stays while the page is open (new chips go at the end).
+
+### Notes
+- Checked in the headset (2026-10-28): the left controller does everything the right one does;
+  switching tabs or minimizing Chrome leaves VR running as it was; the Captions button is
+  greyed out on a video without captions.
+
+## 0.101.38
+
+### Fixed
+- **"Material Color Utilities missing: keeping the default palette"** on the StreamXR
+  Dashboard's Test VR (in `chrome://extensions` → Errors): the Dashboard didn't load Google's
+  Material Color Utilities (`third_party/`), which the panels' Material 3 palette is made with,
+  so its VR panels fell back to the default colors. It now loads them first, as a site's page
+  does (the only script of that list it was missing).
+
 ## 0.101.37
 
 ### Removed

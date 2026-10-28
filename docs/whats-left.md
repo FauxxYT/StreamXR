@@ -2,7 +2,7 @@
 
 One list of what's still open, gathered from the feature backlogs (`docs/features/`) and
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
-Last updated for 0.101.37.
+Last updated for 0.101.41.
 
 ## Top priority: before the first release
 
@@ -170,16 +170,22 @@ movies are copy-protected, so they can't play in VR yet: `features/video-page.md
 - [x] **Explore's "Coming Soon" tabs**: Live, Gaming, Music, Hype, Courses, Podcasts,
   Memberships (0.94.0 to 0.96.6, work in the headset, released in v0.101.7); Shorts, Movies &
   TV, Learning need more first (Road to 1.0, item 9; `features/home-page.md`).
-- [ ] **News**: its own tabs (Top stories, Sports ...) and the Sports feed.
+- [x] **News** (0.94.1, works in the headset): its own tabs as pills (Top stories, Sports,
+  Entertainment, Business ...) on Explore's News tab (Road to 1.0, item 6).
 - [x] **Subscriptions** (0.90.0 to 0.92.2, work in the headset): the Channels tab with its sort pills, the bell on the Channel
   panel; posts in the feed (desktop has none) and its shelves deferred (`features/subscriptions-page.md`).
-- [ ] **Live chat**: reading (0.79.1) and reactions (0.80.0) work in the headset; typing, the
+- [x] **Live chat**: reading (0.79.1) and reactions (0.80.0) work in the headset; typing, the
   keyboard's emoji pages and Support on desktop built in 0.81.0, Top fans (XP, the list, rank
   pills) in 0.82.0 and chat replays in 0.87.0 (all work in the headset). Other viewers' floating
   reactions are deferred (`features/video-page.md`, "Deferred"). Left: the unverified items in `known-issues.md`, which the
   README's "How you can help" asks users to check (`features/video-page.md`).
 - [x] **End screen** (0.98.0 to 0.98.2) and **Info cards** (0.97.0 to 0.97.4) done (`features/video-page.md`).
-- [ ] **Back button**: set aside (0.73.0); comes back on demand.
+- [ ] **Back button**: set aside (0.73.0); now "A Back for VR" under "From Android's XR and
+  desktop design guides" below (one item, not two).
+- [ ] **One shared Settings panel** (cleanup): the shell's Settings tabs (2D Cinema to
+  Language) are built twice, in YouTube's `settings.js` and the Dashboard's
+  `home-provider.js`; a shell Settings panel that a site adds its own tabs to (YouTube's
+  Playback, Audio) would keep them in one place.
 
 ## Diagnostics: more for Copy details (later)
 
@@ -215,8 +221,8 @@ desktop Chrome. To do:
 - [ ] **A sharpness setting** (render scale): `framebufferScaleFactor` above the headset's
   default sharpens the video and panels on fast PCs, at a cost in frame rate. A setting
   (e.g. Settings → Appearance), its value in Copy details next to `nativeScale`.
-- [ ] **Upload video frames only when a new one arrives** (`requestVideoFrameCallback`)
-  instead of every VR frame: may save time on 8K. Measure first.
+- [x] **Upload video frames only when a new one arrives** (`requestVideoFrameCallback`): already
+  done: `media-source.js` uploads only on a new frame where the browser has it (audit, 2026-10-28).
 - [ ] **A second site: Twitch** (needs the maintainer's OK for its host permission): an
   ordinary `<video>` with no DRM, chat on the page, mostly flat streams (the cinema screen),
   ads inside the stream (detect the ad overlay to show it in VR). The best test of the
@@ -246,10 +252,10 @@ keyboard, system bars, multitasking). Most XR pages are for native Android XR ap
 Space, environments, anchors, 3D models, Glimmer for glasses) and don't apply to a WebXR
 page. What does:
 
-- [ ] **Either hand** ("Considerations": usable with either hand, essential actions with one):
-  check that everything works from the left controller as well as the right (lasers, clicks,
-  scrolling, grabbing, the keyboard), and list in `shared/controls.js` / the README's
-  Controls any action that's on one hand only.
+- [x] **Either hand** ("Considerations": usable with either hand, essential actions with one):
+  the left controller works with everything (the maintainer, 2026-10-28). The few one-hand
+  buttons (A / B on the right, the panel button on the left, the stick reset) are in
+  `shared/controls.js` and the README's Controls.
 - [ ] **A Back for VR** ("Considerations": WebXR apps don't get the system's back, so build
   one): bring the set-aside Back button back (0.73.0) as one consistent way back, e.g. a
   controller button that steps back (a page's back button, then closing a menu or dialog),
@@ -279,16 +285,19 @@ follow the browser's zoom and font size, hover and focus states, keyboard first.
 
 ## Still to check in the headset
 
-- Signed-in Home feeds other than the main one.
-- The Captions button greyed out on a video with no captions.
-- The SteamVR dashboard while in VR: the session turns `visible-blurred` and the picture keeps
-  drawing (seen with `tools/xr-check/`); does StreamXR pause the laser and clicks and pick up
-  cleanly after?
-- Switching tabs or minimizing Chrome while in VR: does the session pause, end, or go on? If
-  it ends or freezes, say so instead of failing silently.
-- WebXR hand input on the Frame through Chrome and SteamVR (expected: none; if so, a known
-  limit in `docs/hardware.md`).
-- Chrome does ask before VR starts ("… wants to use virtual reality devices and data": Allow
+- Signed-in Home feeds other than the main one (History, Playlists, Watch later, Liked).
+  The main feed's chips work (2026-10-28); they re-shuffled once a chip's videos loaded,
+  fixed in 0.101.39.
+- ~~The Captions button greyed out on a video with no captions~~: works (2026-10-28).
+- ~~The SteamVR dashboard while in VR~~: the video plays on and the panels fade as usual; the
+  controllers and lasers stayed frozen in the air (no controller updates while the session is
+  `visible-blurred`): hidden while it's open since 0.101.41, works. (2026-10-28)
+- ~~Switching tabs or minimizing Chrome while in VR~~: nothing happens, VR goes on as it was
+  (2026-10-28).
+- ~~WebXR hand input on the Frame~~: nothing happens with the controllers down and the hands
+  up (2026-10-28): a known limit, in `docs/hardware.md`.
+- ~~Chrome's VR prompt~~ done: Chrome asks before VR starts ("… wants to use virtual reality
+  devices and data": Allow
   while visiting the site / Allow this time / Never allow; seen on the extension page,
-  2026-10-28). Still to see: its wording on YouTube on a fresh profile, then add it to the
-  README's Get started ("choose Allow while visiting the site").
+  2026-10-28); the README's Get started now says to choose "Allow while visiting the site"
+  (0.101.37). Its exact wording on YouTube on a fresh profile is unseen but the same choices.
