@@ -4,7 +4,7 @@ experience: 360° and VR180 videos wrap around you, regular videos play on a gia
 screen, and you can browse, search, subscribe, like, save and read comments without ever
 taking your headset off. 🎬✨
 
-**Works with:**<br> 🖥️ Windows · 🌐 Chrome · 🎮 SteamVR · 🥽 Valve Steam Frame · 🥽 Meta Quest 2 (reported by [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack)) · ([full requirements](#-what-you-need))<br> 
+**Works with:**<br> 🖥️ Windows · 🌐 Chrome · 🎮 SteamVR · 🥽 Valve Steam Frame · 🥽 Meta Quest 2 (reported by [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack)) · 🥽 Pimax Crystal Light (reported by [u/Livid-Escape-4820](https://www.reddit.com/user/Livid-Escape-4820)) · ([full requirements](#-what-you-need))<br> 
 **Jump to:** [Get started](#-get-started-in-a-minute) ·
 [Quick troubleshooting](#-quick-troubleshooting) · [Controls](#-controls) ·
 [Your privacy](#-your-privacy) · [What's new](#-whats-new-in-v010116) · [Roadmap](#-roadmap) · [How you can help](#-how-you-can-help)
@@ -29,7 +29,8 @@ version's details are in the [changelog](CHANGELOG.md)):
 - 🧩 **The most common fix, spelled out:** Chrome reaches your headset through the **OpenXR
   runtime**, and other VR software (Quest Link, Virtual Desktop and others) can take it over.
   In SteamVR, **Settings → OpenXR → set SteamVR as the OpenXR runtime**, then quit the browser
-  fully and open it again.
+  fully and open it again. If SteamVR says it already is and even the WebXR samples find no
+  headset, **reinstall SteamVR** and let it become the runtime again.
 - 📋 **Better bug reports:** **Copy details** (now right in Quick troubleshooting too) adds
   your browser and graphics cards, how the last Enter VR went, and StreamXR's recent warnings
   (with video, playlist and channel IDs removed), so problems can be fixed without a long
@@ -233,7 +234,7 @@ The full design story is in [docs/Materials-Redesign.md](docs/Materials-Redesign
 |---|---|---|
 | 🖥️ **Computer** | **Windows 10 / 11** | Tested on Windows 11. macOS and Linux aren't supported (Chrome's WebXR needs Windows + SteamVR). |
 | 🌐 **Browser** | **Google Chrome** | Tested. Other Chromium browsers (Edge, Brave) should work but haven't been tried. Firefox can't yet: desktop Firefox has no WebXR (a 🦊 Firefox version will come once it does). |
-| 🥽 **Headset** | **Valve Steam Frame**<br>**Meta Quest 2** (reported by [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack)) | **Steam Frame:** tested and tuned for it, controller models and all, streamed from your PC. (Running in the Frame's own browser, no PC needed, comes once it supports WebXR: see the [roadmap](#-roadmap).)<br>**Quest 2:** reported working through SteamVR, 8K videos included. Its controllers show as Steam Frame models.<br>Other SteamVR headsets may well work too; their buttons may be mapped differently ([help add yours](#-adding-a-headset)). |
+| 🥽 **Headset** | **Valve Steam Frame**<br>**Meta Quest 2** (reported by [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack))<br>**Pimax Crystal Light** (reported by [u/Livid-Escape-4820](https://www.reddit.com/user/Livid-Escape-4820)) | **Steam Frame:** tested and tuned for it, controller models and all, streamed from your PC. (Running in the Frame's own browser, no PC needed, comes once it supports WebXR: see the [roadmap](#-roadmap).)<br>**Quest 2:** reported working through SteamVR, 8K videos included. Its controllers show as Steam Frame models.<br>**Pimax Crystal Light:** reported working through SteamVR.<br>Other SteamVR headsets may well work too; their buttons may be mapped differently ([help add yours](#-adding-a-headset)). |
 | 🎮 **VR software** | **SteamVR** | Running **before** you open Chrome, and set as your OpenXR runtime. On the Steam Frame, stream it with **Stream VR without game** ([how](#-get-started-in-a-minute)). |
 | 📺 **Site** | **YouTube** | Signed in or out. With YouTube Premium, even better (no ads). |
 | 🧩 **Optional** | **Skip Helper** | A tiny second extension that lets you skip ads from inside VR ([why it's separate](#-skipping-ads)). |
@@ -279,6 +280,8 @@ setup without any site.
 |---|---|
 | 🚫 **"No VR headset found"** / Enter VR is greyed out | Chrome only looks for a headset when it starts. Start **SteamVR**, get the Steam Frame streaming (**Streaming Status** → your PC → **Advanced** → **Stream VR without game**), then close **every** Chrome window and open Chrome again. |
 | 🧩 **Still "No VR headset found"** with SteamVR running | Chrome reaches your headset through the **OpenXR runtime**, and other VR software (Quest Link, Virtual Desktop and others) can take it over. In SteamVR, open **Settings → OpenXR** and set **SteamVR as the OpenXR runtime**. Then quit Chrome fully: turn off **Settings → System → Continue running background apps when Chrome is closed** (in Edge, also **Startup boost**), close every window and open it again. |
+| 🧪 **Not sure it's StreamXR?** | With SteamVR running, open the [WebXR samples](https://immersive-web.github.io/webxr-samples/) in Chrome. If their **Enter VR** is greyed out too, Chrome can't see your headset on any site: it's your PC's VR setup (the two rows above, or the next one), not StreamXR. |
+| 🛠️ **SteamVR says it's already the OpenXR runtime, but nothing finds the headset** (the WebXR samples too) | SteamVR's registration as the runtime can be broken even while its settings say it's set (often after other VR software was installed and removed). **Reinstall SteamVR**: in Steam's Library, right-click **SteamVR → Manage → Uninstall**, then install it again, and say **yes** when it asks to become the OpenXR runtime. Then quit Chrome fully and open it again. (Found with [u/Timtronic125](https://www.reddit.com/user/Timtronic125).) |
 | ⚠️ **"Couldn't start VR: InvalidStateError…"** | The headset was found but SteamVR wouldn't start a session. Close any other tab or browser that's in VR, check the headset for a SteamVR prompt or error, then restart SteamVR and try again. |
 | 🔍 **No VR button on YouTube** | Make sure StreamXR is turned on in `chrome://extensions`, then reload the YouTube tab. |
 | 🔄 **Just updated StreamXR and nothing changed** | Reload your YouTube tab too: an open tab keeps the old version until it's reloaded. |
@@ -354,8 +357,9 @@ what bugs you most):
 - **No controller vibration.** Chrome doesn't give the Steam Frame controllers a way to
   vibrate yet, so Settings → Appearance → Vibration is greyed out.
 - **Only Steam Frame controller models.** Other controllers are drawn as Steam Frame
-  controllers. Besides the Steam Frame, only the Quest 2 has been reported working (by
-  [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack)); other headsets are untested. **Got 3D models of your controllers?** 🧊
+  controllers. Besides the Steam Frame, the Quest 2 (by
+  [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack)) and the Pimax Crystal Light (by
+  [u/Livid-Escape-4820](https://www.reddit.com/user/Livid-Escape-4820)) have been reported working; other headsets are untested. **Got 3D models of your controllers?** 🧊
   Share them in a **Headset / controller compatibility** issue (with where they came from and
   their license) and I'll integrate them once I start accepting pull requests. They need a
   license that lets them be shared and changed in a free project, with credit (for example
@@ -593,7 +597,7 @@ order by `manifest.json` (one vendored library, Google's Material Color Utilitie
 ## 🥽 Adding a headset
 
 The extension is built and tested on the Steam Frame, because that's the only headset I
-have; [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack) has reported the **Meta Quest 2** working through SteamVR too. Help for other
+have; [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack) has reported the **Meta Quest 2** working through SteamVR too, and [u/Livid-Escape-4820](https://www.reddit.com/user/Livid-Escape-4820) the **Pimax Crystal Light**. Help for other
 headsets is very welcome; this section is the map. Open an
 issue before writing code (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 

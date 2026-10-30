@@ -48,7 +48,12 @@ Steam Frame with SteamVR, desktop Chrome). For supporting other hardware, see th
   active OpenXR runtime, which other VR software (Quest Link, Virtual Desktop, ...) can take
   over; SteamVR games still work then (they use SteamVR's own API), but the browser finds no
   headset (`isSessionSupported('immersive-vr')` is false with no error). SteamVR → Settings →
-  OpenXR sets it back. Suspected behind three "no headset" / "couldn't start" reports after
+  OpenXR sets it back. **Its registration can also be broken while SteamVR's settings say it's
+  the current runtime** (the set button greyed out, 0 API layers, no `XR_RUNTIME_JSON`, the
+  WebXR samples greyed out too): reinstalling SteamVR fixed it, and the fresh install asked to
+  become the default runtime (found with [u/Timtronic125](https://www.reddit.com/user/Timtronic125) on Reddit, a Steam Frame user who once had Vive
+  software, 2026-10-29).
+  The README's Quick troubleshooting and the popup's check 2 say so (0.101.55). Suspected behind three "no headset" / "couldn't start" reports after
   v0.101.7 (not confirmed yet); Details now also shows the browser, the GPU, the last Enter
   VR error and the browser's device-change events (0.101.8), the graphics cards WebGPU sees,
   whether WebXR is the browser's own (not an extension's stand-in), a headset timeline and
@@ -103,6 +108,10 @@ Steam Frame with SteamVR, desktop Chrome). For supporting other hardware, see th
   8K videos included. Not tried by the maintainer, and not reported yet: how its buttons map
   (Copy details' `controllers` part would show it) and how it connects to the PC (Link,
   Air Link or another streaming app). Its controllers are drawn as Steam Frame models.
+- **Pimax Crystal Light** (reported by [u/Livid-Escape-4820](https://www.reddit.com/user/Livid-Escape-4820) on Reddit, 2026-10-30): works
+  through SteamVR in desktop Chrome. Not reported yet: which StreamXR version, how its
+  controllers' buttons map (Copy details' `controllers` part), and anything that looked off.
+  Its controllers are drawn as Steam Frame models.
 
 ## Controller models
 

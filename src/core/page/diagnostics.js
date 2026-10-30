@@ -280,7 +280,7 @@
     }
     const notYet = 'none seen yet (enter VR first)';
     // With no headset found, the likely fix instead of "enter VR first" (which can't work).
-    const noRuntime = 'no VR runtime found: set SteamVR as the OpenXR runtime (SteamVR → Settings → OpenXR), then fully quit and reopen the browser';
+    const noRuntime = 'no VR runtime found: set SteamVR as the OpenXR runtime (SteamVR → Settings → OpenXR; if it already says so, reinstall SteamVR), then fully quit and reopen the browser';
     return {
       webxrAllowedHere, headsetFound, xrError, passthrough, checkedFrom: 'page',
       browser: await browser(), gpu: gpu(), gpus: gpus(), xrNative: xrNative(),

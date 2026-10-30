@@ -14,6 +14,23 @@ permissions, Firefox) are in [ARCHITECTURE.md](../ARCHITECTURE.md#known-limits).
   them; 0.101.8's Details adds the clues to tell them apart, and 0.101.9's Quick
   troubleshooting in the popup names the likely one (both in v0.101.16). Waiting on the
   reporters' Copy details from v0.101.16 to confirm the cause; move this out once known.
+  - **One report followed through with [u/Timtronic125](https://www.reddit.com/user/Timtronic125) on Reddit (2026-10-28), solved
+    2026-10-29 by reinstalling SteamVR**
+    (the fresh install asked to become the default OpenXR runtime, though the old one's
+    settings had said it already was: a broken registration; `docs/hardware.md`). Steam Frame, SteamVR 2.18.4
+    showing it connected and ready, SteamVR the current OpenXR runtime, 0 OpenXR API layers,
+    no `XR_RUNTIME_JSON`; Chrome 156, one AMD RX 9070 XT (Direct3D 11), XR flags at Default;
+    Vive software once installed, since removed. Copy details: WebXR native and allowed,
+    `headsetFound: false` with no error, no device change. **The WebXR samples'
+    Enter VR was greyed out too**, so Chrome saw no headset on any page: not StreamXR. Chrome
+    never asked for VR permission because no page could request a session (the popup greys
+    out Enter VR when no headset is found). The fix (reinstalling SteamVR) came after
+    the other checks above had all looked right. Another
+    user on the same thread got it working in Brave after Chrome failed. Next time, before the
+    registry: `chrome://webxr-internals` (enable its flag in chrome://flags) shows whether
+    Chrome found an OpenXR runtime and why a session failed. Since 0.101.54 Quick troubleshooting
+    and the README point users to the WebXR samples test first, and since 0.101.55 to
+    reinstalling SteamVR when it says it's already the runtime.
 
 - **Live chat typing (0.81.0)**: sending a message was checked from the console (text only);
   in the headset, check typing, Send / Enter, a channel emoji in a message (sent by its id, as

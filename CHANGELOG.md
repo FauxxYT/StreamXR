@@ -6,6 +6,24 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.101.55
+
+### Changed
+- **Quick troubleshooting: reinstall SteamVR when it says it's already the OpenXR runtime but
+  nothing finds the headset.** Its registration can be broken while its settings say it's set;
+  found and tested with [u/Timtronic125](https://www.reddit.com/user/Timtronic125) on Reddit, whose Steam Frame was found again after
+  reinstalling SteamVR, which then asked to become the default runtime. In the popup's check 2 (check 7 points to it), a new row in the README's Quick
+  troubleshooting table, and Copy details' headset hint.
+
+## 0.101.54
+
+### Changed
+- **Quick troubleshooting points to the WebXR samples test** when no headset is found: the most
+  likely issue now ends "Quick test: if the WebXR samples (check 7) can't enter VR either, it's
+  the PC's VR setup, not StreamXR", and check 7 says what a greyed-out Enter VR there means. The
+  README's Quick troubleshooting table gets the same row ("Not sure it's StreamXR?"). From a
+  user report where Chrome saw no headset on any site (`docs/known-issues.md`).
+
 ## 0.101.53
 
 ### Fixed
