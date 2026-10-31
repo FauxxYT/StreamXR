@@ -384,8 +384,6 @@ what bugs you most):
 - **Best with YouTube in English.** A few panels recognize YouTube's own English words
   (the "All" chip, "Joined", an ad's "1 of 2"), so some labels can go missing in other
   languages. StreamXR's own words follow your language setting either way.
-- **Comments show one level of replies;** YouTube's newer replies-to-replies aren't shown
-  yet.
 - **Glass menus blur only the video,** not the panels behind them.
 - **Two Explore tabs say "Coming Soon"** (Shorts and Movies & TV): they're on the roadmap.
 - A channel's **Featured** tab only shows for channels you subscribe to when the creator

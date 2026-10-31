@@ -467,13 +467,44 @@ snippets); read by `youtube-chat.js` since 0.79.0:
 
 - Comments arrive as layout plus separate "entities" (`frameworkUpdates`), matched by
   `commentKey`. A replies page returns each reply as a commentThreadRenderer (with
-  subThreads for replies-to-replies); one level of replies is shown.
+  subThreads holding its replies-to-replies **inline**: each a commentThreadRenderer with
+  `replyLevel` 2, a "View replies" button, no continuation; probed 2026-10-30). Since 0.101.59
+  they're read with their reply (`inlineReplies`), since 0.101.60 to any depth (a level-3 reply
+  sits in its level-2 reply's subThreads, and so on), each shown a level further in (up to 3); a continuation
+  there, if YouTube ever sends one, is read as the reply's `repliesToken` (up to 3 pages).
 - The toolbar STATE entity (toolbarStateKey) has heartState / likeState; the comment
   entity's toolbar has creatorThumbnailUrl + heartActiveTooltip when hearted, and
   likeCountLiked (the count including your like). The toolbar SURFACE entity carries
   like / unlike / dislike / undislike commands with performCommentActionEndpoint.action
   tokens only when signed in; `rateComment` POSTs comment/perform_comment_action
   `{ actions: [token] }` (confirmed signed in).
+- **Writing comments** (probed 2026-10-30, signed in, read-only). Posting: the first comments
+  page (the `reloadContinuationItemsCommand`) has `commentsHeaderRenderer.createRenderer.
+  commentSimpleboxRenderer` with `placeholderText` ("Add a comment..."), `authorThumbnail` (your
+  avatar) and `submitButton.buttonRenderer.serviceEndpoint.createCommentEndpoint.
+  createCommentParams`; YouTube's page POSTs `comment/create_comment` `{ commentText,
+  createCommentParams }` (`postComment()`, 0.101.56; its answer reads as a normal comment: your
+  name, avatar and "0 seconds ago"). Replying:
+  each comment's toolbar SURFACE entity has `replyCommand.innertubeCommand.
+  createCommentReplyDialogEndpoint.dialog.commentReplyDialogRenderer.replyButton.buttonRenderer.
+  serviceEndpoint.createCommentReplyEndpoint.createReplyParams` (POST
+  `comment/create_comment_reply` `{ commentText, createReplyParams }`; `postReply()`, 0.101.57; a reply's
+  own reply command is used for a reply to a reply). No length limit is stated in the data; no edit / delete
+  commands showed on others' comments (`menuCommand` holds the "⋮" menu). **Your own comment** (`author.isCurrentUser`)
+  has them in that menu (`menuCommand.innertubeCommand.menuEndpoint.menu.menuRenderer.items`,
+  probed 2026-10-30): Edit (icon EDIT: `updateCommentDialogEndpoint.dialog.commentDialogRenderer`
+  with `editableText` and its Save's `updateCommentEndpoint.updateCommentParams`; POST
+  `comment/update_comment` `{ commentText, updateCommentParams }`), Delete (icon DELETE: a
+  `confirmDialogEndpoint` titled "Delete comment", asking "Delete your comment permanently?" or,
+  with replies, "Delete your comment and all of its replies permanently?", whose button is a
+  `performCommentActionEndpoint.action`), and on your own video Pin (a confirm, then a
+  perform-comment-action). Read by `ownMenu()` (0.101.63). **Update's answer** (probed 2026-10-30):
+  `actions[].updateCommentAction.actionResult.status` "STATUS_SUCCEEDED" ("Comment edited"), and the
+  comment's new `commentEntityPayload` alone in `frameworkUpdates` (no thread or view model), its
+  `publishedTime` now "... (edited)"; its surface's menu holds Delete's confirm dialog again, so a
+  confirm dialog in an answer is no sign of failure (0.101.64), nor an `errorMessage`: the Reply dialog
+  it carries holds "We weren't able to add your reply. Please try again." ready-made. Only
+  `actions[].*.actionResult.status` decides (0.101.66).
 - The comment count comes from the comments panel header's contextualInfo
   (`commentsInfo()`); a transcript exists when the page lists an
   `engagement-panel-searchable-transcript` (`hasTranscript()`).

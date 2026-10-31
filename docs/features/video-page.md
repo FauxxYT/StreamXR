@@ -87,8 +87,29 @@ published; what matters from them is in this file and docs/youtube.md).
   scrolling with more loading near the end, replies opened under a comment, clickable times)
   - ~~Code: `youtubeContent.comments(sort)`, `replies(comment)`, `commentsInfo()`~~
   - v0.30.1: the creator's ❤ shows; like / dislike buttons (confirmed signed in).
-  - Not yet: replies to replies (YouTube's newer nested threads), writing comments
-    (writing needs the VR keyboard).
+  - Replies to replies (YouTube's newer nested threads): shown one step further in under their
+    reply since 0.101.59 (they come inline with each reply; 0.101.58 looked for a token instead;
+    works in the headset, the maintainer, 2026-10-30); to any depth since 0.101.60 (indent capped at
+    3 levels; works in the headset, the maintainer, 2026-10-30); thread lines joining each reply to
+    its comment since 0.101.61 (work in the headset); clicking a line folds the replies under it since
+    0.101.62 (works in the headset, the maintainer, 2026-10-30).
+- [x] **Commenting in VR** (large; the maintainer's picks, 2026-10-30; done, works in the headset): writing comments and
+  replies with the VR keyboard, built in steps tested between:
+  1. [x] Post a comment (0.101.56; works in the headset, the maintainer, 2026-10-30: posted, shown
+     at the top with your name and avatar ("0 seconds ago", YouTube's own time), on YouTube too): an "Add a comment..." field at the bottom of the Comments panel (live
+     chat's field); the VR keyboard types; Enter or Comment posts, no confirm; your comment shows
+     at the top at once. (YouTube: `comment/create_comment` with the first comments page's
+     `createCommentParams`, `docs/youtube.md`.)
+  2. [x] Reply (0.101.57; works in the headset, the maintainer, 2026-10-30: Reply on comments and
+     replies, "@name " on a reply's reply, x back to a new comment, on YouTube too): a Reply button on each comment switches the field to "Replying to @name" (an x
+     cancels); the reply shows under its comment at once (`comment/create_comment_reply`, each
+     comment's `createReplyParams`).
+  3. [x] Edit or delete your own comments (0.101.63; in the headset: the ⋮, its menu and Delete work;
+     Save said "Couldn't save": fixed in 0.101.66 (two false alarms in YouTube's answer; saves in the headset), and the edit shown
+     in place since 0.101.67 (the layout cache kept the old text); all works in the headset, the
+     maintainer, 2026-10-30): a "⋮" on your
+     comments opens Edit (the text in the bottom field, "Editing your comment", Save) and Delete
+     (YouTube's question first; its replies go too).
 - [ ] **Live chat** (medium to large, read-only first): **phase 1 (reading) built in 0.79.0**,
   working in the headset since 0.79.1 (checked by the maintainer).
   - Code: `youtube-chat.js` (the views, the chat page, polling every 2 s; docs/youtube.md,

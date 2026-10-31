@@ -6,6 +6,111 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.101.67
+
+### Fixed
+- **An edited comment kept showing its old text** (in the list it was edited in; another sort showed
+  the new one): the comment layout cached each comment's wrapped lines by its id and the sort, so
+  the same comment drew its old lines. The cache now also checks the text and lays an edited
+  comment out again (`thread.js`).
+
+## 0.101.66
+
+### Fixed
+- **Editing still said "Couldn't save"** (the console: "We weren't able to add your reply"): that text
+  is a ready-made error inside the Reply dialog YouTube sends with every comment, the edited one too,
+  and any `errorMessage` in the answer counted as a refusal. Posting, replying and editing now go by
+  the answer's own action result only (a failed status, with YouTube's reason).
+
+## 0.101.65
+
+### Changed
+- **An edited comment shows YouTube's "(edited)"**: YouTube answers an edit with the comment's new
+  entity alone (no thread around it), which wasn't read; now its saved text and time ("30 seconds ago
+  (edited)") show in place.
+
+## 0.101.64
+
+### Fixed
+- **Editing a comment said "Couldn't save"** (confirmed by a probe of YouTube's answer in 0.101.65): an answer holding a confirm dialog
+  counted as a refusal, and an edited comment comes back with its own "⋮" menu, Delete's confirm
+  dialog included. Now only an error message or a failed action status counts.
+
+## 0.101.63
+
+### Added
+- **Edit and delete your own comments in VR** (Commenting in VR, step 3): your comments and replies
+  have a "⋮" after Reply, opening a small menu with **Edit** and **Delete**. Edit puts the comment's
+  text in the field at the bottom, with "Editing your comment" and an x over it; **Save** updates it in
+  place (POST `comment/update_comment`). Delete asks first, with YouTube's own question ("Delete
+  your comment permanently?"), then takes it from the list, its replies with it (POST
+  `comment/perform_comment_action` with its delete token). Both read from the comment's own "⋮" menu
+  (`youtube-content.js` `ownMenu`); the Info style gained `rectOf` (for the menu under the "⋮").
+
+## 0.101.62
+
+### Added
+- **Click a thread line to fold its replies**: a comment's line folds its replies (as its Hide), a
+  reply's line folds that reply's own replies, which then shows "⌄ N replies" to open them again.
+  Pointed at, a comment's lines light up in the accent colour, showing what a click folds. A reply
+  you post under a folded reply opens it. (`thread.js`: a 28 px strip along each line, ids
+  `children:<thread>` / `fold:<at>`; `comments.js` `toggleFold`.)
+
+## 0.101.61
+
+### Added
+- **Thread lines in the comments**: a line runs down from each comment's picture and curves into each
+  of its replies, so every reply shows which comment it answers, at any depth (as YouTube's desktop
+  draws them; past the 3-level indent, a straight line down). In the shared thread layout
+  (`thread.js`), so a channel post's comments get them too.
+
+## 0.101.60
+
+### Added
+- **Nested replies to any depth**: a reply to a reply to a reply (and deeper) now shows too. The
+  reader follows each reply's inline replies all the way down (and keeps a continuation token with
+  the reply it belongs to); the Comments panel lists the whole tree in reading order, each level a
+  step further in, the indent stopping at 3 levels so deep replies keep the panel's width. A reply
+  you post goes right under the comment you answered, at any depth.
+
+## 0.101.59
+
+### Fixed
+- **Replies to replies still didn't show**: YouTube sends a reply's own replies inline, in the
+  same answer as the reply (its `subThreads`, `replyLevel` 2), not behind a separate "N replies"
+  token as 0.101.58 assumed; the reader stopped at each reply's wrapper. It now reads them with
+  their reply (a comment's `inlineReplies`), and the Comments panel shows them under it.
+
+## 0.101.58
+
+### Added
+- **Replies to replies show in VR**: YouTube now threads a reply to a reply under it, and the
+  Comments panel only showed one level. Opening a thread's replies now also reads each reply's own
+  replies (its "N replies" token, up to 3 pages each) and shows them one step further in, under
+  their reply, as on desktop. A reply you post to a reply shows there too. The thread layout takes
+  a comment's `depth` (2).
+
+## 0.101.57
+
+### Added
+- **Reply to comments in VR** (Commenting in VR, step 2): signed in, each comment (and reply) has
+  a **Reply** button. It turns the field at the bottom into a reply: "Replying to @name" shows
+  over it with an x to go back to a new comment, and the field's button says Reply. Replying to a
+  reply starts with "@name ", as YouTube does. Enter or Reply posts it (POST
+  `comment/create_comment_reply` with the comment's reply token), and it shows first under its
+  comment, that thread's replies opened. The Info style's field takes an optional `context` line.
+
+## 0.101.56
+
+### Added
+- **Write a comment in VR** (Commenting in VR, step 1): signed in, the Comments panel has an
+  "Add a comment..." field along its bottom (live chat's field, with a Comment button). A click
+  brings up the VR keyboard; Enter or Comment posts it (no confirm), and your comment shows at the
+  top at once, the list scrolled there. YouTube's own placeholder and posting token come with the
+  first page of comments (`youtube-content.js` `composeOf`, `postComment`: POST
+  `comment/create_comment`); each comment's reply token is read too, for step 2. The Info style's
+  `thread` kind takes an optional `input`.
+
 ## 0.101.55
 
 ### Changed

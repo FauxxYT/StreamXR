@@ -19,7 +19,7 @@ permissions, Firefox) are in [ARCHITECTURE.md](../ARCHITECTURE.md#known-limits).
     (the fresh install asked to become the default OpenXR runtime, though the old one's
     settings had said it already was: a broken registration; `docs/hardware.md`). Steam Frame, SteamVR 2.18.4
     showing it connected and ready, SteamVR the current OpenXR runtime, 0 OpenXR API layers,
-    no `XR_RUNTIME_JSON`; Chrome 156, one AMD RX 9070 XT (Direct3D 11), XR flags at Default;
+    no `XR_RUNTIME_JSON`; Chrome 156, one desktop graphics card (Direct3D 11), XR flags at Default;
     Vive software once installed, since removed. Copy details: WebXR native and allowed,
     `headsetFound: false` with no error, no device change. **The WebXR samples'
     Enter VR was greyed out too**, so Chrome saw no headset on any page: not StreamXR. Chrome
@@ -72,7 +72,6 @@ permissions, Firefox) are in [ARCHITECTURE.md](../ARCHITECTURE.md#known-limits).
 - Text matching assumes **English** YouTube: some readers recognise YouTube's own words
   (the "All" chip, "Joined", an ad's "1 of 2", the Jump ahead pill). This is about what YouTube writes;
   StreamXR's own words follow the interface language (Settings → Language).
-- Replies to replies (YouTube's newer nested comment threads) aren't shown; one level is.
 
 ## Tried and dropped
 

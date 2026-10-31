@@ -2,7 +2,7 @@
 // Profile's opened post): a bar of pills and a count, then rows with a round picture,
 // author (optionally highlighted, with a badge) · meta, text with clickable clock times, a
 // footer (a site slot), and children (replies) opened under them, with a spinner, "show
-// more" or a message where needed. Knows nothing about any site.
+// more" or a message where needed; connector lines join each reply to the comment it answers. Knows nothing about any site.
 //
 //   const t = ns.vrStyleThread.create(g, kit, { slots, fill });
 //     slots.threadFooter(f) -> x where the footer ended (see info.js); fill(id, ui, base)
@@ -14,9 +14,13 @@
 //                                          left edge x; only what's inside `view` ({ y, h })
 //   content c: { pills: [{ id, label }], pill, count, labels: { hide, more, empty },
 //     threads: [{ comment: { id, author, avatar, highlight, badge, meta, text, childrenLabel },
-//                 children: null | { open, items: [comments], loading, more } }],
+//                 children: null | { open, items: [comments] (a comment's depth: 2 for a reply to a
+//                 reply, 3 ...: each a step further in, up to MAX_DEPTH), loading, more } }],
 //     loading, done, error }
-//   Control ids: 'pill:<id>', 'time:<seconds>', 'children:<thread>', 'more:<thread>', and
+//   A reply's fold: null | { open, label }: it has replies of its own; folded (open false), they
+//   aren't in items and its footer shows label ("2 replies") to open them.
+//   Control ids: 'pill:<id>', 'time:<seconds>', 'children:<thread>' (its "N replies" / Hide, or its
+//   thread line), 'fold:<at>' (a reply's thread line, or its "N replies"), 'more:<thread>', and
 //   the footer slot's own.
 (function (ns) {
   'use strict';
@@ -25,15 +29,17 @@
 
   const { roundRect, parseClock, drawBadge, FONT } = ns.vrKit;
   const CM = { avatar: 40, replyAvatar: 30, indent: 56, size: 21, line: 28, name: 26, foot: 34, pad: 14 };
+  const MAX_DEPTH = 3;           // replies deeper than this are indented as this one (the list keeps its width)
   const TIME_RE = /^(?:\d+:)?\d{1,2}:\d{2}$/;
 
   function create(g, kit, { slots, fill }) {
-    const rowCache = new Map();                          // row key -> { h, lines: [[{ text, x, w, time? }]] }
+    const rowCache = new Map();                          // row key -> { h, lines: [[{ text, x, w, time? }]], text (what was laid out) }
 
-    // Lay a row's text out at its width: lines of word pieces, times marked.
+    // Lay a row's text out at its width: lines of word pieces, times marked. Kept by the row's key
+    // (its id, width ...) while its text stays the same (an edited comment is laid out again).
     function layoutRow(key, c, maxW) {
       const hit = rowCache.get(key);
-      if (hit) return hit;
+      if (hit && hit.text === String(c.text || '')) return hit;
       g.font = `${CM.size}px ${FONT}`;
       const lines = [[]];
       let x = 0;
@@ -49,7 +55,7 @@
       }
       if (lines.length > 1 && !lines[0].length) lines.shift();
       const h = CM.pad + CM.name + lines.length * CM.line + CM.foot;
-      const lay = { h, lines };
+      const lay = { h, lines, text: String(c.text || '') };
       rowCache.set(key, lay);
       return lay;
     }
@@ -75,9 +81,19 @@
       const labels = c.labels || {};
       const rows = [];
       (c.threads || []).forEach((t, i) => {
-        rows.push({ kind: 'c', c: t.comment, i, at: String(i), indent: 0, s: CM.avatar, children: t.children });
+        const head = { kind: 'c', c: t.comment, i, at: String(i), indent: 0, s: CM.avatar, children: t.children };
+        rows.push(head);
         if (t.children && t.children.open) {
-          t.children.items.forEach((r, j) => rows.push({ kind: 'c', c: r, at: `${i}.${j}`, indent: CM.indent, s: CM.replyAvatar }));
+          // Each reply's parent row (the last row one level up: the items come in reading
+          // order), for the connector lines (draw).
+          const last = [head];
+          t.children.items.forEach((r, j) => {
+            const d = Math.max(1, r.depth || 1);
+            const row = { kind: 'c', c: r, at: `${i}.${j}`, indent: CM.indent * Math.min(d, MAX_DEPTH), s: CM.replyAvatar,   // (a reply to a reply: one step further in, up to MAX_DEPTH)
+              parent: last[Math.min(d - 1, last.length - 1)] };
+            rows.push(row);
+            last.length = Math.min(last.length, d); last[d] = row;
+          });
           if (t.children.loading) rows.push({ kind: 'spin', h: 56, indent: CM.indent });
           else if (t.children.more) rows.push({ kind: 'more', i, h: 44, indent: CM.indent });
         }
@@ -96,8 +112,39 @@
       return { rows, height: y };
     }
 
+    // The connector lines, under everything else: from each comment's picture down the empty
+    // column below it, curving into each of its replies' pictures (a reply as deep as its
+    // parent, past MAX_DEPTH, gets a straight line down to it), so every reply shows which
+    // comment it answers (as YouTube's desktop draws them).
+    // A comment's lines are also its fold control: a strip along its vertical line (LINE_HIT px
+    // wide) is clickable, 'children:<thread>' for a thread's own line (as its "N replies" / Hide),
+    // 'fold:<at>' for a reply's; while pointed at, its lines are drawn in the primary colour.
+    const LINE_HIT = 28;
+    const lineId = p => (String(p.at).includes('.') ? `fold:${p.at}` : `children:${p.i}`);
+    function connectors(lay, x0, top, view, ui, clipRegion) {
+      const R = 12, strips = new Map();                 // parent row -> { lx, y0, y1 } (its line's extent)
+      for (const r of lay.rows) {
+        const p = r.parent;
+        if (!p) continue;
+        const pTop = top + p.y, cTop = top + r.y, cy = cTop + CM.pad + r.s / 2;
+        const lx = x0 + p.indent + p.s / 2, cx = x0 + r.indent, y0 = pTop + CM.pad + p.s + 4;
+        const curve = cx - lx > R + 6, end = curve ? cy : cTop + CM.pad - 4;
+        const s = strips.get(p) || { lx, y0, y1: end };
+        s.y1 = Math.max(s.y1, end); strips.set(p, s);
+        if (cy < view.y || pTop > view.y + view.h) continue;                 // (no part of it in view)
+        const id = lineId(p), hot = ui.hover === id || ui.pressed === id;
+        g.strokeStyle = hot ? P.primary : P.outlineVariant; g.lineWidth = hot ? 3 : 2;
+        g.beginPath(); g.moveTo(lx, y0);
+        if (curve) { g.lineTo(lx, cy - R); g.quadraticCurveTo(lx, cy, lx + R, cy); g.lineTo(cx - 6, cy); }
+        else g.lineTo(lx, end);
+        g.stroke();
+      }
+      for (const [p, s] of strips) clipRegion(lineId(p), s.lx - LINE_HIT / 2, s.y0, LINE_HIT, s.y1 - s.y0);
+    }
+
     function draw(c, lay, m, ui, x0, top, view, clipRegion) {
       const labels = c.labels || {};
+      connectors(lay, x0, top, view, ui, clipRegion);
       g.textAlign = 'left'; g.textBaseline = 'top';
       for (const r of lay.rows) {
         const ry = top + r.y;
@@ -152,6 +199,14 @@
           ns.vrKit.hoverArea(g, id, ui, bx2 - 8, fy - 4, w, 30, 15);
           // An arrow: down to open, up to fold (Material Symbols).
           g.fillStyle = P.tertiary; ns.vrSymbols.draw(g, open ? 'expand_less' : 'expand_more', bx2 + 8, fy + 11, 24, false);
+          g.fillText(label, bx2 + 22, fy + 2);
+        } else if (r.parent && cm.fold && !cm.fold.open) {         // a reply whose own replies are folded: "⌄ 2 replies" opens them
+          const id = `fold:${r.at}`, label = cm.fold.label || '';
+          g.font = `500 18px ${FONT}`;
+          const bx2 = fx + 8, w = g.measureText(label).width + 44;
+          clipRegion(id, bx2 - 8, fy - 4, w, 30);
+          ns.vrKit.hoverArea(g, id, ui, bx2 - 8, fy - 4, w, 30, 15);
+          g.fillStyle = P.tertiary; ns.vrSymbols.draw(g, 'expand_more', bx2 + 8, fy + 11, 24, false);
           g.fillText(label, bx2 + 22, fy + 2);
         }
       }

@@ -415,6 +415,10 @@
       comments: sort => ns.youtubeContent.comments(sort),
       replies: comment => ns.youtubeContent.replies(comment),
       rateComment: (comment, what) => ns.youtubeContent.rateComment(comment, what),
+      sendComment: (compose, text) => ns.youtubeContent.postComment(compose, text),   // writing: a new comment (compose: the comments pager's p.compose)
+      sendReply: (comment, text) => ns.youtubeContent.postReply(comment, text),       // and a reply to one (step 2)
+      editComment: (comment, text) => ns.youtubeContent.editComment(comment, text),   // your own comments: edit
+      deleteComment: comment => ns.youtubeContent.deleteComment(comment),             // and delete
       // Explore and You panels: the Home feed (with a topic chip), News, the Subscriptions
       // feed, the signed-in left-menu feeds ('history', 'playlists'), your own lists ('WL' =
       // Watch later, 'LL' = Liked videos) and your channel's id.

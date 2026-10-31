@@ -2,7 +2,7 @@
 
 One list of what's still open, gathered from the feature backlogs (`docs/features/`) and
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
-Last updated for 0.101.55.
+Last updated for 0.101.67.
 
 ## Top priority: before the first release
 
@@ -122,8 +122,10 @@ list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps 
    the tab on tall cards 0.101.48, the next Short when one ends 0.101.51, the next Shorts in Up Next
    0.101.52 to 0.101.53). Movies & TV: not built, as every film is copy-protected; its tabs explain
    that instead of "Coming soon" (0.101.45). Learning deferred.
-10. [ ] **Commenting in VR** (large): writing comments and replies with the VR keyboard (posting,
-    threads, typing into the Comments panel).
+10. [x] **Commenting in VR** (large; done 2026-10-30): writing comments and replies with the VR keyboard, in steps
+    (`features/video-page.md`): posting a comment (0.101.56), replies (0.101.57), nested replies to any
+    depth with thread lines that fold them (0.101.58 to 0.101.62) all work in the headset. Editing and
+    deleting your own comments (0.101.63 to 0.101.67) work too.
 11. [x] **StreamXR Dashboard** ("Home" in the code; 0.101.20 to 0.101.37, works in the headset): a toolbar popup and a page of
     StreamXR's own (status, Quick troubleshooting, Test VR in the shell, the sites, a
     first-run welcome), so StreamXR shows from day one that more sites are coming
@@ -132,7 +134,7 @@ list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps 
 12. [ ] **Chrome Web Store release, StreamXR 1.0** (last: it waits on the rest): the store
     listing, the privacy questions (the README's "Your privacy" covers them), review.
 
-Set aside: the Back button (0.73.0; comes back on demand). Deferred: Movies in Up Next (YouTube's
+Set aside: the Back button (0.73.0; deferred again 2026-10-30: no controller button is free). Deferred: Movies in Up Next (YouTube's
 movies are copy-protected, so they can't play in VR yet: `features/video-page.md`, "Deferred").
 
 ## Next: from u/TehSuperFruitSnack's Reddit feedback (after 0.88.1)
@@ -183,7 +185,7 @@ movies are copy-protected, so they can't play in VR yet: `features/video-page.md
   README's "How you can help" asks users to check (`features/video-page.md`).
 - [x] **End screen** (0.98.0 to 0.98.2) and **Info cards** (0.97.0 to 0.97.4) done (`features/video-page.md`).
 - [ ] **Back button**: set aside (0.73.0); now "A Back for VR" under "From Android's XR and
-  desktop design guides" below (one item, not two).
+  desktop design guides" below (one item, not two), deferred 2026-10-30 (no free button).
 - [x] **One shared Settings panel** (0.101.42: `streamxr/page/settings-panel.js`; YouTube adds Playback and Audio, the Dashboard nothing; the same panel as before, compared tab by tab) (cleanup): the shell's Settings tabs (2D Cinema to
   Language) are built twice, in YouTube's `settings.js` and the Dashboard's
   `home-provider.js`; a shell Settings panel that a site adds its own tabs to (YouTube's
@@ -260,9 +262,9 @@ page. What does:
   buttons (A / B on the right, the panel button on the left, the stick reset) are in
   `shared/controls.js` and the README's Controls.
 - [ ] **A Back for VR** ("Considerations": WebXR apps don't get the system's back, so build
-  one): bring the set-aside Back button back (0.73.0) as one consistent way back, e.g. a
-  controller button that steps back (a page's back button, then closing a menu or dialog),
-  before 1.0.
+  one): **deferred (the maintainer, 2026-10-30): every controller button already has a use**, so
+  there's none left for a Back; the panels' own back buttons stay the way back. Comes back if a
+  button frees up.
 - [x] **Recenter without a jump** (0.101.42: 0.12 s to dark, recenter, 0.18 s back; Recenter button and Grip; `fade-pass.js`) (Motion: whole-world movement should fade, not jump):
   check how recentering looks; if everything leaps, a short fade out and in around it.
 - [x] **Small targets easier to hit** (mostly there already: every panel style and the controls panel stretch a control smaller than 72 px (56 dp) to that size, kit.js `regionAt`; 0.101.42 adds the menus and dialogs) (anchors: a target catcher behind small targets; about
@@ -281,7 +283,6 @@ follow the browser's zoom and font size, hover and focus states, keyboard first.
 
 - Captions on 180°/360° need improvement (0.77.1: "good enough for now").
 - Glass popups blur only the video, not the panels behind them.
-- One level of comment replies (not YouTube's nested replies-to-replies).
 - Some readers expect YouTube in English.
 - Limits on YouTube's or Chrome's side: no controller vibration, a channel's Featured tab
   can be missing, a channel's subscribed state can be wrong.

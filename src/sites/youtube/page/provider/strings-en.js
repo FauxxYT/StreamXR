@@ -168,6 +168,23 @@
     'yt.comments.count': { one: '{n} comment', other: '{n} comments' },
     'yt.comments.failed': 'Couldn’t load comments ({error}).',
     'yt.comments.off': 'Comments are turned off for this video.',
+    // Writing a comment (the field at the bottom of the Comments panel).
+    'yt.comments.placeholder': 'Add a comment…',     // (YouTube's own placeholder is used when it sends one)
+    'yt.comments.post': 'Comment',                    // the field's button
+    'yt.comments.postFailed': 'Couldn’t post',
+    'yt.comments.you': 'You',                         // your new comment's author, if YouTube's answer couldn't be read
+    'yt.comments.justNow': 'just now',
+    'yt.comments.reply': 'Reply',                     // a comment's Reply button, and the field's button while replying
+    'yt.comments.replyingTo': 'Replying to {name}',   // over the field ({name}: "@somebody")
+    'yt.comments.replyPlaceholder': 'Add a reply…',
+    // Your own comments' "⋮" menu (YouTube's own delete question is used when it sends one).
+    'yt.comments.edit': 'Edit',
+    'yt.comments.delete': 'Delete',
+    'yt.comments.editing': 'Editing your comment',   // over the field while editing
+    'yt.comments.save': 'Save',                       // the field's button while editing
+    'yt.comments.saveFailed': 'Couldn’t save',
+    'yt.comments.deleteTitle': 'Delete comment',
+    'yt.comments.deleteText': 'Delete your comment permanently?',
 
     // Live chat panel.
     'yt.chat.none': 'This video has no live chat.',

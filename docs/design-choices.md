@@ -125,7 +125,8 @@ even where they look like something to "fix".
   "Haptics are not supported on these controllers yet" while no controller can vibrate (the
   user, 0.73.3; Chrome gives the Steam Frame's none).
 - **No global Back (0.73.0):** set aside by the maintainer; panels open and close from the
-  toolbars, and Channel keeps its own Back.
+  toolbars, and Channel keeps its own Back. Deferred again (the maintainer, 2026-10-30): every controller
+  button already has a use, so none is free for a Back.
 - **Explore and You (0.74.0, the maintainer):** Browse became **Explore**: Home (with all of
   YouTube's topic chips) first, then the Explore list from YouTube's left menu in its order:
   Shorts, Music, Movies & TV, Hype, Live, Gaming, News, Learning, Courses, Podcasts,
@@ -410,3 +411,17 @@ even where they look like something to "fix".
   While a playlist is shuffled, the controls' Next shows a shuffle card ("A random video from
   this playlist", the shuffle icon) instead of a video: the next one isn't known until it plays
   (the maintainer, 2026-10-18).
+- **Commenting in VR (the maintainer, 2026-10-30):** the "Add a comment..." field sits **at the
+  bottom of the Comments panel** (live chat's field and its Comment button), in reach while you
+  scroll; the VR keyboard types into it. **No confirm**: Enter or Comment posts at once, as chat
+  does. **Your comment shows at the top right away** (a reply: under its comment). Replies come
+  from **a Reply button on each comment**, which switches the same field to "Replying to @name"
+  (an x cancels) rather than opening a field under the comment.
+  **Your own comments: a "⋮" menu** with Edit and Delete (as YouTube); **Edit uses the bottom
+  field** ("Editing your comment", an x, Save; the comment updates in place); **Delete asks first**,
+  with YouTube's own question (the maintainer, 2026-10-30; 0.101.63).
+  Nested replies show to any depth, each level a step further in (the indent stops at 3 levels),
+  with **thread lines** from each comment's picture curving into its replies, as on YouTube's
+  desktop (the maintainer, 2026-10-30; 0.101.60 to 0.101.61). **Clicking a thread line folds** the replies under
+  it (a comment's: as Hide; a reply's: its own replies, then "⌄ N replies" opens them again); the
+  lines light up while pointed at (the maintainer, 2026-10-30; 0.101.62).
