@@ -120,7 +120,10 @@
       if (gr) {
         const hot = state.hover === handle.id, heldNow = state.held === handle.id;
         g.fillStyle = T.panelFill(); roundRect(g, gr.x, gr.y, gr.w, gr.h, gr.w / 2); g.fill();
-        g.fillStyle = heldNow ? P.brand : P.onSurfaceVariant; roundRect(g, gr.x + gr.w / 2 - 2.5, gr.y + gr.h / 2 - 32, 5, 64, 2.5); g.fill();
+        // (the handle 64 px long, shorter on a short grab bar, e.g. a side with one panel, so it
+        // stays inside with 12 px to spare at each end)
+        const hl = Math.min(64, gr.h - 24);
+        g.fillStyle = heldNow ? P.brand : P.onSurfaceVariant; roundRect(g, gr.x + gr.w / 2 - 2.5, gr.y + gr.h / 2 - hl / 2, 5, hl, 2.5); g.fill();
         if (hot || heldNow) hoverRing(g, gr.x, gr.y, gr.w, gr.h, gr.w / 2);
       }
       if (!shownItems.length) return;

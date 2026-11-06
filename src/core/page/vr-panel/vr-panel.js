@@ -271,7 +271,8 @@
     }
     // Where the menu goes: its bottom middle just above the button that opened it (centred
     // on it, kept from reaching far past the panel's sides), in the controls panel's tilt,
-    // 32 dp in front.
+    // 48 dp in front: nearer than the popup that rises from the pill (32 dp: Settings), which
+    // it would otherwise cut into where they overlap.
     // A side panel's menu ('p:<panel>|<control>') goes the same way above its control, in
     // that panel's pose.
     function menuModel(id) {
@@ -308,7 +309,7 @@
       const half = size[0] / 2 - 0.12;
       const x = Math.max(-half, Math.min(half, cx));
       const bottom = (0.5 - rect.y / ui.height) * size[1] + 12 * MPX;
-      return M.multiply(model, M.translation(x, bottom + menuSize[1] / 2, dp(32)));
+      return M.multiply(model, M.translation(x, bottom + menuSize[1] / 2, dp(48)));
     }
     // The dialog, in the Safe Zone's middle, 56 dp nearer than the panels; the scrim just behind it.
     function dialogModel(d) {
@@ -441,7 +442,8 @@
       visible = true; menu = null; grab = null;
       lastActivity = performance.now();
     }
-    const toggleKeyboard = () => { kbAuto = false; showKeyboard(!kbShown); };   // by hand: it stays until put away by hand
+    // By hand: it stays until put away by hand. (Up but hidden with the panels: it comes back.)
+    const toggleKeyboard = () => { kbAuto = false; showKeyboard(!kbShown || !visible); };
     // One of its controls was pressed (id without 'kb:'): type its key, or hide it.
     function kbPress(id) {
       const out = kb.press(id);
@@ -928,7 +930,7 @@
           }
         }
         for (const p of panels.values()) if (shown(p)) hits[p.reg.id] = intersect(origin, dir, panelModel(p), p.size);
-        if (kbShown) {
+        if (kbShown && visible) {                            // (hidden with the panels: not there to point at)
           const r = intersect(origin, dir, kbModel(), kbSize());
           if (inside(r) && kb.solidAt(r.u, r.v)) hits.keyboard = r;
         }
@@ -1026,14 +1028,15 @@
         // what was last clicked: typing stops (the panel gets Escape, which puts away a
         // keyboard that came up for it), an open menu on the controls panel closes, and a
         // dialog is cancelled (anywhere off it counts, as with M3's scrim).
-        // With nothing to let go of (and no keyboard up), the press hides everything at once:
-        // the panels, the side toolbars and the search bar, as auto-hide would (paused too).
-        // With everything hidden (auto-hide, or the left D-pad), a trigger pull brings the
-        // panels back, and the lasers with them (they only show while the panels do).
+        // With nothing to let go of, the press hides everything at once: the panels (the
+        // keyboard too, when it's up in the controls panel's place), the side toolbars and the
+        // search bar, as auto-hide would (paused too). With everything hidden (auto-hide, or the
+        // left D-pad), a trigger pull brings the panels back (the keyboard with them, if it was
+        // up), and the lasers with them (they only show while the panels do).
         if (trigger && !h.trigger) fling = null;                      // any press stops a scroll that keeps going
         if (trigger && !h.trigger && !visible && !tHit) { visible = true; lastActivity = now; dismissedAt = -1; buzz(src, 0.3, 15); }
         else if (trigger && !h.trigger && !onPanel && !tHit) {
-          const holding = !!(typing || menu || dialog || kbShown);
+          const holding = !!(typing || menu || dialog);
           if (typing) { lastActivity = now; typing.ctrl.event({ type: 'key', value: 'Escape' }); }
           menu = null;
           closeDialog(false);
@@ -1165,13 +1168,14 @@
       // The keyboard: redrawn only when its keys (Shift, page, layout), what's pointed at or
       // pressed, or what you're typing into change.
       if (kbShown) {
-        let kh = null;
-        for (const h of hands.values()) if (h.hover && h.hover.startsWith('kb:')) kh = h.hover.slice(3);
+        // (every key pointed at: both lasers can be on the keyboard, each lights its own key)
+        const khs = [...new Set([...hands.values()].filter(h => h.hover && h.hover.startsWith('kb:')).map(h => h.hover.slice(3)))].sort();
+        const kh = khs[0] || null;
         const kp = kbGrab ? kbGrab.mode : grab ? 'grab'
           : pressed && pressed.id.startsWith('kb:') ? pressed.id.slice(3) : null;
         const target = typingNow() ? labelOf(typing.reg) : null;
-        const kKey = [kb.version(), ns.i18n.version(), ns.vrTokens.glass.version, kh, kp, target, kb.animating() ? now : ''].join('|');   // every frame while a key eases
-        if (kKey !== kbKey) { kb.draw({ hover: kh, pressed: kp, target }); kbPass.upload(); kbKey = kKey; }
+        const kKey = [kb.version(), ns.i18n.version(), ns.vrTokens.glass.version, khs.join(','), kp, target, kb.animating() ? now : ''].join('|');   // every frame while a key eases
+        if (kKey !== kbKey) { kb.draw({ hover: kh, hovers: khs, pressed: kp, target }); kbPass.upload(); kbKey = kKey; }
       }
 
       // Redraw the canvas only when something visible changed.

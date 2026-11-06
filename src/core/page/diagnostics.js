@@ -169,6 +169,11 @@
   }
   function gpusLookup() {
     if (!navigator.gpu || !navigator.gpu.requestAdapter) return Promise.resolve('no WebGPU');
+    // Chrome on Windows ignores powerPreference (crbug.com/369219127, seen 2026-10-28: it
+    // warns in the console and gives the same card both times), so it can't tell two cards
+    // apart there; not asked, and the popup falls back to guessing from the card's name.
+    const ua = navigator.userAgentData;
+    if ((ua && ua.platform === 'Windows') || /Windows/.test(navigator.userAgent)) return Promise.resolve('not on Windows (Chrome ignores powerPreference)');
     const one = async powerPreference => {
       const a = await navigator.gpu.requestAdapter({ powerPreference });
       if (!a) return null;
@@ -275,7 +280,7 @@
     }
     const notYet = 'none seen yet (enter VR first)';
     // With no headset found, the likely fix instead of "enter VR first" (which can't work).
-    const noRuntime = 'no VR runtime found: set SteamVR as the OpenXR runtime (SteamVR → Settings → OpenXR), then fully quit and reopen the browser';
+    const noRuntime = 'no VR runtime found: set SteamVR as the OpenXR runtime (SteamVR → Settings → OpenXR; if it already says so, reinstall SteamVR), then fully quit and reopen the browser';
     return {
       webxrAllowedHere, headsetFound, xrError, passthrough, checkedFrom: 'page',
       browser: await browser(), gpu: gpu(), gpus: gpus(), xrNative: xrNative(),

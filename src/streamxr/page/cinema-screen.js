@@ -1,7 +1,7 @@
 // Shows a regular (flat) video on a big screen in front of you, like a cinema. Same
 // interface as the video sphere: upload(video), draw(viewerPose, layer), backdrop() (for the
 // panels' glass), place(head, yaw, pitch),
-// dispose(); plus reset() (the global reset: default size, curve and glow). Unlike the sphere, the screen stays put in the room, so you can lean and
+// dispose(); plus reset() (the global reset: default size, curve, glow and 3D settings). Unlike the sphere, the screen stays put in the room, so you can lean and
 // look around it.
 //
 // It can also be resized (rounded handles around the bottom corners) and moved (bar under
@@ -19,9 +19,9 @@
     minDistance: 1.0,   // limits for the Distance slider (the nearest is also kept behind the panels: minDistance())
     behindPanels: 0.3,  // metres the screen stays behind the VR panels at the least (their distance: vr-panel/config.js layout)
     maxDistance: 12.0,
-    width: 3.2,         // metres (height follows the video's shape)
+    width: 3.2,         // metres: the 16:9 frame each video fits in (wider ones fill its width, taller ones its height)
     raise: 0.05,        // metres above eye level for the screen's centre
-    minWidth: 1.0,      // limits for resizing with the corner handles
+    minWidth: 1.0,      // limits for resizing with the corner handles (the frame's width)
     maxWidth: 12.0,
     curve: false,       // curved screen on/off (default)
     curveAmount: 0.5,   // 0..1; 1 = curved so every column is equally far from you
@@ -33,6 +33,13 @@
     minGlowReach: 0.1,   // limits for the Glow length slider
     maxGlowReach: 0.8,
     glowDetail: 32,      // how blurred its colours are: read from the mipmap level about this many texels wide
+    // 3D videos (side by side, top and bottom): the 3D depth slider moves the two eyes' pictures
+    // apart (farther: everything sits further back, less popping out) or together (closer), by
+    // up to maxDepthShift of the picture's width each; Swap eyes, for a video whose eyes are the
+    // other way round (its depth looks inside out).
+    depth: 0,            // -1..1 (default: as the video was made)
+    maxDepthShift: 0.05, // share of the picture's width each eye's picture moves at depth ±1
+    swapEyes: false,
     // Follow your head (a 2D video, with the setting on: xr-session.js): a lazy follow. Once you've
     // faced more than followStart (sideways) or followStartUp (up or down) away from the layout
     // for its delay (not while using or looking at a panel), the screen and the panels turn to
@@ -88,6 +95,19 @@
     return g;
   }
 
+  // The remembered 3D settings: { depth (-1..1), swap (eyes swapped) }, and storing new ones
+  // (as the curve's).
+  function stereoPrefs() {
+    const p = loadPrefs();
+    return { depth: p.depth != null ? p.depth : SETTINGS.depth, swap: p.swapEyes != null ? !!p.swapEyes : SETTINGS.swapEyes };
+  }
+  function saveStereo(patch) {
+    const s = { ...stereoPrefs(), ...patch };
+    s.depth = Math.min(1, Math.max(-1, s.depth));
+    savePrefs({ depth: s.depth, swapEyes: s.swap });
+    return s;
+  }
+
   // The screen is a strip of columns spanning -0.5..0.5, scaled to width x height (uSize)
   // and placed by uModel. uBend is the angle (radians) the whole width wraps around: 0 is
   // flat; otherwise each column sits on a circle of radius width / uBend whose centre is in
@@ -99,8 +119,10 @@
   // outside a rounded rectangle of corner radius uRadius (Inigo Quilez's sdRoundBox); the
   // last 4 mm inside the edge fade out (alpha, blended over what's behind without touching
   // the frame's alpha: see draw), and outside it's discarded. The video is read at this eye's
-  // part of the frame across (uUvX: scale, offset; the whole frame, or a 3D side-by-side
-  // frame's half).
+  // part of the frame (uUvX: scale xy, offset zw; the whole frame, or a 3D side-by-side or
+  // top-and-bottom frame's half), shifted across by uShift (a share of the picture's width:
+  // the 3D depth setting, opposite ways for the two eyes); where the shift runs past the
+  // picture's edge it's black.
   const VS = `
     attribute vec2 aCorner;                 // -0.5..0.5
     uniform mat4 uProj, uView, uModel; uniform vec2 uSize; uniform float uBend;
@@ -116,14 +138,16 @@
       gl_Position = uProj * uView * uModel * vec4(p, 1.0);
     }`;
   const FS = `
-    precision mediump float; uniform sampler2D uTex; uniform vec2 uScreen, uUvX; uniform float uRadius; varying vec2 vUv;
+    precision mediump float; uniform sampler2D uTex; uniform vec2 uScreen; uniform vec4 uUvX; uniform float uRadius, uShift; varying vec2 vUv;
     void main() {
       vec2 p = (vUv - 0.5) * uScreen;
       vec2 q = abs(p) - uScreen * 0.5 + uRadius;
       float d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - uRadius;
       float a = 1.0 - smoothstep(-0.004, 0.0, d);
       if (a <= 0.0) discard;
-      gl_FragColor = vec4(texture2D(uTex, vec2(vUv.x * uUvX.x + uUvX.y, vUv.y)).rgb, a);
+      vec2 e = vec2(vUv.x + uShift, vUv.y);
+      vec3 c = e.x < 0.0 || e.x > 1.0 ? vec3(0.0) : texture2D(uTex, e * uUvX.xy + uUvX.zw).rgb;
+      gl_FragColor = vec4(c, a);
     }`;
 
   // The glow (WebGL 2 shaders, GLSL ES 3.00, for textureLod): the same strip, bigger (uSize,
@@ -136,7 +160,7 @@
   // wide (blurred; a level further up further out: chosen here rather than by the GPU, which
   // would pick the sharpest level where the clamped coordinate doesn't change), fading out to
   // nothing at uReach metres. Added to what's behind (light), at uStrength. Read at this eye's
-  // part of the frame across (uUvX), as FS.
+  // part of the frame (uUvX, shifted by uShift), as FS.
   const GLOW_VS = `#version 300 es
     in vec2 aCorner;
     uniform mat4 uProj, uView, uModel; uniform vec2 uSize; uniform float uBend;
@@ -153,7 +177,7 @@
     }`;
   const GLOW_FS = `#version 300 es
     precision mediump float;
-    uniform sampler2D uTex; uniform vec2 uGlow, uScreen, uUvX; uniform float uRadius, uReach, uDetail, uStrength;
+    uniform sampler2D uTex; uniform vec2 uGlow, uScreen; uniform vec4 uUvX; uniform float uRadius, uReach, uDetail, uStrength, uShift;
     in vec2 vUv;
     out vec4 outColor;
     void main() {
@@ -164,8 +188,7 @@
       float t = clamp(d / uReach, 0.0, 1.0);
       float a = uStrength * (1.0 - t) * (1.0 - t);
       if (a <= 0.002) discard;
-      vec2 uv = clamp(p / uScreen + 0.5, 0.0, 1.0);
-      uv.x = uv.x * uUvX.x + uUvX.y;
+      vec2 uv = clamp(p / uScreen + 0.5 + vec2(uShift, 0.0), 0.0, 1.0) * uUvX.xy + uUvX.zw;
       float lod = log2(max(1.0, float(textureSize(uTex, 0).x) / uDetail)) + t * 1.5;
       outColor = vec4(textureLod(uTex, uv, lod).rgb, a);
     }`;
@@ -199,10 +222,10 @@
 
   // Handle geometry (metres). Corner handles: a quarter-circle arc (a bit more, `halfSpan`
   // each side of the diagonal) around each bottom corner of the screen, `radius` out from it.
-  // Move bar: a capsule `below` the bottom edge.
+  // Move bar: a capsule `below` the bottom edge (narrower on a narrow screen: barW).
   const HANDLE = {
     corner: { radius: 0.13, halfSpan: 57 * Math.PI / 180, thick: 0.045, hitRadius: 0.22 },
-    move: { below: 0.16, width: 0.90, thick: 0.045, hitW: 1.10, hitH: 0.20 },
+    move: { below: 0.16, width: 0.90, thick: 0.045, hitW: 1.10, hitH: 0.20, corners: 0.6, minWidth: 0.2 },
   };
   // Handle colours: white normally (faint) and when pointed at (bright), blue while dragged.
   const IDLE = [1, 1, 1], HOT = [1, 1, 1], ACTIVE = [0.24, 0.65, 1.0];
@@ -218,20 +241,20 @@
     return new Float32Array(out);
   }
 
-  // Build the cinema screen renderer for format `fmt` ('flat', or 'flatsbs': 3D side by side,
-  // each eye its half of the frame). Returns { upload, draw, place, dispose, interaction,
+  // Build the cinema screen renderer for format `fmt` ('flat', or 'flatsbs' / 'flattb': 3D side
+  // by side / top and bottom, each eye its half of the frame). Returns { upload, draw, place, dispose, interaction,
   // pauseAnchor, distance, setDistance, setCurve }: the same drawing interface as the video
   // sphere, plus `interaction` (the laser-grabbable handles), `pauseAnchor` (where the pause
   // symbol goes) and the Settings controls.
   function createCinemaScreen(gl, fmt = 'flat') {
-    const spans = ns.formats.eyeSpans(fmt);                 // which part of the frame each eye sees (3D side by side: its half)
+    const spans = ns.formats.eyeSpans(fmt);                 // which part of the frame each eye sees (3D: its half)
     const prog = G.createProgram(gl, VS, FS, 'cinema screen');
     const hprog = G.createProgram(gl, VS, HANDLE_FS, 'cinema handles');
     const isGL2 = typeof WebGL2RenderingContext !== 'undefined' && gl instanceof WebGL2RenderingContext;
     const gprog = isGL2 ? G.createProgram(gl, GLOW_VS, GLOW_FS, 'cinema glow') : null;   // (no glow on WebGL 1)
-    const U = G.uniforms(gl, prog, { proj: 'uProj', view: 'uView', model: 'uModel', size: 'uSize', bend: 'uBend', tex: 'uTex', screen: 'uScreen', radius: 'uRadius', uvX: 'uUvX' });
+    const U = G.uniforms(gl, prog, { proj: 'uProj', view: 'uView', model: 'uModel', size: 'uSize', bend: 'uBend', tex: 'uTex', screen: 'uScreen', radius: 'uRadius', uvX: 'uUvX', shift: 'uShift' });
     const GU = gprog && G.uniforms(gl, gprog, { proj: 'uProj', view: 'uView', model: 'uModel', size: 'uSize', bend: 'uBend', tex: 'uTex', glow: 'uGlow',
-      screen: 'uScreen', radius: 'uRadius', reach: 'uReach', detail: 'uDetail', strength: 'uStrength', uvX: 'uUvX' });
+      screen: 'uScreen', radius: 'uRadius', reach: 'uReach', detail: 'uDetail', strength: 'uStrength', uvX: 'uUvX', shift: 'uShift' });
     const HU = G.uniforms(gl, hprog, { proj: 'uProj', view: 'uView', model: 'uModel', size: 'uSize', bend: 'uBend', shape: 'uShape', arc: 'uArc', color: 'uColor', alpha: 'uAlpha' });
     const vaos = G.vertexArrays(gl);
     const corners = new Float32Array([-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5]);
@@ -254,14 +277,36 @@
     // screen's pose, its distance from you (for the curve and the Distance slider), the
     // curve, which handles to show/highlight, and the current drag (if any).
     const prefs = loadPrefs();
-    let width = clampWidth(prefs.width || SETTINGS.width);
+    // The screen's size is a 16:9 frame (frameW: its width, the one remembered and resized),
+    // and each video is fitted inside it, as a TV does: 16:9 and wider fill its width; taller
+    // ones (Shorts, 9:16; 4:3) fill its height, narrower. So one size suits every video, and a
+    // Short after a regular video is as tall as it, not much taller. `width` is the screen's
+    // width as shown now (fitted: fit()).
+    const FRAME = 16 / 9;
+    let frameW = clampWidth(prefs.width || SETTINGS.width);
     let aspect = 16 / 9;
-    // The screen's shape from the frame's (width / height): 3D side by side, one eye's picture:
-    // half the frame when it's two full pictures (wider than 2.5:1, e.g. 32:9), else the frame
-    // itself (half side by side: each eye squeezed into half of a 16:9 frame, shown at 16:9).
-    const eyeAspect = frame => (ns.formats.isSbs(fmt) && frame > 2.5 ? frame / 2 : frame);
-    // This eye's part of the frame across ([scale, offset]; a headset that names no eye: the left).
-    const eyeSpan = view => (view.eye === 'right' ? spans.right : spans.left);
+    let width = frameW;
+    const fit = () => (aspect >= FRAME ? frameW : frameW / FRAME * aspect);
+    const frameOf = shown => (aspect >= FRAME ? shown : shown / aspect * FRAME);   // the frame a shown width fills
+    // The screen's shape from the frame's (width / height), one eye's picture. 3D side by side:
+    // half the frame's width when it's two full pictures (wider than 2.5:1, e.g. 32:9), else the
+    // frame itself (half side by side: each eye squeezed into half of a 16:9 frame, shown at
+    // 16:9). 3D top and bottom: half its height when it's two full pictures (narrower than
+    // 1.2:1, e.g. 16:18), else the frame itself (half top and bottom, shown at 16:9).
+    const eyeAspect = frame => (ns.formats.isSbs(fmt) && frame > 2.5 ? frame / 2
+      : ns.formats.isTb(fmt) && frame < 1.2 ? frame * 2 : frame);
+    // 3D (side by side, top and bottom): the depth and Swap eyes settings apply (stereoPrefs).
+    const stereoFmt = ns.formats.isSbs(fmt) || ns.formats.isTb(fmt);
+    let stereo = stereoPrefs();                             // { depth, swap }
+    // Which eye's picture this view shows: its own, or the other's with Swap eyes on (a
+    // headset that names no eye: the left).
+    const isRight = view => (view.eye === 'right') !== (stereoFmt && stereo.swap);
+    // This eye's part of the frame ([scaleX, scaleY, offsetX, offsetY]).
+    const eyeSpan = view => (isRight(view) ? spans.right : spans.left);
+    // How far across this eye's picture is read from (uShift; a share of its width): farther
+    // (depth > 0) reads the left eye's further right and the right eye's further left, so the
+    // left picture moves left and the right one right. Goes by the eye that sees it (view.eye).
+    const eyeShift = view => (stereoFmt ? stereo.depth * SETTINGS.maxDepthShift * (view.eye === 'right' ? -1 : 1) : 0);
     let model = M.translation(0, 0, -SETTINGS.distance);   // centre + orientation (+Z faces you)
     let dist = clampDistance(prefs.distance || SETTINGS.distance);
     let curve = curvePrefs();                               // { on, amount }
@@ -328,15 +373,18 @@
     function setCurve(c) { curve = { on: !!c.on, amount: c.amount }; }
     // Settings: the glow on/off, its strength (0..1) and length (reach). The caller stores them (saveGlow).
     function setGlow(g) { glow = { on: !!g.on, strength: g.strength, reach: g.reach }; }
+    // Settings: 3D depth (-1..1) and Swap eyes. The caller stores them (saveStereo).
+    function setStereo(s) { stereo = { depth: s.depth, swap: !!s.swap }; }
 
     // The global reset: the default size and curve now (the caller forgets the stored ones
     // with resetPrefs, then places the screen again, which takes the default distance).
     function reset() {
       grab = null; highlight.active = null;
-      width = SETTINGS.width;
+      frameW = SETTINGS.width; width = fit();
       dist = SETTINGS.distance;
       curve = curvePrefs();
       glow = glowPrefs();
+      stereo = stereoPrefs();
     }
 
     // Copy the current video frame into the texture and follow its shape (an ad or a new
@@ -349,7 +397,7 @@
       gl.bindTexture(gl.TEXTURE_2D, tex);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
       mipped = G.videoMipmaps(gl, ns.vrTokens.glass.on || glow.on);
-      if (video.videoWidth && video.videoHeight) aspect = eyeAspect(video.videoWidth / video.videoHeight);
+      if (video.videoWidth && video.videoHeight) { aspect = eyeAspect(video.videoWidth / video.videoHeight); width = fit(); }
     }
 
     // What's behind the panels, for the glass look (vr-panel/panel-pass.js): the video's
@@ -363,19 +411,25 @@
       if (!mipped) return null;
       const g = gprog && glow.on && glow.strength > 0
         ? { strength: glow.strength, reach: height() * glow.reach, radius: width * SETTINGS.cornerRadius } : null;
-      return { kind: 'screen', tex, centre: centre(), right: axis(0), up: axis(1), normal: axis(2), size: [width, height()], bend: bend(), glow: g, uvX: spans };
+      return { kind: 'screen', tex, centre: centre(), right: axis(0), up: axis(1), normal: axis(2), size: [width, height()], bend: bend(), glow: g,
+        uvX: stereoFmt && stereo.swap ? { left: spans.right, right: spans.left } : spans };
     }
 
     // The handles: { id, frame (a point on the screen's centre line, see edgeFrame), x, y
     // (metres from that frame), arc (direction of the arc's middle, corner handles only) or
     // w, h (capsule size, move bar) }. Corner arcs are centred on the screen's corners and
     // bow out from them (down-left / down-right).
+    // The move bar's width now: HANDLE.move.width, or less on a narrow screen (a Short) so it
+    // stays clear of the corner handles (`corners` m left for them), never under `minWidth`;
+    // its clickable zone keeps hitW's margin around it.
+    const barW = () => Math.min(HANDLE.move.width, Math.max(HANDLE.move.minWidth, width - HANDLE.move.corners));
+    const barHitW = () => barW() + (HANDLE.move.hitW - HANDLE.move.width);
     function handles() {
       const hh = height() / 2, m = HANDLE.move;
       return [
         { id: 'resize-left',  frame: edgeFrame(-width / 2), x: 0, y: -hh, arc: -3 * Math.PI / 4 },
         { id: 'resize-right', frame: edgeFrame(width / 2),  x: 0, y: -hh, arc: -Math.PI / 4 },
-        { id: 'move',         frame: edgeFrame(0),          x: 0, y: -hh - m.below, w: m.width, h: m.thick },
+        { id: 'move',         frame: edgeFrame(0),          x: 0, y: -hh - m.below, w: barW(), h: m.thick },
       ];
     }
     // A handle's pose in the world (just in front of the screen's surface).
@@ -436,7 +490,8 @@
       gl.uniform1f(GU.reach, reach);
       gl.uniform1f(GU.detail, SETTINGS.glowDetail);
       gl.uniform1f(GU.strength, glow.strength);
-      gl.uniform2fv(GU.uvX, eyeSpan(view));
+      gl.uniform4fv(GU.uvX, eyeSpan(view));
+      gl.uniform1f(GU.shift, eyeShift(view));
       gl.enable(gl.BLEND);
       gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ZERO, gl.ONE);
       gl.drawArrays(gl.TRIANGLES, 0, SETTINGS.columns * 6);
@@ -462,7 +517,8 @@
         gl.uniform2f(U.size, width, height());
         gl.uniform2f(U.screen, width, height());
         gl.uniform1f(U.radius, width * SETTINGS.cornerRadius);
-        gl.uniform2fv(U.uvX, eyeSpan(view));
+        gl.uniform4fv(U.uvX, eyeSpan(view));
+        gl.uniform1f(U.shift, eyeShift(view));
         gl.uniform1f(U.bend, b);
         gl.uniformMatrix4fv(U.proj, false, view.projectionMatrix);
         gl.uniformMatrix4fv(U.view, false, view.transform.inverse.matrix);
@@ -511,7 +567,7 @@
           if (!p) continue;
           const [x, y] = p.local;
           const inside = h.arc == null
-            ? Math.abs(x) <= m.hitW / 2 && Math.abs(y) <= m.hitH / 2
+            ? Math.abs(x) <= barHitW() / 2 && Math.abs(y) <= m.hitH / 2
             : Math.hypot(x - c.radius * Math.cos(h.arc), y - c.radius * Math.sin(h.arc)) <= c.hitRadius;
           if (inside) return { t: p.t, point: p.point, id: h.id };
         }
@@ -545,7 +601,9 @@
         // Resize around the centre by how far along the corner's diagonal the laser points.
         const p = planeHit(origin, dir);
         if (!p) return;
-        width = clampWidth(grab.startWidth * diagonalScale(grab.id, p.local, grab.startWidth) / grab.startScale);
+        // (the frame follows: a tall video resized changes the 16:9 frame it sits in)
+        frameW = clampWidth(frameOf(grab.startWidth * diagonalScale(grab.id, p.local, grab.startWidth) / grab.startScale));
+        width = fit();
       },
 
       grabEnd(head) {
@@ -555,7 +613,7 @@
         // Remember size, plus distance and height relative to you, for next time.
         const c = centre();
         dist = clampDistance(Math.hypot(c[0] - head[0], c[2] - head[2]));
-        savePrefs({ width, distance: dist, raise: c[1] - head[1] });
+        savePrefs({ width: frameW, distance: dist, raise: c[1] - head[1] });   // (the 16:9 frame's width)
       },
 
       // show: draw the handles at all; hover: ids under a laser right now.
@@ -591,7 +649,7 @@
       gl.deleteProgram(prog); gl.deleteProgram(hprog); if (gprog) gl.deleteProgram(gprog);
     }
 
-    return { upload, draw, backdrop, place, dispose, interaction, pauseAnchor, captionAnchor, distance, setDistance, setCurve, setGlow, reset };
+    return { upload, draw, backdrop, place, dispose, interaction, pauseAnchor, captionAnchor, distance, setDistance, setCurve, setGlow, setStereo, reset };
   }
 
   // Follow your head on a 2D video: on / off, its delay and speed (remembered):
@@ -617,6 +675,6 @@
   // The global reset: forget the remembered size, placement and curve.
   const resetPrefs = () => ns.storage.remove(SETTINGS.storageKey);
 
-  ns.cinemaScreen = { createCinemaScreen, SETTINGS, curvePrefs, saveCurve, glowPrefs, saveGlow, followPrefs, saveFollow, resetPrefs };
+  ns.cinemaScreen = { createCinemaScreen, SETTINGS, curvePrefs, saveCurve, glowPrefs, saveGlow, stereoPrefs, saveStereo, followPrefs, saveFollow, resetPrefs };
   ns.videoView = { create: createVideoView };
 })(globalThis.__streamxr = globalThis.__streamxr || {});

@@ -29,8 +29,10 @@ backlogs in [features/](features/)):
   shelves, Videos / Shorts / Live (latest / popular / oldest), Playlists, Shows, Posts,
   Store, channel search.
 - `youtube-home.js` (`ns.youtubeHome`): the Home feed with its topic chips ("Immersive
-  videos" = 360/VR content), Explore feeds (Live, News, Gaming, Sports, Music, Podcasts,
-  Courses, Hype, Memberships), signed-in feeds (unverified), the left menu (`guide()`), your
+  videos" = 360/VR content; YouTube sends the personalised chips in a different order on
+  each load, so the first order shown is kept while the page is open: `steadyChips()`,
+  0.101.39), Explore feeds (Live, News, Gaming, Sports, Music, Podcasts,
+  Courses, Hype, Memberships), signed-in feeds (verified 2026-10-28), the left menu (`guide()`), your
   own channel's id (`myChannelId()`: the menu's "Your channel" entry, else the account menu; verified signed in, 0.74.0) and
   search `suggestions()`.
 - `youtube-subscriptions.js` (`ns.youtubeSubscriptions`): the Subscriptions feed, the Manage
@@ -222,7 +224,8 @@ The formats are in `src/streamxr/shared/formats.js`; YouTube's detection is the 
 - Formats: `flat` (cinema screen), `flatsbs` (the cinema screen in 3D side by side: 0.93.0;
   e.g. "Demo 3D[SBS]", a RECTANGULAR 16:9 frame, each eye squeezed into half),
   `360mono`, `360eac`, `180mono`, `180sbs` (3D side by side,
-  picked by hand: 0.89.0).
+  picked by hand: 0.89.0), `flattb` (the cinema screen in 3D top & bottom, eyes stacked, left eye
+  on top: 0.101.68, picked by hand; `features/video-page.md`).
 - "MESH" 360° videos use an **equi-angular cubemap**, 3×2: top row left | front | right,
   bottom row down | back | up; down and up rotated 270° clockwise, back 90° (the same as
   ffmpeg's `eac`). Verified against a real frame.
@@ -237,7 +240,29 @@ The formats are in `src/streamxr/shared/formats.js`; YouTube's detection is the 
 - VR180 test video: "how TV screens made watching movies worse" by Noodle:
   no "180" in the title, 16:9 below 2160p.
 
-## Movies
+## Shorts (the endless feed)
+
+Probed 2026-10-28, signed in (it was unreachable through the API before: `features/home-page.md`).
+- **The left menu's Shorts entry** (`guide` → `reelWatchEndpoint`) has no video: `params`,
+  `sequenceProvider: REEL_WATCH_SEQUENCE_PROVIDER_RPC`, `inputType: REEL_WATCH_INPUT_TYPE_SEEDLESS`.
+- **`reel/reel_item_watch`** `{ playerRequest: { videoId: '' }, params, inputType }` answers with
+  the first Short (`playerResponse`) and a **`sequenceContinuation`**.
+- **`reel/reel_watch_sequence`** `{ sequenceParams: <that> }` → `entries` (25 on the first page),
+  each `command.reelWatchEndpoint` { `videoId`, `thumbnail`, `overlay`, `params`,
+  `unserializedPrefetchData` (titles are in there), ... }, `prevEntries`, and
+  `continuationEndpoint.continuationCommand.token`: the next page's `sequenceParams` (page 2: 9
+  entries, new videos, and a page 3). Endless.
+- One of them through `player` `{ videoId }`: playable (`OK`), titled, 59 s. In VR a Short plays on
+  the cinema screen in its own shape (9:16), fitted to the screen's 16:9 frame since 0.101.46;
+  when it ends it stays paused (no next Short) (the maintainer, 2026-10-28).
+- **The Shorts tab** reads this sequence (`youtube-home.js` `shorts()`, 0.101.48): items from each
+  entry's `reelWatchEndpoint` (title, channel and views from `unserializedPrefetchData`'s
+  `videoDetails`, else the overlay's `reelTitleText`; the vertical `thumbnail`), Shorts already
+  listed skipped. In practice only a page's first entry carries `videoDetails` (the maintainer,
+  0.101.48): the others are filled when shown, from `player` `{ videoId }`'s `videoDetails` (0.101.49).
+- **A Short ending on the watch page triggers YouTube's own autoplay** to a related Short of its
+  choosing (seen 0.101.52: it won over StreamXR opening the feed's next one at the end). The Shorts
+  run hands over 0.35 s before the end instead (0.101.53, `provider/shorts-run.js`).## Movies
 
 - **YouTube's movies are copy-protected, the free ones too** (checked 2026-10-18, signed out:
   "Matilda", "Free with ads", PG): playable on the page, but every format
@@ -443,13 +468,44 @@ snippets); read by `youtube-chat.js` since 0.79.0:
 
 - Comments arrive as layout plus separate "entities" (`frameworkUpdates`), matched by
   `commentKey`. A replies page returns each reply as a commentThreadRenderer (with
-  subThreads for replies-to-replies); one level of replies is shown.
+  subThreads holding its replies-to-replies **inline**: each a commentThreadRenderer with
+  `replyLevel` 2, a "View replies" button, no continuation; probed 2026-10-30). Since 0.101.59
+  they're read with their reply (`inlineReplies`), since 0.101.60 to any depth (a level-3 reply
+  sits in its level-2 reply's subThreads, and so on), each shown a level further in (up to 3); a continuation
+  there, if YouTube ever sends one, is read as the reply's `repliesToken` (up to 3 pages).
 - The toolbar STATE entity (toolbarStateKey) has heartState / likeState; the comment
   entity's toolbar has creatorThumbnailUrl + heartActiveTooltip when hearted, and
   likeCountLiked (the count including your like). The toolbar SURFACE entity carries
   like / unlike / dislike / undislike commands with performCommentActionEndpoint.action
   tokens only when signed in; `rateComment` POSTs comment/perform_comment_action
   `{ actions: [token] }` (confirmed signed in).
+- **Writing comments** (probed 2026-10-30, signed in, read-only). Posting: the first comments
+  page (the `reloadContinuationItemsCommand`) has `commentsHeaderRenderer.createRenderer.
+  commentSimpleboxRenderer` with `placeholderText` ("Add a comment..."), `authorThumbnail` (your
+  avatar) and `submitButton.buttonRenderer.serviceEndpoint.createCommentEndpoint.
+  createCommentParams`; YouTube's page POSTs `comment/create_comment` `{ commentText,
+  createCommentParams }` (`postComment()`, 0.101.56; its answer reads as a normal comment: your
+  name, avatar and "0 seconds ago"). Replying:
+  each comment's toolbar SURFACE entity has `replyCommand.innertubeCommand.
+  createCommentReplyDialogEndpoint.dialog.commentReplyDialogRenderer.replyButton.buttonRenderer.
+  serviceEndpoint.createCommentReplyEndpoint.createReplyParams` (POST
+  `comment/create_comment_reply` `{ commentText, createReplyParams }`; `postReply()`, 0.101.57; a reply's
+  own reply command is used for a reply to a reply). No length limit is stated in the data; no edit / delete
+  commands showed on others' comments (`menuCommand` holds the "⋮" menu). **Your own comment** (`author.isCurrentUser`)
+  has them in that menu (`menuCommand.innertubeCommand.menuEndpoint.menu.menuRenderer.items`,
+  probed 2026-10-30): Edit (icon EDIT: `updateCommentDialogEndpoint.dialog.commentDialogRenderer`
+  with `editableText` and its Save's `updateCommentEndpoint.updateCommentParams`; POST
+  `comment/update_comment` `{ commentText, updateCommentParams }`), Delete (icon DELETE: a
+  `confirmDialogEndpoint` titled "Delete comment", asking "Delete your comment permanently?" or,
+  with replies, "Delete your comment and all of its replies permanently?", whose button is a
+  `performCommentActionEndpoint.action`), and on your own video Pin (a confirm, then a
+  perform-comment-action). Read by `ownMenu()` (0.101.63). **Update's answer** (probed 2026-10-30):
+  `actions[].updateCommentAction.actionResult.status` "STATUS_SUCCEEDED" ("Comment edited"), and the
+  comment's new `commentEntityPayload` alone in `frameworkUpdates` (no thread or view model), its
+  `publishedTime` now "... (edited)"; its surface's menu holds Delete's confirm dialog again, so a
+  confirm dialog in an answer is no sign of failure (0.101.64), nor an `errorMessage`: the Reply dialog
+  it carries holds "We weren't able to add your reply. Please try again." ready-made. Only
+  `actions[].*.actionResult.status` decides (0.101.66).
 - The comment count comes from the comments panel header's contextualInfo
   (`commentsInfo()`); a transcript exists when the page lists an
   `engagement-panel-searchable-transcript` (`hasTranscript()`).

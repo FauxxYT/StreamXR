@@ -142,6 +142,8 @@ for the code rules.
 - [ARCHITECTURE.md](ARCHITECTURE.md) "Gotchas" and "Known limits".
 - [docs/Materials-Redesign.md](docs/Materials-Redesign.md): the Material 3 Expressive + glass
   redesign and why it looks as it does; read it before touching the look of the panels.
+- [docs/Home-Page.md](docs/Home-Page.md): StreamXR Home (a page of StreamXR's own and its
+  toolbar popup): the agreed plan and its steps; read it before working on either.
 - [docs/Spatial-Layout.md](docs/Spatial-Layout.md): the spatial layout (the Safe Zone, the side
   panels, the search bar, raised menus and dialogs; Android XR / Material 3 XR placement,
   orbiters and depth levels); read it before moving panels in space.

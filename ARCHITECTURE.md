@@ -24,7 +24,7 @@ the Material 3 palettes): the repo folder is the extension.
      site registry.
    - **StreamXR** (`src/streamxr/`): the video player built on the core: the WebXR session
      and its frame loop, the media source, rendering (video sphere, cinema screen, pause
-     overlay), the video formats, the 2D Cinema settings, the "Watch in VR" popup, and the
+     overlay), the video formats, the 2D and 3D Cinema settings, the "Watch in VR" popup, and the
      page-world entry point.
 2. **Provider** (`src/sites/<site>/page/provider/`, one per site): the middle layer. It
    answers the shell's questions ("what's playing?", "fill this panel", "this was clicked")
@@ -132,15 +132,28 @@ src/streamxr/                  STREAMXR (shell, part 2): the video player on the
     media-source.js            where the frames come from: the site's <video>, followed when swapped
     video-sphere.js            the video sphere renderer (360°, 180°, cubemap)
     cinema-screen.js           flat/curved screen for regular videos (rounded corners, the edge-colour glow); picks sphere vs screen per format
-    cinema-options.js          the 2D Cinema settings tab
+    cinema-options.js          the 2D Cinema and 3D Cinema settings tabs
     pause-overlay.js           dims the video, pause symbol, buffering loading indicator
     captions-overlay.js        the site's caption lines drawn in VR (over the 2D screen's bottom, or below your view)
     xr-session.js              one VR session: setup + per-frame loop (takes a provider)
+    fade-pass.js               the recenter's short fade: a black veil over the whole view
+    settings-panel.js          the Settings panel, shared: the shell's tabs (2D Cinema to Language) after a site's own
     main.js                    page-world entry: picks the site's provider (sites.js), answers the popup
   ui/                          isolated world
     goggles-icon.js            the VR headset icon (Material Symbols' Head Mounted Device) for the VR buttons and popup
     panel.js                   "Watch in VR" popup (format picker, Enter VR, help, Quick troubleshooting, Details)
+    troubleshoot.js            Quick troubleshooting and Copy details, shared (the popup, the toolbar popup, Home)
+    auto-enter.js              on a site opened from Home with VR meant: VR by itself (the site's helper) or "press any key or click"
+    vr-presence.js             answers (through background.js) whether VR is running in this tab, and ends it when asked
+    vr-elsewhere.js            "VR is running in another tab": asks background.js, the note and "Exit VR there" (the popup and the Dashboard)
     popup.css                  its styles (Material 3; colours from the site's palette, asked of the page world)
+  home/                        StreamXR Home and the toolbar popup (extension pages; docs/Home-Page.md)
+    sites.js                   the sites they list (each site adds its entry from src/sites/<site>/home/)
+    home.html, .js, .css       StreamXR Home: the first-run welcome, the headset, Quick troubleshooting, the sites
+    home-ui.js, .css           what Home and the toolbar popup share: the status line, the sites' rows, troubleshooting
+    action-popup.html, .js, .css   the toolbar popup: headset status, Open StreamXR Home, the sites, Quick troubleshooting
+    background.js              opens Home once on install (with its welcome); opens sites for Home and the popup, remembering when VR is meant; finds the tab in VR (vr-presence.js, or the Dashboard) and ends VR there
+    home-provider.js           Home's side of the VR shell for Test VR: no video, StreamXR's logo, a "Your setup" panel
 src/sites/youtube/             YOUTUBE
   page/
     youtube-data.js            plumbing: text helpers, watch-page data, /youtubei/v1 requests,
@@ -160,6 +173,7 @@ src/sites/youtube/             YOUTUBE
       extras.js                the controls panel's Captions and Save buttons and Jump ahead at the seek bar's end (the shell's "extras": left, right, seek), premiumMark() (the Diamond)
       strings-en.js            the YouTube panels' words in English (strings-<lang>.js: other languages)
       cards.js, badges.js      YouTube items -> generic cards; the ✓ / ♪ badges
+      shorts-run.js            the Shorts run: Shorts picked in Explore → Shorts play one after another (Autoplay on); Up Next's Shorts tab lists what's coming
       upnext.js, browse.js (Explore and You), search.js, channel.js, description.js, comments-panel.js, settings.js, live-chat.js
                                one controller per panel (comments.js: the comment threads, used by
                                the Comments panel and a Channel post; playlist.js: a playlist opened
@@ -170,6 +184,8 @@ src/sites/youtube/             YOUTUBE
     topbar-button.js           the VR button in YouTube's top bar (next to "+ Create"), on every page
     skip-helper.js             talks to the optional Skip Helper extension
     main.js                    isolated-world entry: keeps the button in the page
+  home/
+    site.js                    YouTube's entry on StreamXR Home and the toolbar popup (name, address, color)
 icons/                         the extension's icons, 16-128 px (tools/icons/make-icons.html)
 skip-helper/                   SEPARATE optional extension: presses YouTube's Skip ad button
 third_party/material-symbols/  the Material Symbols license (Apache 2.0), for symbols.js
@@ -178,6 +194,7 @@ third_party/material-color-utilities/   Google's Material Color Utilities (Apach
 tools/sync-shared.js           shared/ -> ui/shared/ copies (core and streamxr), manifest checks
 tools/icons/make-icons.html    draws the extension icons (icons/, skip-helper/icons/) from Material Symbols
 tools/controller-models/       dev-only: rebuilds models.js from Valve's CAD (see README)
+tools/xr-check/                dev-only: does WebXR work on an extension page? (a Home page's first check)
 docs/
   youtube.md                   the YouTube modules + what's been learned about YouTube
   hardware.md                  the Steam Frame and its controllers in Chrome
@@ -275,7 +292,7 @@ A site lists its panels (YouTube: `provider/panels.js`, which documents the inte
 { id, zone: 'left' | 'right' | 'controls' | 'top',
   label, icon,                            // icon: a Material Symbols name (symbols.js)
   style: 'info' | 'catalog' | 'queue' | 'profile' | 'options',
-  size: 'wide' | 'tall' | 'standard',     // vr-panel/config.js `sizes`
+  size: 'wide' | 'tall' | 'standard' | 'settings',   // vr-panel/config.js `sizes`
   overrides: { slots: { ... } },          // optional: the style's slots
   default: true,                          // optional: open the first time (on its side)
   available: st => bool,                  // optional (side panels): offered only while true
@@ -316,8 +333,8 @@ are hidden.
   the hover or the loaded images change), `event(ev)`, and optionally `tick(frame)` (every
   frame), `afterDraw()`, `opened()`, plus anything the site's `onControl` calls.
 - Sizes (canvas px, `config.js` `sizes`): `wide` panels all take the height a Catalog trims
-  itself to (900 px wide), `tall` is 900 x 1100, `standard` is the controls panel's width
-  (1024). Every canvas is shown at the same density (`config.js` `layout.pxPerDegree`, at
+  itself to (900 px wide), `tall` is 900 x 1100, `standard` is 1024 x 600 and `settings` (the Settings
+  panel) 1280 x 600, wider than the controls panel so its ten tabs fit. Every canvas is shown at the same density (`config.js` `layout.pxPerDegree`, at
   `layout.distance`).
 
 `vr-panel.js` builds everything from the registry: the layout, the toolbars and the pill, hit testing, events,
@@ -328,9 +345,9 @@ control's id there is `<panel id>|<style id>`.
 
 | Style | YouTube panel | Draws |
 |---|---|---|
-| **Info** (`info.js`) | Description, Comments, Live chat | header tabs; each tab one content kind: `text` (rich text, links), `paged` (rows in two columns: chapters), `rows` (scrolling, current row followed: transcript), `thread` (pills, count, rows with children and "show more": comments), `chat` (chat.js: a pinned banner, messages with inline pictures and coloured cards, following the newest or paused with a "jump to newest" button; optionally a message field with Send, reaction buttons and a Support button, an XP pill and a ranked Top fans list: live chat), `message` (optional loading indicator) |
-| **Catalog** (`catalog.js`) | Explore, You, Search | title, source tabs, filter pills (tabs and left-aligned pills slide when they don't fit: kit.js createStrip) or a note or a text field with its button (and a suggestions list dropping down from it), card grid, paging, or a `collection` page under a back button (collection.js: an opened playlist, scrolling); trims its height to its cards |
-| **Queue** (`queue.js`) | Up Next | title or tabs, paging in the header, 3 x 2 cards, a "current" card, or a `collection` page (collection.js: the playing playlist, or one opened from a card under a back button; scrolling) |
+| **Info** (`info.js`) | Description, Comments, Live chat | header tabs; each tab one content kind: `text` (rich text, links), `paged` (rows in two columns: chapters), `rows` (scrolling, current row followed: transcript), `thread` (pills, count, rows with children and "show more", optionally a message field under them: comments), `chat` (chat.js: a pinned banner, messages with inline pictures and coloured cards, following the newest or paused with a "jump to newest" button; optionally a message field with Send, reaction buttons and a Support button, an XP pill and a ranked Top fans list: live chat), `message` (optional loading indicator) |
+| **Catalog** (`catalog.js`) | Explore, You, Search | title, source tabs, filter pills (tabs and left-aligned pills slide when they don't fit: kit.js createStrip) or a note or a text field with its button (and a suggestions list dropping down from it), card grid (16:9, square or tall 9:16: `shape`), paging, or a `collection` page under a back button (collection.js: an opened playlist, scrolling); trims its height to its cards |
+| **Queue** (`queue.js`) | Up Next | title or tabs, paging in the header, 3 x 2 cards (or tall 9:16 ones: `shape: 'tall'`, Shorts), a "current" card, or a `collection` page (collection.js: the playing playlist, or one opened from a card under a back button; scrolling) |
 | **Profile** (`profile.js`) | Channel | banner, picture, name + badge, stats line, one action button (looks: primary / secondary / danger / busy) and an optional round icon button beside it (the bell), tabs (shrinking to fit beside the pills), pills, a search button (searching: a back button and a text field in place of the tabs), card grid, paging, or one featured card, or a scrolling body: a text `page` (paragraphs, then label / value facts), a `tiers` page (plans or levels to join: title, price, button, items with small pictures, a note), a `feed` of posts (picture, author, text, pictures, a card, a poll with result bars, buttons with icons and counts), or one opened `post` with a back button and its comments (thread.js), or a `collection` page with a back button (collection.js) |
 | **Options** (`options.js`) | Settings | tabs (with icons); up to 3 rows (name with its hint under it; at the right: a switch, a slider with a Default button and end captions, a ‹ value › stepper, or a button; faded) or a 4 x 4 choice grid with "More" paging |
 

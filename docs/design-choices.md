@@ -26,7 +26,7 @@ even where they look like something to "fix".
     (0.78.4, the maintainer), coming back as soon as the laser is on anything.
 - Side panels are narrower and taller than before (900 × 1100 px: about 1.0 × 1.26 m at 1.7 m,
   about 35° × 43°; there's more room up and down than across): Browse, Search and Up Next
-  show 3 × 3 cards of today's size (Channel 3 × 2); Settings is 1024 px wide (the controls panel's width until 0.77.0, when the controls panel grew to 1216).
+  show 3 × 3 cards of today's size (Channel 3 × 2); Settings is 1280 px wide (1024 until 0.101.70, when the 3D Cinema tab made ten tabs; the controls panel is 1216).
 - **The Safe Zone (0.63.0):** the part of your view the video keeps, set as shares of what
   the headset shows (so it fits any headset): width 50% of the horizontal field of view,
   height 45% of the vertical one, centre 1% of it below eye level (the defaults, set by
@@ -101,6 +101,14 @@ even where they look like something to "fix".
   **A setting for the other way (the maintainer, 2026-10-16; 0.86.0):** Settings → Safe zone →
   "Recenter resets panels" (off by default, remembered; the global reset turns it off):
   while on, recentering also puts the moved panels back.
+- **Recentering fades** (the maintainer, 2026-10-28; 0.101.42; Android XR's motion guide:
+  whole-world movement fades, it doesn't jump): the Recenter button and Grip dim the view to
+  black over 0.12 s, recenter while dark, and bring it back over 0.18 s. The recenter as VR
+  starts stays instant.
+- **No Sharpness setting** (the maintainer, 2026-10-28; added in 0.101.42, removed in 0.101.44):
+  Chrome caps the drawing size at the headset's recommended size (`nativeScale` 1 on the Steam
+  Frame), so Sharper and Sharpest drew exactly as Standard. Sharpness is SteamVR's render
+  resolution instead; the README's Quick troubleshooting says where ("Want it sharper?").
 
 ## Look
 
@@ -117,7 +125,8 @@ even where they look like something to "fix".
   "Haptics are not supported on these controllers yet" while no controller can vibrate (the
   user, 0.73.3; Chrome gives the Steam Frame's none).
 - **No global Back (0.73.0):** set aside by the maintainer; panels open and close from the
-  toolbars, and Channel keeps its own Back.
+  toolbars, and Channel keeps its own Back. Deferred again (the maintainer, 2026-10-30): every controller
+  button already has a use, so none is free for a Back.
 - **Explore and You (0.74.0, the maintainer):** Browse became **Explore**: Home (with all of
   YouTube's topic chips) first, then the Explore list from YouTube's left menu in its order:
   Shorts, Music, Movies & TV, Hype, Live, Gaming, News, Learning, Courses, Podcasts,
@@ -126,7 +135,10 @@ even where they look like something to "fix".
   chips; 0.74.1: the left side stays about the playing video), History,
   Playlists, Watch later, Liked videos, Movies & TV. Pages not built yet show "Coming Soon"
   with the Construction icon (Home, News and the You feeds work). Shorts uses
-  "smart_display" (Material Symbols has no Shorts icon).
+  "smart_display" (Material Symbols has no Shorts icon). **Movies & TV says why instead** (the
+  maintainer, 2026-10-28; 0.101.45): every YouTube film is copy-protected, so it won't be built;
+  its tabs show "YouTube's movies and shows are copy-protected, so they can't play in VR yet.
+  Watch them on the desktop." under the Movie icon (a sentence wraps, centred, icon above).
 - **Sliding rows (0.74.0, the maintainer):** a tab or chip row too long for its panel slides like
   a marquee while the laser is near either end (faster nearer the end), its hidden ends
   faded; tabs keep their full size instead of shrinking.
@@ -165,6 +177,10 @@ even where they look like something to "fix".
 - The panel style names: Info, Catalog, Queue, Profile, Options. The product name: StreamXR.
 - **Cinema screen corners (0.75.0, the maintainer):** a 2D video is a rounded rectangle (corner
   radius 2.5% of the screen's width: `SETTINGS.cornerRadius`, cinema-screen.js).
+- **Cinema screen size is a 16:9 frame (0.101.46, after the maintainer's Shorts report):** the
+  remembered size is a 16:9 frame and each video fits inside it, as on a TV: 16:9 and wider fill
+  its width, taller ones (Shorts 9:16, 4:3) fill its height and come out narrower. A Short after a
+  regular video is as tall as it, and resizing one resizes the frame for all.
 - **Cinema screen distance (0.78.5, the maintainer):** never in front of the VR panels: the Distance
   slider's nearest is 30 cm behind them (2.0 m with the panels at 1.7 m; `cinema-screen.js`
   `behindPanels`), up to 12 m.
@@ -190,8 +206,11 @@ even where they look like something to "fix".
 
 ## Behavior
 
-- **Shorts** play on the cinema screen at its full width, so they're very tall. Left as is
-  on purpose: don't resize vertical videos.
+- **Shorts** play on the cinema screen in their own shape, fitted to its 16:9 frame (0.101.46: see
+  "Cinema screen size" above). **The Shorts tab (the maintainer, 2026-10-28):** Explore → Shorts
+  is YouTube's endless Shorts feed on **tall 9:16 cards** (0.101.48); **when a Short ends, the next
+  one plays if Autoplay is on** (else it stays paused); and **while a Short plays, Up Next shows
+  the next Shorts from the feed**. Built in that order, tested between.
 - The video title opens the Description tab (and folds it again); the channel name opens
   the Channel panel (and folds it again).
 - A title too long for the controls panel scrolls like a marquee: still for 2 s, slides at
@@ -243,7 +262,7 @@ even where they look like something to "fix".
   along solid things on it (buttons, a toolbar's grown name pill, a solid toolbar), so they
   don't look like glass.
 - The controls panel's Quality, Speed and Format menus and the Volume slider float in front
-  of it (32 dp) on the panels' glass (0.67.2), rising from their button (which shows selected while its menu is open), as
+  of it (32 dp; 48 dp since 0.101.71, in front of the Settings popup they overlapped) on the panels' glass (0.67.2), rising from their button (which shows selected while its menu is open), as
   M3 menus: one row per choice (shorter rows when there are many, e.g. Premium's speeds up
   to 4×), the current one ticked; they close on a choice, on their
   button again, or on a click on nothing (0.67.0).
@@ -273,6 +292,29 @@ even where they look like something to "fix".
   (a custom one looked worse on YouTube, 0.101.12); the popup itself doesn't scroll, its
   body does, inside room left above and below, so the scrollbar's ends stay clear of the
   rounded corners (0.101.13).
+- **StreamXR Home** (the maintainer, 2026-10-28; the plan: `docs/Home-Page.md`): a 1.0
+  item, to show from the start that more sites are coming. Named **StreamXR Dashboard** for
+  users (renamed from "StreamXR Home", 0.101.35, the maintainer, 2026-10-28; the code and the
+  docs still call it Home: `src/streamxr/home/`, `docs/Home-Page.md`). Opens
+  once when StreamXR is installed (a first-run welcome). Its **Test VR** runs the real
+  StreamXR shell (the placeholder screen and a panel), not a simple test scene: more work,
+  but it proves what works on Home and what doesn't. The **toolbar popup** has the full
+  Quick troubleshooting as a folded section (besides status, Open Home and the sites).
+  **Enter VR when a site opens** (a switch on Home, on by default; replaces "Skip Helper users
+  only, greyed out without it", the maintainer, 2026-10-28, after Test 3): with the Skip
+  Helper, VR starts by itself on the site; without it, the site's tab shows "Press any key or
+  click anywhere to enter VR" (any real key press or click starts VR; Esc cancels). Home and
+  the toolbar popup say which you'll get. Only for tabs StreamXR itself opened (its background
+  remembers them): no link can start VR. Controller buttons mapped to keys (Steam Input) would
+  work too, but aren't asked of users (too much setup). The developer test page
+  `tools/xr-check/` stays.
+  **All cross-page VR is hidden for now** (the switch above, Enter Dashboard in VR, the Sites
+  panel; the maintainer, 2026-10-28, 0.101.36): too clumsy without the Skip Helper; back once
+  VR carries over without it (`docs/Home-Page.md`, "Hidden for now"). **In VR on Home: a Sites panel** (the right side; 2026-10-28): each site, "Opens in VR";
+  picking one leaves Home's VR and enters VR on the site (as above). **The toolbar popup's
+  buttons**: **Open StreamXR Dashboard** (renamed from "Open StreamXR Home") and **Enter
+  Dashboard in VR** (opens Home asking for a key press or click to enter VR: a click in the
+  popup can't start VR in another tab, and the Skip Helper can't click on StreamXR's pages).
 - **Glass** (0.59.0): the panels show the video behind them, blurred, under a tint of the
   surface colour. On by default at 43% (settled in the headset, 0.60.0); Settings → Appearance
   (the tab after 2D Cinema, palette icon) has the switch and a live Tint slider (20-90%).
@@ -302,6 +344,16 @@ even where they look like something to "fix".
   shows during ads, not in the button row: the Diamond, "Jump ahead", fast-forward.
 - **3D side by side on the cinema screen** (the maintainer, 2026-10-17, 0.93.0): its own
   format with Material Symbols' `3d_2` icon (0.93.3); 180° 3D side by side keeps `3d_rotation`.
+- **3D Top & Bottom on the cinema screen** (the maintainer, 2026-10-30; built in 0.101.68): a
+  format of its own named **"3D Top & Bottom"**, listed right after 3D side by side, for 3D videos
+  with both eyes stacked in one frame (`features/video-page.md`). Picked by hand, as SBS is. Its
+  icon is 3D side by side's `3d_2` (the maintainer, 2026-11-05).
+- **3D depth and Swap eyes** (the maintainer, 2026-11-05, 0.101.69; some top & bottom videos felt
+  harsh): their own Settings tab, **3D Cinema** (after 2D Cinema, icon `3d_2`; the maintainer, 0.101.70; two rows at the end of 2D Cinema in 0.101.69), active for the cinema screen's 3D formats
+  (side by side, top & bottom). **3D depth** is a slider from Closer to Farther, the middle (0%) as
+  the video was made (the default), moving each eye's picture up to 5% of its width apart or
+  together; **Swap eyes** is a switch, off by default. Both remembered, one setting for every 3D
+  video (not per video).
 - **The Format button says "Format"** (the maintainer, 2026-10-17, 0.93.2), whatever's chosen;
   its icon shows the format, and the Format menu shows every format's icon and name. The
   cinema screen's icon is `2d_2`, 3D Cinema's `3d_2` (0.93.3).
@@ -369,3 +421,17 @@ even where they look like something to "fix".
   While a playlist is shuffled, the controls' Next shows a shuffle card ("A random video from
   this playlist", the shuffle icon) instead of a video: the next one isn't known until it plays
   (the maintainer, 2026-10-18).
+- **Commenting in VR (the maintainer, 2026-10-30):** the "Add a comment..." field sits **at the
+  bottom of the Comments panel** (live chat's field and its Comment button), in reach while you
+  scroll; the VR keyboard types into it. **No confirm**: Enter or Comment posts at once, as chat
+  does. **Your comment shows at the top right away** (a reply: under its comment). Replies come
+  from **a Reply button on each comment**, which switches the same field to "Replying to @name"
+  (an x cancels) rather than opening a field under the comment.
+  **Your own comments: a "⋮" menu** with Edit and Delete (as YouTube); **Edit uses the bottom
+  field** ("Editing your comment", an x, Save; the comment updates in place); **Delete asks first**,
+  with YouTube's own question (the maintainer, 2026-10-30; 0.101.63).
+  Nested replies show to any depth, each level a step further in (the indent stops at 3 levels),
+  with **thread lines** from each comment's picture curving into its replies, as on YouTube's
+  desktop (the maintainer, 2026-10-30; 0.101.60 to 0.101.61). **Clicking a thread line folds** the replies under
+  it (a comment's: as Hide; a reply's: its own replies, then "⌄ N replies" opens them again); the
+  lines light up while pointed at (the maintainer, 2026-10-30; 0.101.62).

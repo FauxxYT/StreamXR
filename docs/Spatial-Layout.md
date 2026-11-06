@@ -154,7 +154,8 @@ Gaps:
     and its suggestions;
   - the **controls** along the bottom (centre about −27° instead of −37°).
 - **Level 3 (32 dp ≈ 4.4 cm): popups**: the controls' menus (quality, speed, format,
-  volume), the search suggestions, the Previous / Next card.
+  volume), the search suggestions, the Previous / Next card. The controls' menus sit a step higher, at 48 dp (0.101.71), so one opened while Settings (a
+  popup at 32 dp, rising from the pill) is up stays in front of it instead of cutting into it.
 - **Level 5 (56 dp ≈ 7.8 cm): dialogs**: confirmations ("Unsubscribe?"), with a scrim on
   the panel.
 

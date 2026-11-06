@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "StreamXR Skip Helper for YouTube",
-  "version": "1.3.1",
+  "version": "1.4.0",
   "description": "Optional companion to StreamXR: presses YouTube's Skip ad button when you press Skip ad in VR.",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyNeHto6xrIo7Nf1cbRTH7YxRF09gXbef3lIvECNC0pTQnqPdpNIyNwjYMx4YeNSwnbVBLXcuxIKgMQGEt96iAMbx6rOxUK94FRfyqOGOLiEeqUTdok11qFPx29QUT/c8tz77dLZ5k+O5k8vRyWfz/wdBUQbmOOXMkJvpgXBSZml9mypjBO2i0OMB7AIyWWPnlhxxpJx7NJjOs5qFdI5G2DaOO0do7WZQTHGXx+PdoRVckcl9XVtTuSZFWXtlAkJkxwuB5l+2j9wL+qERwXozGTuATeipMPRAyQWA0cInIaHrBmC21krEspXewxym+09Q7SAqGE8hQp2ApkbP51rwJQIDAQAB",
   "action": {

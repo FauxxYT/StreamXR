@@ -26,6 +26,48 @@ published; what matters from them is in this file and docs/youtube.md).
 
 ## Small to medium: additions to existing panels
 
+- [x] **3D Top & Bottom on the cinema screen** DONE (0.101.68 to 0.101.71, verified in the headset 2026-11-05; icon `3d_2`
+  like side by side; the frame check (Step 0) was skipped: the full / half rule covers both;
+  works in the headset; some videos' 3D felt harsh (e.g. `xITP9xUlbKQ`), so 0.101.69 adds
+  **3D depth** and **Swap eyes** for both 3D formats (Settings → 3D Cinema since 0.101.70); requested by
+  [u/Timtronic125](https://www.reddit.com/user/Timtronic125) on Reddit): some 3D videos reach
+  desktop with both eyes **stacked** in one frame (left eye on top, as a rule), and today show as
+  one squashed or doubled picture. A new Format menu entry, **"3D Top & Bottom"**, right after 3D
+  side by side, gives each eye its half, as `flatsbs` does across. Picked by hand, like SBS
+  (YouTube's data doesn't mark these videos).
+  - Test videos (the maintainer's picks): `v4Bp9os8HrM`, `XW0mOp_gLEw`, `J6IbDKltXJs`,
+    `BDAAmGVjw5s`, `hzgqUZ1DMms` (youtube.com/watch?v=...).
+  - **Step 0, look before building:** for each test video, the popup's **Save video frame**
+    (the raw frame as YouTube sends it) shows the layout: **full** top & bottom (two full 16:9
+    pictures stacked, a tall frame, about 0.89:1) or **half** (each eye squeezed into half of a
+    16:9 frame), which eye is on top, and whether any of them reaches desktop as one eye only
+    (then it's not this format: desktop YouTube's limit, decisions/0002).
+  - **Code** (one format id, e.g. `flattb`; the shell, no YouTube code):
+    - `shared/formats.js`: the id after `flatsbs` in `IDS`; `isTb`; `eyeSpans` grows from
+      across only (`[scale, offset]`) to both directions (`[scaleX, scaleY, offsetX, offsetY]`:
+      top & bottom = the top half for the left eye, the bottom for the right); `isFlat` takes it.
+      Then regenerate the `ui/shared/` copy.
+    - `cinema-screen.js`: the screen's and the glow's shaders read the frame through a 2D
+      transform (`uUvX` vec2 -> a vec4 like `video-sphere.js`'s `uUvXform`); `eyeAspect`: a
+      frame taller than about 1.2:1 is full top & bottom (one eye = twice the frame's ratio),
+      else half (shown at the frame's ratio, as half SBS is).
+    - `video-sphere.js` already takes a 2D transform (`uUvXform`), so the 4-number `eyeSpans`
+      just has to be passed through (no new sphere format now).
+    - `vr-panel/panel-pass.js` (the glass blur behind the panels samples the screen per eye):
+      its `uUvX` becomes 2D too, for the 'screen' and 'sphere' backdrops; `xr-session.js` /
+      the screen's `backdrop()` hand it over.
+    - `vr-panel/panel-ui.js` `FORMAT_ICONS`: `3d_2`, the same as 3D side by side (the
+      maintainer's pick).
+    - Strings (en, es): `format.flattb` "Cinema screen 3D top and bottom (both eyes in one
+      frame)" and `format.short.flattb` "Cinema 3D\ntop & bottom"; the popup's format picker and
+      the Format menu list it from `IDS` on their own.
+  - **Check in the headset:** depth looks right (not inside out: if it is, the eyes are the
+    other way round on that video), the screen's shape is right for full and half, the glass
+    behind the panels matches each eye, captions and the pause symbol sit right, and switching
+    back to 2D / SBS still works.
+  - **Later, if asked:** 180° / 360° top & bottom (over-under) on the sphere: with 2D
+    `eyeSpans` in place it's mostly new ids (`180tb`, `360tb`) and their strings and icons.
+
 - [x] ~~**Endless Up Next**~~ DONE (v0.20.1: loads the next batch near the last page)
   - ~~Code: `youtubePage.loadMoreRecommendations()`~~
 - [x] ~~**Playlists and mixes in Up Next**~~ DONE (v0.27.0: merged into Recommended where
@@ -87,8 +129,29 @@ published; what matters from them is in this file and docs/youtube.md).
   scrolling with more loading near the end, replies opened under a comment, clickable times)
   - ~~Code: `youtubeContent.comments(sort)`, `replies(comment)`, `commentsInfo()`~~
   - v0.30.1: the creator's ❤ shows; like / dislike buttons (confirmed signed in).
-  - Not yet: replies to replies (YouTube's newer nested threads), writing comments
-    (writing needs the VR keyboard).
+  - Replies to replies (YouTube's newer nested threads): shown one step further in under their
+    reply since 0.101.59 (they come inline with each reply; 0.101.58 looked for a token instead;
+    works in the headset, the maintainer, 2026-10-30); to any depth since 0.101.60 (indent capped at
+    3 levels; works in the headset, the maintainer, 2026-10-30); thread lines joining each reply to
+    its comment since 0.101.61 (work in the headset); clicking a line folds the replies under it since
+    0.101.62 (works in the headset, the maintainer, 2026-10-30).
+- [x] **Commenting in VR** (large; the maintainer's picks, 2026-10-30; done, works in the headset): writing comments and
+  replies with the VR keyboard, built in steps tested between:
+  1. [x] Post a comment (0.101.56; works in the headset, the maintainer, 2026-10-30: posted, shown
+     at the top with your name and avatar ("0 seconds ago", YouTube's own time), on YouTube too): an "Add a comment..." field at the bottom of the Comments panel (live
+     chat's field); the VR keyboard types; Enter or Comment posts, no confirm; your comment shows
+     at the top at once. (YouTube: `comment/create_comment` with the first comments page's
+     `createCommentParams`, `docs/youtube.md`.)
+  2. [x] Reply (0.101.57; works in the headset, the maintainer, 2026-10-30: Reply on comments and
+     replies, "@name " on a reply's reply, x back to a new comment, on YouTube too): a Reply button on each comment switches the field to "Replying to @name" (an x
+     cancels); the reply shows under its comment at once (`comment/create_comment_reply`, each
+     comment's `createReplyParams`).
+  3. [x] Edit or delete your own comments (0.101.63; in the headset: the ⋮, its menu and Delete work;
+     Save said "Couldn't save": fixed in 0.101.66 (two false alarms in YouTube's answer; saves in the headset), and the edit shown
+     in place since 0.101.67 (the layout cache kept the old text); all works in the headset, the
+     maintainer, 2026-10-30): a "⋮" on your
+     comments opens Edit (the text in the bottom field, "Editing your comment", Save) and Delete
+     (YouTube's question first; its replies go too).
 - [ ] **Live chat** (medium to large, read-only first): **phase 1 (reading) built in 0.79.0**,
   working in the headset since 0.79.1 (checked by the maintainer).
   - Code: `youtube-chat.js` (the views, the chat page, polling every 2 s; docs/youtube.md,

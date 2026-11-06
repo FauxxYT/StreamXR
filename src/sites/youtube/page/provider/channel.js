@@ -431,6 +431,7 @@
       } else if (opened && ev.type === 'back') closePost();
       else if (opened && ev.type === 'pill') { if (opened.view.setSort(ev.value)) { scroll = 0; bump(); } }
       else if (opened && ev.type === 'children') opened.view.toggleReplies(+ev.value);
+      else if (opened && ev.type === 'fold') opened.view.toggleFold(ev.value);          // a reply's thread line (comments.js)
       else if (opened && ev.type === 'more') opened.view.moreReplies(+ev.value);
       else if (opened && (ev.type === 'like' || ev.type === 'dislike')) opened.view.rate(ev.value, ev.type);   // a comment's 👍 / 👎
       else if (ev.type === 'pill') {

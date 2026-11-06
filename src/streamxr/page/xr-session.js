@@ -25,6 +25,8 @@
       const k = Math.min(W * 0.42 / lw, H * 0.3 / lh), w = lw * k, h = lh * k;
       g.drawImage(logo, (W - w) / 2, (H - h) / 2, w, h);
     }
+    // (which logo it shows, to tell a later look apart: its image's address, '' with none)
+    cv.logoKey = lw && lh ? String(logo.src || (logo.toDataURL ? logo.toDataURL() : '1')) : '';
     return cv;
   }
 
@@ -89,6 +91,9 @@
       const opts = { xrCompatible: true, antialias: false, alpha: false };
       const gl = canvas.getContext('webgl2', opts) || canvas.getContext('webgl', opts);
       await gl.makeXRCompatible();
+      // The drawing surface the headset shows, at the headset's recommended size (SteamVR's
+      // render resolution decides it: a bigger framebufferScaleFactor is capped back to it,
+      // docs/hardware.md).
       session.updateRenderState({ baseLayer: new XRWebGLLayer(session, gl) });
       // 'local' space: positions are measured from where you were when the session began.
       const refSpace = await session.requestReferenceSpace('local');
@@ -106,6 +111,17 @@
       // null): that picture on the screen instead (posterCanvas), uploaded once per view.
       let poster = { key: '', canvas: null, for: null };
       placeholderCanvas(provider).then(c => { placeholder = c; }, () => {});
+      // Looked at again 1.5, 4 and 8 s in: a page that just opened (e.g. VR started by itself
+      // from StreamXR Home) may not have drawn its logo yet, or may still show its plain one
+      // (YouTube switches to its Premium logo a moment later). A different logo replaces it.
+      for (const ms of [1500, 4000, 8000]) {
+        setTimeout(() => {
+          if (!active || active.session !== session) return;
+          placeholderCanvas(provider).then(c => {
+            if (c.logoKey && (!placeholder || c.logoKey !== placeholder.logoKey)) { placeholder = c; placeholderFor = null; }
+          }, () => {});
+        }, ms);
+      }
       let lastHead = null;                    // where you were (and faced) at the last recenter: { position, yaw, pitch }
 
       // Formats offered in the VR panel, named in the interface language (asked each frame,
@@ -188,8 +204,20 @@
 
       // yaw: the direction you faced at the last recenter (the sphere is turned by it);
       // wantRecenter: set by the grip / Recenter button, handled at the next frame;
-      // headsetNoted: the headset's optics are recorded once, for the Details panel.
-      let yaw = 0, wantRecenter = true, headsetNoted = false;
+      // notedLayer: the drawing surface the headset's optics were last recorded with (for the
+      // Details panel): recorded again whenever the surface changes.
+      let yaw = 0, wantRecenter = true, notedLayer = null;
+      // A recenter you ask for (the Recenter button, Grip) fades: the view goes dark over
+      // FADE_OUT ms, recenters while dark, and comes back over FADE_IN ms, so the world never
+      // leaps (Android XR's motion guide). The first one, as VR starts, is instant.
+      // recenterFade: { at (ms), done (recentered yet) } while a fade runs.
+      const FADE_OUT = 120, FADE_IN = 180;
+      let recenterFade = null, fadePass = null;
+      try { fadePass = ns.fadePass ? ns.fadePass.create(gl) : null; } catch (err) { console.warn('[streamxr] recenter fade off:', err); }
+      const askRecenter = () => {
+        if (!fadePass) { wantRecenter = true; return; }
+        if (!recenterFade) recenterFade = { at: performance.now(), done: false };
+      };
       let headNow = [0, 0, 0];                // head position at the latest frame (for the Distance slider)
 
       // The shell's own settings: the cinema screen's distance (null on 180°/360°) and its
@@ -212,11 +240,18 @@
         distance: view.distance ? view.distance() : null,
         cinema: { active: ns.formats.isFlat(fmt), follow: followView(), ...ns.cinemaScreen.curvePrefs(), defaultAmount: ns.cinemaScreen.SETTINGS.curveAmount,
           ...glowSettings(),
+          // 3D (side by side, top and bottom on the cinema screen): depth (-1..1) and Swap eyes
+          stereo: ns.formats.isFlat(fmt) && (ns.formats.isSbs(fmt) || ns.formats.isTb(fmt)),
+          ...(s => ({ depth: s.depth, swapEyes: s.swap }))(ns.cinemaScreen.stereoPrefs()),
           format: ns.formats.label(fmt) },
       });
       const setGlow = patch => {
         const g = ns.cinemaScreen.saveGlow(patch);
         if (view.setGlow) view.setGlow(g);
+      };
+      const setStereo = patch => {
+        const s = ns.cinemaScreen.saveStereo(patch);
+        if (view.setStereo) view.setStereo(s);
       };
       const setCurve = patch => {
         const c = ns.cinemaScreen.saveCurve(patch);
@@ -230,11 +265,11 @@
       try {
         panel = ns.vrPanel ? ns.vrPanel.create(gl, {
           ...siteSide.actions,
-          recenter: () => { wantRecenter = true; },
+          recenter: () => askRecenter(),
           exit: () => session.end(),
           setFormat: next => setFormat(next, true),
           setDistance: metres => { if (view.setDistance) view.setDistance(metres, headNow); },
-          setCurve, setGlow,
+          setCurve, setGlow, setStereo,
           setFollow: patch => { ns.cinemaScreen.saveFollow(patch); followPrefAt = 0; },   // (Follow your head { on?, after?, rate? }: read again at once)
           state: () => ({ ...siteSide.state(), viewSettings: viewSettings(),
             format: { current: fmt, options: formatOptions() } }),            // what's on screen (cinema during ads)
@@ -260,7 +295,7 @@
           provider.seek(delta);
         },
         // Grip on the panel's grab bar moves the panel instead of recentering.
-        recenter: src => { if (!(panel && src && panel.claimsGrip(src.handedness))) wantRecenter = true; },
+        recenter: src => { if (!(panel && src && panel.claimsGrip(src.handedness))) askRecenter(); },
         panel: () => panelSafely('toggle', () => panel.toggleVisible()),
         keyboard: () => panelSafely('keyboard', () => panel.toggleKeyboard()),
         reset: src => resetAll(src),
@@ -357,6 +392,15 @@
         }
         input.poll(session.inputSources);
         try { followAds(); } catch (err) { console.warn('[streamxr] ad handling failed:', err); }
+        // A recenter fade (askRecenter): recenter once the view is fully dark; how dark it is
+        // now (veil, 0..1) is drawn over everything at the end of the frame.
+        let veil = 0;
+        if (recenterFade) {
+          const e = performance.now() - recenterFade.at;
+          if (!recenterFade.done && e >= FADE_OUT) { wantRecenter = true; recenterFade.done = true; }
+          veil = e < FADE_OUT ? e / FADE_OUT : 1 - (e - FADE_OUT) / FADE_IN;
+          if (e >= FADE_OUT + FADE_IN) recenterFade = null;
+        }
         // Recenter: take the direction you're facing now as "front", and put the video and
         // panel there.
         if (wantRecenter) {
@@ -392,7 +436,7 @@
         }
 
         const layer = session.renderState.baseLayer;
-        if (!headsetNoted) { ns.diagnostics.noteHeadset(session, layer, pose); headsetNoted = true; }
+        if (layer !== notedLayer) { ns.diagnostics.noteHeadset(session, layer, pose); notedLayer = layer; }
         gl.bindFramebuffer(gl.FRAMEBUFFER, layer.framebuffer);
         gl.clearColor(0, 0, 0, seeThrough ? 0 : 1);           // transparent: the room shows (passthrough)
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -425,11 +469,20 @@
         // camera image never reaches the page, so passthrough gets the tint alone).
         panelSafely('drawing', () => panel.drawPanel(pose, layer, !seeThrough && view.backdrop ? view.backdrop() : null));
 
-        if (controllers) {
-          try { controllers.draw(frame, refSpace, pose, layer, session.inputSources, panel ? panel.iconSwaps() : null, input.holds()); }
-          catch (err) { console.warn('[streamxr] controller drawing failed, turning it off:', err); controllers = null; }
+        // The controllers and lasers only while the session is fully visible: with the SteamVR
+        // dashboard (or another overlay) open it's 'visible-blurred' and the browser gets no
+        // controller updates, so they'd stay frozen in the air; they come back when it closes.
+        if (!session.visibilityState || session.visibilityState === 'visible') {   // (no visibilityState: an older browser)
+          if (controllers) {
+            try { controllers.draw(frame, refSpace, pose, layer, session.inputSources, panel ? panel.iconSwaps() : null, input.holds()); }
+            catch (err) { console.warn('[streamxr] controller drawing failed, turning it off:', err); controllers = null; }
+          }
+          panelSafely('laser drawing', () => panel.drawLasers(pose, layer, controllers ? controllers.alphas() : null));
         }
-        panelSafely('laser drawing', () => panel.drawLasers(pose, layer, controllers ? controllers.alphas() : null));
+        // The recenter fade's veil, over everything.
+        if (veil > 0 && fadePass) {
+          try { fadePass.draw(veil, layer); } catch (err) { console.warn('[streamxr] recenter fade failed, turning it off:', err); fadePass = null; }
+        }
       };
 
       // Session over (you took the headset off, pressed Exit VR, or an error ended it):
@@ -438,7 +491,7 @@
         active = null;
         source.stop();
         stopNavigate();
-        try { if (pauseOverlay) pauseOverlay.dispose(); if (captionsOverlay) captionsOverlay.dispose(); if (controllers) controllers.dispose(); if (panel) panel.dispose(); view.dispose(); } catch (_) { /* context going away anyway */ }
+        try { if (pauseOverlay) pauseOverlay.dispose(); if (captionsOverlay) captionsOverlay.dispose(); if (controllers) controllers.dispose(); if (fadePass) fadePass.dispose(); if (panel) panel.dispose(); view.dispose(); } catch (_) { /* context going away anyway */ }
         const lose = gl.getExtension('WEBGL_lose_context');
         if (lose) lose.loseContext();
         listener({ state: 'ended' });

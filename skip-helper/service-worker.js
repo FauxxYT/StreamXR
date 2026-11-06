@@ -7,13 +7,16 @@
 // extension doesn't need it; people who want to skip ads without leaving VR install this.
 //
 // What it can do, and nothing else: when asked by another extension's content script
-// running in a YouTube tab, press the visible Skip button in THAT tab. It takes no
-// coordinates or instructions; it finds the button itself. It attaches the debugger only
+// running in a YouTube tab, press one of two things in THAT tab: the visible Skip button,
+// or StreamXR's own Enter VR target (an element StreamXR puts on the page to start VR with
+// no click of yours: VR only starts from real input; a test for now, 1.4.0). It takes no
+// coordinates or instructions; it finds the element itself. It attaches the debugger only
 // for the click and detaches right away (Chrome shows its "debugging" bar for a moment).
 //
 // Messages (chrome.runtime.sendMessage(HELPER_ID, msg) from a content script):
 //   { type: 'streamxr-helper-ping' }  -> { ok: true, version }
 //   { type: 'streamxr-skip-ad' }      -> { ok: true } | { ok: false, error }
+//   { type: 'streamxr-enter-vr' }     -> { ok: true } | { ok: false, error }
 'use strict';
 
 const PROTOCOL = '1.3';
@@ -41,21 +44,42 @@ const FIND_BUTTON = `(() => {
   window.__streamxrSkipCovers = covers;
   return { x, y };
 })()`;
+// Runs in the YouTube page: StreamXR's Enter VR target (#streamxr-autoenter, see StreamXR's
+// src/sites/youtube/ui/skip-helper.js), its centre in viewport CSS pixels, anything covering
+// it made click-through as above. The target is see-through, so it's found by being on the
+// page, not by being visible.
+const FIND_ENTER = `(() => {
+  const btn = document.getElementById('streamxr-autoenter');
+  if (!btn || !btn.isConnected) return null;
+  const r = btn.getBoundingClientRect();
+  if (!r.width || !r.height) return null;
+  const x = r.left + r.width / 2, y = r.top + r.height / 2;
+  const covers = [];
+  for (const el of document.elementsFromPoint(x, y)) {
+    if (el === btn || btn.contains(el)) break;
+    if (el.contains(btn)) continue;
+    covers.push([el, el.style.pointerEvents]);
+    el.style.pointerEvents = 'none';
+  }
+  window.__streamxrSkipCovers = covers;
+  return { x, y };
+})()`;
 const RESTORE = `(() => {
   for (const [el, pe] of window.__streamxrSkipCovers || []) el.style.pointerEvents = pe;
   delete window.__streamxrSkipCovers;
 })()`;
 
-// Attach the debugger to the tab, find the Skip button, click it, detach. Resolves
-// { ok: true } or { ok: false, error }. The `finally` blocks make sure the covered
-// elements are restored and the debugger is detached even if a step fails.
-async function pressSkip(tabId) {
+// Attach the debugger to the tab, find the element (`find`: FIND_BUTTON or FIND_ENTER),
+// click it, detach. Resolves { ok: true } or { ok: false, error } (`missing`: the error when
+// it isn't there). The `finally` blocks make sure the covered elements are restored and the
+// debugger is detached even if a step fails.
+async function press(tabId, find, missing) {
   const target = { tabId };
   await chrome.debugger.attach(target, PROTOCOL);
   try {
-    const found = await chrome.debugger.sendCommand(target, 'Runtime.evaluate', { expression: FIND_BUTTON, returnByValue: true });
+    const found = await chrome.debugger.sendCommand(target, 'Runtime.evaluate', { expression: find, returnByValue: true });
     const point = found && found.result && found.result.value;
-    if (!point) return { ok: false, error: 'no visible Skip button' };
+    if (!point) return { ok: false, error: missing };
     const { x, y } = point;
     const click = { x, y, button: 'left', clickCount: 1, pointerType: 'mouse' };
     try {
@@ -74,13 +98,15 @@ async function pressSkip(tabId) {
 chrome.runtime.onMessageExternal.addListener((msg, sender, reply) => {
   const type = msg && msg.type;
   if (type === 'streamxr-helper-ping') { reply({ ok: true, version: chrome.runtime.getManifest().version }); return false; }
-  if (type !== 'streamxr-skip-ad') return false;
+  if (type !== 'streamxr-skip-ad' && type !== 'streamxr-enter-vr') return false;
   const tab = sender.tab;
   if (!tab || tab.id == null || !/^https:\/\/www\.youtube\.com\//.test(sender.url || tab.url || '')) {
     reply({ ok: false, error: 'only from a YouTube tab' });
     return false;
   }
-  pressSkip(tab.id)
+  const job = type === 'streamxr-skip-ad' ? press(tab.id, FIND_BUTTON, 'no visible Skip button')
+    : press(tab.id, FIND_ENTER, 'no Enter VR target on the page');
+  job
     .then(reply)
     .catch(err => reply({ ok: false, error: String(err && err.message || err) }));
   return true;                                                    // reply comes later

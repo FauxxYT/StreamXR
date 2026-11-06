@@ -5,14 +5,16 @@
 //
 // 3D: most 3D videos reach the desktop as one eye only (shown as mono); some arrive with both
 // eyes side by side in one frame, which '180sbs' (VR180) and 'flatsbs' (the cinema screen)
-// give each eye its half of. Nothing in the site's data marks those, so they're picked by hand
-// (docs/youtube.md, "Formats and VR180").
+// give each eye its half of, and some with the eyes stacked (left eye on top), which
+// 'flattb' (the cinema screen) splits the same way. Nothing in the site's data marks those,
+// so they're picked by hand (docs/youtube.md, "Formats and VR180").
 (function (ns) {
   'use strict';
 
-  // The six formats. The ids are used everywhere: 'mono' = one picture for both eyes;
-  // 'eac' = equi-angular cubemap; 'sbs' = 3D side by side (left eye's picture on the left).
-  const IDS = Object.freeze(['flat', 'flatsbs', '360mono', '360eac', '180mono', '180sbs']);
+  // The seven formats. The ids are used everywhere: 'mono' = one picture for both eyes;
+  // 'eac' = equi-angular cubemap; 'sbs' = 3D side by side (left eye's picture on the left);
+  // 'tb' = 3D top and bottom (left eye's picture on top).
+  const IDS = Object.freeze(['flat', 'flatsbs', 'flattb', '360mono', '360eac', '180mono', '180sbs']);
   const DEFAULT = 'flat';                   // when nothing is known about the video
   const isFormat = id => IDS.includes(id);
 
@@ -28,18 +30,23 @@
   // Horizontal span of the sphere, in radians (the cinema screen doesn't use a sphere).
   const longitudeSpan = fmt => (fmt === '180mono' || fmt === '180sbs' ? Math.PI : Math.PI * 2);
 
-  // Which part of the frame each eye sees, across: [scale, offset] for the left eye and the
-  // right eye ([1, 0] = the whole frame; side by side, the left and right halves).
+  // Which part of the frame each eye sees, in texture coordinates (0..1, y down from the top):
+  // [scaleX, scaleY, offsetX, offsetY] for the left eye and the right eye ([1, 1, 0, 0] = the
+  // whole frame; side by side, the left and right halves; top and bottom, the top and bottom
+  // halves).
   const isSbs = fmt => fmt === '180sbs' || fmt === 'flatsbs';
-  const eyeSpans = fmt => (isSbs(fmt) ? { left: [0.5, 0], right: [0.5, 0.5] } : { left: [1, 0], right: [1, 0] });
+  const isTb = fmt => fmt === 'flattb';
+  const eyeSpans = fmt => (isSbs(fmt) ? { left: [0.5, 1, 0, 0], right: [0.5, 1, 0.5, 0] }
+    : isTb(fmt) ? { left: [1, 0.5, 0, 0], right: [1, 0.5, 0, 0.5] }
+    : { left: [1, 1, 0, 0], right: [1, 1, 0, 0] });
 
   // How the sphere maps the frame: 0 = one wrap-around picture (equirectangular),
   // 1 = YouTube's equi-angular cubemap.
   const projectionMode = fmt => (fmt === '360eac' ? 1 : 0);
 
-  // Flat videos (2D, or 3D side by side) go on the cinema screen; everything else on the
-  // video sphere.
-  const isFlat = fmt => fmt === 'flat' || fmt === 'flatsbs';
+  // Flat videos (2D, or 3D side by side / top and bottom) go on the cinema screen; everything
+  // else on the video sphere.
+  const isFlat = fmt => fmt === 'flat' || fmt === 'flatsbs' || fmt === 'flattb';
 
-  ns.formats = { IDS, DEFAULT, isFormat, label, shortLabel, longitudeSpan, eyeSpans, isSbs, projectionMode, isFlat };
+  ns.formats = { IDS, DEFAULT, isFormat, label, shortLabel, longitudeSpan, eyeSpans, isSbs, isTb, projectionMode, isFlat };
 })(globalThis.__streamxr = globalThis.__streamxr || {});

@@ -71,6 +71,6 @@
     // the search bar above the Safe Zone, its results in the middle
     { id: 'search', zone: 'top', label: () => ns.i18n.t('yt.panel.search'), icon: 'search', style: 'catalog', size: 'wide', create: yt.searchPanel.create },
     // the pill on the controls panel
-    { id: 'settings', zone: 'controls', label: () => ns.i18n.t('yt.panel.settings'), icon: 'settings', style: 'options', size: 'standard', create: yt.settingsPanel.create },
+    { id: 'settings', zone: 'controls', label: () => ns.i18n.t('yt.panel.settings'), icon: 'settings', style: 'options', size: 'settings', create: yt.settingsPanel.create },
   ];
 })(globalThis.__streamxr = globalThis.__streamxr || {});

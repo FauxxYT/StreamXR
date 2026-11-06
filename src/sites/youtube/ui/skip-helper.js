@@ -31,4 +31,13 @@
 
   bridge.on(E.HELPER_STATUS, () => { toHelper({ type: 'streamxr-helper-ping' }).then(res => bridge.send(E.HELPER_STATUS_REPLY, res)); });
   bridge.on(E.SKIP_AD, () => { toHelper({ type: 'streamxr-skip-ad' }).then(res => bridge.send(E.SKIP_AD_DONE, res)); });
+
+  // For the shell's auto-enter (src/streamxr/ui/auto-enter.js), the site's way of starting VR
+  // with no click: the helper clicks StreamXR's Enter VR target (#streamxr-autoenter) for real.
+  // -> Promise of { ok, error }. available() -> Promise of bool: the helper is installed and
+  // answers (asked first, so nothing counts down for a click that can't come).
+  ns.siteHelper = {
+    available: () => toHelper({ type: 'streamxr-helper-ping' }).then(res => !!(res && res.ok)),
+    enterVr: () => toHelper({ type: 'streamxr-enter-vr' }),
+  };
 })(globalThis.__streamxr = globalThis.__streamxr || {});

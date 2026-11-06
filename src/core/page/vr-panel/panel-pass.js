@@ -39,13 +39,14 @@
   //     antialiased edge, 0 outside it);
   //   - behind(): the ray from the eye (uEye) through this point, into the backdrop:
   //       uKind 1 'sphere' (equirectangular, uSpan radians of longitude, turned by uYaw;
-  //       its across coordinate then scaled and shifted by uUvX: (1, 0) for the whole
-  //       frame, (0.5, 0) / (0.5, 0.5) for the left / right eye's half of a side-by-side 3D
-  //       frame, set per eye),
+  //       its coordinates then scaled and shifted by uUvX (scale xy, offset zw): (1, 1, 0, 0)
+  //       for the whole frame, (0.5, 1, 0, 0) / (0.5, 1, 0.5, 0) for the left / right eye's
+  //       half of a side-by-side 3D frame (the top / bottom half of a top-and-bottom one: the
+  //       same across y), set per eye),
   //       uKind 2 'eac' (YouTube's cubemap, the same layout as video-sphere.js),
   //       uKind 3 'screen' (the cinema screen: centre uScrC, axes uScrR / uScrU / uScrN
   //       (toward you), size uScrSize, bent by uBend radians around a vertical circle;
-  //       sampled at this eye's part of the frame across, uUvX, as above);
+  //       sampled at this eye's part of the frame, uUvX, as above);
   //     its texture coordinates, or "outside" (the dark void colour, uVoid);
   //   - the blur: the backdrop texture with a mipmap bias (texture2D's third argument, so
   //     a much smaller mipmap is read), at the centre and four points around it (uBlur
@@ -63,7 +64,8 @@
     uniform sampler2D uTex, uBack;
     uniform float uGlass, uTint, uKind, uSpan, uYaw, uBend, uBlur, uAlpha;
     uniform vec3 uEye, uScrC, uScrR, uScrU, uScrN, uVoid;
-    uniform vec2 uScrSize, uTexel, uUvX;
+    uniform vec2 uScrSize, uTexel;
+    uniform vec4 uUvX;
     uniform vec3 uGlow;                     // the cinema screen's glow: strength (0: none), reach (m), corner radius (m)
     varying vec2 vUv; varying vec3 vWorld;
     const float PI = 3.14159265;
@@ -97,7 +99,7 @@
         vec3 l = vec3(c * d.x - s * d.z, d.y, s * d.x + c * d.z);
         if (uKind > 1.5) return vec3(eacUv(l), 1.0);
         float lon = atan(l.x, -l.z), pol = acos(clamp(l.y, -1.0, 1.0));
-        return vec3((lon / uSpan + 0.5) * uUvX.x + uUvX.y, pol / PI, step(abs(lon), uSpan * 0.5));
+        return vec3(vec2(lon / uSpan + 0.5, pol / PI) * uUvX.xy + uUvX.zw, step(abs(lon), uSpan * 0.5));
       }
       // The cinema screen, in its own axes.
       vec3 e = eye - uScrC;
@@ -136,9 +138,10 @@
       vec3 back = uVoid;
       if (uKind > 0.5) {
         vec3 b = behind(uEye, normalize(vWorld - uEye));
-        // On the cinema screen, sample this eye's part of the frame across (uUvX; the picture's
-        // own coordinates, b.xy, stay for the glow's shape).
-        vec2 sb = uKind > 2.5 ? vec2(clamp(b.x, 0.0, 1.0) * uUvX.x + uUvX.y, b.y) : b.xy;
+        // On the cinema screen, sample this eye's part of the frame (uUvX; the picture's own
+        // coordinates, b.xy, stay for the glow's shape; clamped so the glow reads the edge of
+        // this eye's half, not the other eye's).
+        vec2 sb = uKind > 2.5 ? clamp(b.xy, 0.0, 1.0) * uUvX.xy + uUvX.zw : b.xy;
         if (b.z > 0.75) {
           const float BIAS = 5.0;
           vec3 s = texture2D(uBack, sb, BIAS).rgb * 0.4;
@@ -227,9 +230,10 @@
         gl.uniform1f(U.blur, BLUR[backdrop.kind] || 0.01);
         gl.uniform1f(U.span, backdrop.span || Math.PI * 2);
         gl.uniform1f(U.yaw, backdrop.yaw || 0);
-        // (uvX: one [scale, offset] for both eyes, or { left, right }: each eye its own part)
-        const ux = backdrop.uvX, eyeX = !ux ? [1, 0] : Array.isArray(ux) ? ux : view.eye === 'right' ? ux.right : ux.left;
-        gl.uniform2fv(U.uvX, eyeX);
+        // (uvX: one [scaleX, scaleY, offsetX, offsetY] for both eyes, or { left, right }: each
+        // eye its own part)
+        const ux = backdrop.uvX, eyeX = !ux ? [1, 1, 0, 0] : Array.isArray(ux) ? ux : view.eye === 'right' ? ux.right : ux.left;
+        gl.uniform4fv(U.uvX, eyeX);
         if (backdrop.kind === 'screen') {
           gl.uniform3fv(U.scrC, backdrop.centre); gl.uniform3fv(U.scrR, backdrop.right);
           gl.uniform3fv(U.scrU, backdrop.up); gl.uniform3fv(U.scrN, backdrop.normal);
