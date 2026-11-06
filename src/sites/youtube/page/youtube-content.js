@@ -338,6 +338,9 @@
   //   repliesToken, hearted (the video's creator gave it a ❤), heartBy ("❤ by @somechannel"),
   //   creatorAvatar (shown with the heart), likeState ('liked' | 'disliked' | 'none': yours),
   //   actions: { like, unlike, dislike, undislike } (tokens for rateComment; only signed in),
+  //   replyParams (the token for replying to it, postReply; only signed in),
+  //   inlineReplies ([comments] that came with it: on a replies page, a reply's own replies, or null),
+  //   mine (you wrote it), own (your comment's Edit / Delete: ownMenu, or null),
   //   via (the request its page came from: 'next' for a video's, 'browse' for a post's; its
   //   replies load the same way) }.
   //   YouTube sends the comment's words, its toolbar state (your like, the heart) and its
@@ -353,15 +356,31 @@
     }
     // The perform-comment-action token inside one of the toolbar's commands (none signed out).
     const actionOf = (surface, name) => dig(findKey(dig(surface, `${name}Command`), 'performCommentActionEndpoint'), 'action') || null;
+    // Your own comment's "⋮" menu (the toolbar surface's menuCommand, probed 2026-10-30): Edit
+    // (updateCommentDialogEndpoint: its Save's updateCommentParams) and Delete (a confirm
+    // dialog whose button is a perform-comment-action token, with YouTube's question). Returns
+    // { editParams, deleteAction, deleteTitle, deleteText } or null (not yours, or signed out).
+    function ownMenu(surface) {
+      const items = (findKey(dig(surface, 'menuCommand'), 'menuRenderer') || {}).items || [];
+      const item = icon => items.map(i => i.menuNavigationItemRenderer || i.menuServiceItemRenderer)
+        .find(i => i && dig(i, 'icon', 'iconType') === icon) || null;
+      const edit = item('EDIT'), del = item('DELETE'), dlg = findKey(del, 'confirmDialogRenderer') || {};
+      const editParams = dig(findKey(edit, 'updateCommentEndpoint'), 'updateCommentParams') || null;
+      const deleteAction = dig(findKey(del, 'performCommentActionEndpoint'), 'action') || null;
+      return editParams || deleteAction ? { editParams, deleteAction, deleteTitle: strOf(dlg.title),
+        deleteText: (dlg.dialogMessages || []).map(strOf).filter(Boolean).join('\n') } : null;
+    }
     const out = [];
-    const fromViewModel = (cvm, repliesToken) => {
+    // One comment (its view model), or null when its entity is missing.
+    const comment = (cvm, repliesToken, inlineReplies) => {
       const e = ents.get(cvm.commentKey);
-      if (!e) return;
+      if (!e) return null;
       const p = e.properties || {}, a = e.author || {}, t = e.toolbar || {};
       const st = states.get(cvm.toolbarStateKey) || {}, sf = surfaces.get(cvm.toolbarSurfaceKey);
       const rc = /([\d,.]+\s*[KM]?)\s+repl/i.exec(t.replyCountA11y || '') || /^([\d,.]+\s*[KM]?)$/.exec(t.replyCount || '');
       const actions = { like: actionOf(sf, 'like'), unlike: actionOf(sf, 'unlike'), dislike: actionOf(sf, 'dislike'), undislike: actionOf(sf, 'undislike') };
-      out.push({
+      const replyParams = dig(findKey(dig(sf, 'replyCommand'), 'createCommentReplyEndpoint'), 'createReplyParams') || null;
+      return {
         id: p.commentId || cvm.commentId, text: strOf(p.content), published: p.publishedTime || '',
         author: a.displayName || '', authorChannelId: a.channelId || '', authorAvatar: a.avatarThumbnailUrl || '',
         authorVerified: !!a.isVerified, isCreator: !!a.isCreator,
@@ -369,19 +388,30 @@
         pinned: !!cvm.pinnedText, repliesToken: repliesToken || null,
         hearted: st.heartState === 'TOOLBAR_HEART_STATE_HEARTED', heartBy: t.heartActiveTooltip || '',
         creatorAvatar: t.creatorThumbnailUrl || '', likeState: LIKE_STATES[st.likeState] || 'none',
-        actions: Object.values(actions).some(Boolean) ? actions : null, via,
-      });
+        actions: Object.values(actions).some(Boolean) ? actions : null, replyParams, via,
+        inlineReplies: inlineReplies && inlineReplies.length ? inlineReplies : null,
+        mine: !!a.isCurrentUser, own: ownMenu(sf),
+      };
     };
+    const viewModelOf = th => dig(th, 'commentViewModel', 'commentViewModel') || th.commentViewModel;
+    // A thread (or, on a replies page, a reply) and its own replies, to any depth: they come
+    // either behind a token (repliesToken: a top-level thread's "N replies") or inline, in its
+    // subThreads (a reply's replies: replyLevel 2, 3 ...; probed 2026-10-30), each read the same
+    // way, as inlineReplies. The token is only one of its own (not one inside a nested reply).
+    function threadComment(th, level) {
+      const cvm = viewModelOf(th);
+      if (!cvm || !cvm.commentKey) return null;
+      const crr = dig(th, 'replies', 'commentRepliesRenderer');
+      const nested = ((crr && crr.subThreads) || []).filter(s => s.commentThreadRenderer);
+      const inline = level < 20 ? nested.map(s => threadComment(s.commentThreadRenderer, level + 1)).filter(Boolean) : [];
+      const own = crr ? { ...crr, subThreads: (crr.subThreads || []).filter(s => !s.commentThreadRenderer) } : null;
+      return comment(cvm, own ? D.continuationOf(own) : null, inline);
+    }
     (function walk(o, depth) {
       if (!o || typeof o !== 'object' || depth > 25) return;
       if (Array.isArray(o)) { for (const x of o) walk(x, depth + 1); return; }
-      if (o.commentThreadRenderer) {
-        const th = o.commentThreadRenderer;
-        const cvm = dig(th, 'commentViewModel', 'commentViewModel') || th.commentViewModel;
-        if (cvm && cvm.commentKey) fromViewModel(cvm, D.continuationOf(dig(th, 'replies', 'commentRepliesRenderer')));
-        return;
-      }
-      if (o.commentViewModel && o.commentViewModel.commentKey) { fromViewModel(o.commentViewModel); return; }
+      if (o.commentThreadRenderer) { const c = threadComment(o.commentThreadRenderer, 0); if (c) out.push(c); return; }
+      if (o.commentViewModel && o.commentViewModel.commentKey) { const c = comment(o.commentViewModel); if (c) out.push(c); return; }
       for (const k of Object.keys(o)) if (k !== 'frameworkUpdates') walk(o[k], depth + 1);
     })(r, 0);
     return out;
@@ -422,14 +452,81 @@
     return sortTokens(first).newest || start;
   }
 
-  // comments('top' | 'newest') -> pager; each page is ~20 threads.
+  // The "Add a comment" box a comments page offers (signed in, comments open): { params (the
+  // token for postComment), placeholder ("Add a comment..."), avatar (yours) }, or null.
+  function composeOf(r) {
+    const box = findKey(r, 'commentSimpleboxRenderer');
+    const params = box && dig(box, 'submitButton', 'buttonRenderer', 'serviceEndpoint', 'createCommentEndpoint', 'createCommentParams');
+    return params ? { params, placeholder: strOf(box.placeholderText), avatar: bestImage(box.authorThumbnail) } : null;
+  }
+
+  // comments('top' | 'newest') -> pager; each page is ~20 threads. p.compose: the "Add a
+  // comment" box once a page has offered it (composeOf), else null.
   function comments(sort = 'top') {
-    return D.pager(async token => {
+    const p = D.pager(async token => {
       if (!token) token = await commentsStartToken(sort);
       if (!token) return { items: [], token: null };
       const r = await D.innertube('next', { continuation: token });
+      p.compose = p.compose || composeOf(r);
       return { items: readComments(r), token: D.nextPageToken(r) };
     }, null);
+    p.compose = null;
+    return p;
+  }
+
+  // Post a comment (compose: a pager's p.compose) or a reply (comment: the comment replied to,
+  // its replyParams), the way YouTube's page does (POST comment/create_comment or
+  // comment/create_comment_reply). Resolves { ok, comment (the new comment as YouTube shows
+  // it, or null if its answer couldn't be read), error }.
+  async function postComment(compose, text) {
+    if (!compose || !compose.params) return { ok: false, error: 'not available (signed out?)' };
+    return posted(() => D.innertube('comment/create_comment', { commentText: text, createCommentParams: compose.params }), 'next');
+  }
+  async function postReply(comment, text) {
+    if (!comment || !comment.replyParams) return { ok: false, error: 'not available (signed out?)' };
+    return posted(() => D.innertube('comment/create_comment_reply', { commentText: text, createReplyParams: comment.replyParams }), comment.via || 'next');
+  }
+  // Edit your comment (its own.editParams; POST comment/update_comment, as YouTube's Save does):
+  // resolves { ok, comment (as YouTube now shows it, or null), error }.
+  async function editComment(comment, text) {
+    const params = comment && comment.own && comment.own.editParams;
+    if (!params) return { ok: false, error: 'not yours, or signed out' };
+    let answer = null;
+    const res = await posted(() => D.innertube('comment/update_comment', { commentText: text, updateCommentParams: params }).then(r => (answer = r)), comment.via || 'next');
+    // The answer (probed 2026-10-30) is updateCommentAction { actionResult: { status:
+    // 'STATUS_SUCCEEDED' } } and the comment's new entity alone (no thread around it): its text
+    // as saved and its time, now with "(edited)".
+    if (res.ok && !res.comment) {
+      const e = (dig(answer, 'frameworkUpdates', 'entityBatchUpdate', 'mutations') || []).map(m => m.payload && m.payload.commentEntityPayload)
+        .find(p => p && p.properties && p.properties.commentId === comment.id);
+      if (e) res.comment = { ...comment, text: strOf(e.properties.content) || text, published: e.properties.publishedTime || comment.published };
+    }
+    return res;
+  }
+  // Delete your comment (its own.deleteAction; POST comment/perform_comment_action, as the
+  // confirm dialog's Delete does): resolves { ok, error }.
+  async function deleteComment(comment) {
+    const token = comment && comment.own && comment.own.deleteAction;
+    if (!token) return { ok: false, error: 'not yours, or signed out' };
+    try {
+      const r = await D.innertube('comment/perform_comment_action', { actions: [token] });
+      const failed = Array.isArray(r && r.actionResults) && r.actionResults.some(x => /FAIL/i.test(x.status || ''));
+      return failed ? { ok: false, error: JSON.stringify(r.actionResults) } : { ok: true };
+    } catch (err) { return { ok: false, error: String(err && err.message || err) }; }
+  }
+  async function posted(send, via) {
+    try {
+      const r = await send();
+      // Refused only when the answer's own action says so: one of r.actions (createCommentAction,
+      // updateCommentAction ...) with an actionResult whose status failed. Nothing else in the
+      // answer counts: the comment it returns carries its "⋮" menu and Reply dialog, with Delete's
+      // confirm dialog and a ready-made "We weren't able to add your reply" errorMessage inside.
+      const results = (r && r.actions || []).map(a => Object.values(a).find(v => v && typeof v === 'object' && v.actionResult))
+        .filter(Boolean).map(v => v.actionResult);
+      const failed = results.find(x => /FAIL/i.test(x.status || ''));
+      if (failed) return { ok: false, error: strOf(failed.feedbackText) || failed.status };
+      return { ok: true, comment: readComments(r, via)[0] || null };
+    } catch (err) { return { ok: false, error: String(err && err.message || err) }; }
   }
 
   // Like / unlike / dislike / undislike a comment (signed in: its `actions` tokens), the way
@@ -572,6 +669,6 @@
 
   ns.youtubeContent = {
     metadata, description, descriptionWithoutChapters, hasTranscript, owner, chapters, heatmap, mostReplayed, endScreen, cards, playlist, playlistVideos, playlistDetails, savePlaylist, queueClearCommand, queueId, queueEnded, queueSaveTargets, addToPlaylist, createPlaylist,
-    comments, commentsInfo, replies, rateComment, readComments, sortTokens, transcript, search, saveTargets, setSaved, signedIn: D.signedIn,
+    comments, commentsInfo, replies, rateComment, postComment, postReply, editComment, deleteComment, readComments, sortTokens, transcript, search, saveTargets, setSaved, signedIn: D.signedIn,
   };
 })(globalThis.__streamxr = globalThis.__streamxr || {});

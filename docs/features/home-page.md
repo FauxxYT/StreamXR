@@ -101,9 +101,19 @@ Also sorted easiest first.
 
 1. **Mixes on Home**: a couple of cards without a content type; not read yet.
 2. **Notifications**: signed-in only; not probed.
-3. **The endless Shorts feed** (the menu's Shorts button): YouTube didn't give its video
-   sequence through the API. Shorts are still reachable from the Home feed's Shorts
-   shelves, channel Shorts tabs and Gaming.
-4. **Movies & TV, Playables**: the lists can be read, but paid films need purchase and DRM,
-   and games aren't videos, so VR can't play either. Probably never.
+3. **The endless Shorts feed** (the menu's Shorts button): reachable since YouTube added the reel
+   sequence API (probed 2026-10-28: `docs/youtube.md`, "Shorts"). Built (the maintainer's
+   picks, 2026-10-28), in steps tested between:
+   1. [x] The feed reader (`youtube-home.js` `shorts()`) and Explore → Shorts on tall 9:16 cards
+      (0.101.48 to 0.101.50: 8 a page, titles, channels and views looked up when shown; works in
+      the headset, the maintainer, 2026-10-28).
+   2. [x] When a Short ends, the next one plays if Autoplay is on (0.101.51, `provider/shorts-run.js`;
+      only for Shorts picked in Explore → Shorts; works in the headset, the maintainer, 2026-10-28).
+   3. [x] While a Short plays, Up Next shows the next Shorts from the feed (0.101.52: a Shorts tab in
+      Up Next, on tall cards; 0.101.53: the listed next Short plays, not YouTube's pick; "+" on its
+      page count; works in the headset, the maintainer, 2026-10-28).
+4. **Movies & TV, Playables**: the lists can be read, but every film (the free ones too) is DRM
+   and games aren't videos, so VR can't play either. Probably never. The Movies & TV tabs (Explore,
+   You) say so instead of "Coming soon" (0.101.45, the maintainer, 2026-10-28): "YouTube's movies
+   and shows are copy-protected, so they can't play in VR yet. Watch them on the desktop."
 5. **Trending**: retired by YouTube (the request is refused). Explore feeds replace it.

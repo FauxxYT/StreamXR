@@ -21,5 +21,5 @@
   // A complete standalone SVG, for when there's no YouTube icon to copy.
   const standalone = () => `<svg height="100%" width="100%" viewBox="0 0 36 36">${markup(36)}</svg>`;
 
-  ns.gogglesIcon = { markup, standalone };
+  ns.gogglesIcon = { markup, standalone, PATH };   // (PATH: for drawing it elsewhere, e.g. StreamXR Home's VR logo)
 })(globalThis.__streamxr = globalThis.__streamxr || {});

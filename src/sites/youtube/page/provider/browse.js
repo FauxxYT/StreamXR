@@ -7,6 +7,8 @@
 // that isn't built yet shows "Coming soon" with the construction icon. A source loads the
 // first time it shows. Panel controllers: see panels.js.
 //   actions used: browseHome(chip) -> pager (youtube-home.js home(); p.chips after a page),
+//   browseShorts() -> pager (youtube-home.js shorts(): the endless Shorts feed; its
+//   p.fill(items) looks up the details of the ones shown, p.version() changes as they arrive),
 //   browseSubscriptions() -> pager (youtube-subscriptions.js feed()), browseChannels() ->
 //   pager (youtube-subscriptions.js channels()), browseSections(name) -> pager of sections
 //   (youtube-home.js feed(): the Explore pages), browseFeed(name) ->
@@ -81,17 +83,20 @@
   // in the string tables, and with `note` the grey line under the tabs 'yt.browse.<id>Note'),
   // icon (Material Symbols, symbols.js), and either load(actions, chip) (makes the pager;
   // `list` is the playlist its videos play in) with optional chips, or soon (not built yet:
-  // "Coming soon"). card (optional): how an item becomes a card (default: a video card);
-  // pick(host, item) (optional): what clicking one does (default: play it). chips: 'home'
+  // "Coming soon"; with `blocked`, the key of a line saying why it can't be, e.g. Movies & TV:
+  // copy-protected, so it can't play in VR). card (optional): how an item becomes a card (default: a video card);
+  // pick(host, item) (optional): what clicking one does (default: play it). shape (optional): the
+  // cards' layout ('tall': 9:16, for Shorts; default: square when most items are, else 16:9). run (optional):
+  // the list plays on, one after another (the Shorts feed: shorts-run.js). chips: 'home'
   // (the Home feed's topic chips, from its pager), 'sorts' (the choices its pager offers:
   // p.sorts: [{ text (its id), label (optional), selected }], e.g. sorts or sections), or a
   // fixed list of chip ids (named
   // 'yt.channel.<id>'), the first one chosen at first.
   const EXPLORE = [
     { id: 'home', icon: 'home', load: (a, chip) => a.browseHome(chip), chips: 'home' },
-    { id: 'shorts', icon: 'smart_display', soon: true },
+    { id: 'shorts', icon: 'smart_display', load: a => a.browseShorts(), shape: 'tall', run: true },
     { id: 'music', icon: 'music_note', load: (a, chip) => sectionList(a, 'music', chip), chips: 'sorts' },
-    { id: 'movies', icon: 'movie', soon: true },
+    { id: 'movies', icon: 'movie', soon: true, blocked: 'yt.browse.moviesBlocked' },   // (copy-protected: can't play in VR)
     { id: 'hype', icon: 'local_fire_department', load: (a, chip) => sectionList(a, 'hype', chip), chips: 'sorts' },
     { id: 'live', icon: 'sensors', load: (a, chip) => sectionList(a, 'live', chip), chips: 'sorts' },
     { id: 'gaming', icon: 'sports_esports', load: (a, chip) => sectionList(a, 'gaming', chip), chips: 'sorts' },
@@ -129,7 +134,7 @@
     { id: 'playlists', icon: 'playlist_play', load: a => a.browseFeed('playlists'), note: true },
     { id: 'later', icon: 'schedule', load: a => a.browsePlaylist('WL'), list: 'WL', note: true },
     { id: 'liked', icon: 'thumb_up', load: a => a.browsePlaylist('LL'), list: 'LL', note: true },
-    { id: 'movies', icon: 'movie', soon: true },
+    { id: 'movies', icon: 'movie', soon: true, blocked: 'yt.browse.moviesBlocked' },   // (copy-protected: can't play in VR)
   ];
 
   // Your channel's list `tab` (one of `tabs`, MY_TABS): a pager that finds your channel's id
@@ -163,10 +168,10 @@
   // A feed panel: `title` its name's string key, `sources` (above) its tabs.
   function createFeedPanel(host, title, sources) {
     const { actions } = host;
-    // The list's layout: square cards when most items have a square picture (podcasts' covers:
+    // The list's layout: the source's own (shape: 'tall' for Shorts' 9:16 cards), else square cards when most items have a square picture (podcasts' covers:
     // the others then show their picture whole in the square), else the standard ones; and how
     // many cards that layout fits on a page.
-    const shapeNow = () => (items().filter(it => it.square).length * 2 > items().length ? 'square' : null);
+    const shapeNow = () => current().shape || (items().filter(it => it.square).length * 2 > items().length ? 'square' : null);
     const perPage = () => (host.style.perPageFor ? host.style.perPageFor(shapeNow()) : host.perPage);
     let source = sources[0].id;
     let homeChips = [];                                  // the Home feed's chip texts on offer, in display order
@@ -203,7 +208,13 @@
       const p = pager;
       loading = true; bump();
       p.next().then(() => {
-        if (p === pager && current().chips === 'home' && p.chips && p.chips.length) homeChips = orderChips(p.chips);
+        // The Home feed's chips: those already shown stay, in place, with new ones after them
+        // (as the sorts below): after a chip is picked YouTube may offer a slightly different set,
+        // and the pill row, its labels changed, would slide back to its start.
+        if (p === pager && current().chips === 'home' && p.chips && p.chips.length) {
+          const fresh = orderChips(p.chips);
+          homeChips = homeChips.length ? [...homeChips, ...fresh.filter(t => !homeChips.includes(t))] : fresh;
+        }
         // A list with its own choices (the Channels list's sorts, a feed's sections): offered as its pills, the one
         // it shows chosen. Choices already offered stay, in place, with new ones after them: a
         // chosen section reads fewer pages, so it would offer fewer (and the pill row, its
@@ -254,7 +265,10 @@
         // a creator card: their channel, on its Membership tab when its offer can be asked for
         else if (it && it.type === 'channel') showChannel(host, it, it.offerParams ? { tab: 'membership', offerParams: it.offerParams } : {});
         else if (ns.ytVr.playlist.opens(it)) playlist.open(it);           // a playlist: its page, in place of the list
-        else if (it) actions.openVideo(it.id, it.playlistId || current().list);
+        else if (it) {
+          if (current().run) ns.ytVr.shortsRun.start(pager, it.id);       // (the Shorts feed: the next one follows: shorts-run.js)
+          actions.openVideo(it.id, it.playlistId || current().list);
+        }
       }
     }
 
@@ -266,23 +280,25 @@
       if (!pager && s.load && !error) startList();
       if (pager && !loading && !pager.done && page >= pageCount() - 2) loadNext();
       const message = error || (pager && pager.message) || (pager && pager.done ? tr('yt.nothingYet') : '');
+      const shown = items().slice(page * perPage(), page * perPage() + perPage());
+      if (pager && pager.fill) pager.fill(shown);                         // details still missing (the Shorts feed: youtube-home.js)
       const chips = chipList(s);
       const m = {
         title: tr(title), tabs: tabs(), tab: source,
         pills: chips, pill: chips.length ? chipNow(s) : null,
         note: s.note ? tr(`yt.browse.${source}Note`) : '',
         shape: shape,
-        items: items().slice(page * perPage(), page * perPage() + perPage()).map(it => (s.card ? s.card(it) : ns.ytVr.card(it)))
+        items: shown.map(it => (s.card ? s.card(it) : ns.ytVr.card(it)))
           .map(c => (shape === 'square' && !c.square && !c.fit ? { ...c, fit: 'contain' } : c)),
         page, pageCount: pageCount(), more: !!pager && !pager.done, loading,
-        emptyText: s.soon ? tr('yt.comingSoon') : loading ? tr('yt.loading') : message || tr('yt.nothingYet'),
-        emptyIcon: s.soon ? 'construction' : null,
+        emptyText: s.blocked ? tr(s.blocked) : s.soon ? tr('yt.comingSoon') : loading ? tr('yt.loading') : message || tr('yt.nothingYet'),
+        emptyIcon: s.blocked ? s.icon : s.soon ? 'construction' : null,
         now: frame.now / 1000,                                            // the loading indicator's clock
         body: playlist.body(tr(`yt.browse.${source}`), host.style), scroll: playlist.scroll(),
       };
       // Redraw on any change, and ~30 times a second while the loading indicator shows.
       const spinning = m.body ? m.body.loading : loading && !m.items.length;
-      return { model: m, key: `${ver}|${playlist.version()}|${Math.round(playlist.scroll())}|${ns.ytVr.queue.version()}|${ns.youtubeData.thumbsVersion()}|${spinning ? Math.floor(frame.now / 33) : ''}` };
+      return { model: m, key: `${ver}|${pager && pager.version ? pager.version() : ''}|${playlist.version()}|${Math.round(playlist.scroll())}|${ns.ytVr.queue.version()}|${ns.youtubeData.thumbsVersion()}|${spinning ? Math.floor(frame.now / 33) : ''}` };
     }
 
     return { model, event };

@@ -22,7 +22,8 @@
   // MAX_THUMB_H tall) and rows as the space above the paging row allows.
   // fit: move the paging row up to just under the last row of cards (no empty band between);
   // the panel then trims its canvas to the returned `height`.
-  // Returns { PER_PAGE, PER_PAGE_SQUARE (cards per page in the square layout), height,
+  // Returns { PER_PAGE, PER_PAGE_SQUARE, PER_PAGE_TALL (cards per page in the square and
+  // tall layouts), height,
   // tabs(...), pills(...), divider(y), grid(...), paging(...),
   // point(x, y), moving() } (the sliding rows: see `strips`);
   // each drawing call pushes its clickable rectangles onto the `regions` array it is given.
@@ -41,6 +42,19 @@
     const SQ_GAP = SQ_COLS > 1 ? (W - PAD * 2 - SQ_COLS * THUMB_H) / (SQ_COLS - 1) : 0;
     const SQ_BOX = { w: THUMB_H, h: CARD_H, thumbH: THUMB_H };
     const PER_PAGE_SQUARE = SQ_COLS * ROWS;
+    // The tall layout (shape 'tall', e.g. Shorts): 9:16 pictures, filling the same height as
+    // the standard rows (so the panel keeps its size), in as many rows as keep the cards at
+    // least MIN_TALL_W px wide (at least one row); as many columns as fit, spread across the width.
+    const MIN_TALL_W = 150;
+    const ROOM = ROWS * (CARD_H + GAP) - GAP, TEXT_H = CARD_H - THUMB_H;
+    const tallW = rows => Math.round(((ROOM - GAP * (rows - 1)) / rows - TEXT_H) * 9 / 16);
+    let TL_ROWS = 1;
+    while (TL_ROWS < ROWS && tallW(TL_ROWS + 1) >= MIN_TALL_W) TL_ROWS++;
+    const TL_H = (ROOM - GAP * (TL_ROWS - 1)) / TL_ROWS, TL_TH = TL_H - TEXT_H, TL_W = tallW(TL_ROWS);
+    const TL_COLS = Math.max(1, Math.floor((W - PAD * 2 + GAP) / (TL_W + GAP)));
+    const TL_GAP = TL_COLS > 1 ? (W - PAD * 2 - TL_COLS * TL_W) / (TL_COLS - 1) : 0;
+    const TL_BOX = { w: TL_W, h: TL_H, thumbH: TL_TH };
+    const PER_PAGE_TALL = TL_COLS * TL_ROWS;
     const ARROWS = { prev: { x: W - PAD - 124, y: BOTTOM_Y - 2, w: 56, h: 56 }, next: { x: W - PAD - 56, y: BOTTOM_Y - 2, w: 56, h: 56 } };   // round tonal buttons
 
     // The tab row and the left-aligned chip row slide sideways when they're wider than their
@@ -175,15 +189,24 @@
     // while loading (`loadingAt`: the clock in seconds, else null), under the loading
     // indicator in the middle of the grid; with `emptyIcon` (a Material Symbols name), larger
     // in the middle of the grid with the icon after it (a placeholder, e.g. "Coming soon").
-    // shape: 'square' for the square layout (square cards), else the standard one.
+    // shape: 'square' for the square layout (square cards), 'tall' for the tall one (9:16
+    // cards), else the standard one.
     function grid(cards, ui, regions, emptyText, loadingAt = null, emptyIcon = null, shape = null) {
       if (!cards.length && emptyIcon) {
         const cy = gridTop + (BOTTOM_Y - gridTop) / 2, ICON = 44;
         g.font = T.font('titleMedium', 32); g.textAlign = 'left'; g.textBaseline = 'middle';
         const tw = g.measureText(emptyText).width, x = (W - tw - 14 - ICON) / 2;
         g.fillStyle = P.onSurfaceVariant;
-        g.fillText(emptyText, x, cy + 1);
-        ns.vrSymbols.draw(g, emptyIcon, x + tw + 14 + ICON / 2, cy, ICON, false);
+        if (tw + 14 + ICON <= W - PAD * 4) {                   // a short line ("Coming soon"): the icon after it
+          g.fillText(emptyText, x, cy + 1);
+          ns.vrSymbols.draw(g, emptyIcon, x + tw + 14 + ICON / 2, cy, ICON, false);
+        } else {                                               // a sentence: the icon above, the text wrapped and centred
+          const lines = ns.vrKit.wrap(g, emptyText, Math.min(760, W - PAD * 4), 4), LH = 42;
+          const top = cy - ((lines.length - 1) * LH + ICON + 20) / 2;
+          ns.vrSymbols.draw(g, emptyIcon, W / 2, top + ICON / 2, ICON, false);
+          g.textAlign = 'center';
+          lines.forEach((l, i) => g.fillText(l, W / 2, top + ICON + 20 + LH / 2 + i * LH));
+        }
       } else if (!cards.length && loadingAt != null) {
         const cy = gridTop + Math.min(160, (BOTTOM_Y - gridTop) / 2);
         ns.vrGlyphs.spinner(g, W / 2, cy - 24, 32, loadingAt, false);
@@ -194,7 +217,9 @@
         g.fillText(emptyText, PAD, gridTop + 40);
       }
       cards.forEach((card, i) => {
-        const sq = shape === 'square', cols = sq ? SQ_COLS : COLS, box = sq ? SQ_BOX : BOX, step = sq ? THUMB_H + SQ_GAP : BOX.w + GAP;
+        const sq = shape === 'square', tl = shape === 'tall';
+        const cols = sq ? SQ_COLS : tl ? TL_COLS : COLS, box = sq ? SQ_BOX : tl ? TL_BOX : BOX;
+        const step = sq ? THUMB_H + SQ_GAP : tl ? TL_W + TL_GAP : BOX.w + GAP;
         const col = i % cols, row = Math.floor(i / cols);
         kit.drawCard(card, PAD + col * step, gridTop + row * (box.h + GAP), box, ui, regions, `item:${i}`);
       });
@@ -219,7 +244,7 @@
       arrow('next', 1, m.page < pages - 1, ui, regions);
     }
 
-    return { PER_PAGE, PER_PAGE_SQUARE, height: BOTTOM_Y + 82, tabs, pills, field, suggestions, magnifier, divider, grid, paging, point, moving };
+    return { PER_PAGE, PER_PAGE_SQUARE, PER_PAGE_TALL, height: BOTTOM_Y + 82, tabs, pills, field, suggestions, magnifier, divider, grid, paging, point, moving };
   }
 
   ns.vrStyleGrid = { createGrid, PAD };

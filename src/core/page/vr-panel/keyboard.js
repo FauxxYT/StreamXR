@@ -15,7 +15,8 @@
 //                                          e.g. ':_wave:'; image: its picture's URL); [] for none
 //   kb.canvas, kb.aspect (height / width), kb.version() (changes when its look changes),
 //   kb.animating() (a key's hover / press is still easing: redraw)
-//   kb.draw({ hover, pressed, target })   hover / pressed: its own control ids; target: what
+//   kb.draw({ hover, hovers, pressed, target })   hover / pressed: its own control ids (hovers:
+//                                          every one pointed at, one per laser); target: what
 //                                          you're typing into ("Search"), or null
 //   kb.hitTest(u, v) -> { id } | null      ids: 'key:<n>', 'grab', 'resize-left', 'resize-right'
 //   kb.solidAt(u, v) -> bool               on the keyboard or its handles (not a see-through margin)
@@ -173,9 +174,9 @@
       regions.push({ id: 'grab', x: W / 2 - BAR.zone / 2, y: BODY_H + 6, w: BAR.zone, h: BAR_ZONE - 10 });
       g.fillStyle = T.panelFill(); roundRect(g, bx, by, BAR.w, BAR.h, BAR.h / 2); g.fill();
       g.fillStyle = state.pressed === 'grab' ? P.brand : P.onSurfaceVariant; roundRect(g, W / 2 - 32, by + BAR.h / 2 - 2.5, 64, 5, 2.5); g.fill();
-      if (state.hover === 'grab') ns.vrKit.hoverRing(g, bx, by, BAR.w, BAR.h, BAR.h / 2);
+      if (ns.vrMotion.of(state, 'grab').h > 0.5) ns.vrKit.hoverRing(g, bx, by, BAR.w, BAR.h, BAR.h / 2);
       for (const [id, cx, a0] of [['resize-left', SIDE, Math.PI / 2], ['resize-right', SIDE + BODY_W, 0]]) {
-        const cy = BODY_H, hot = state.hover === id || state.pressed === id;
+        const cy = BODY_H, hot = ns.vrMotion.of(state, id).h > 0.5 || state.pressed === id;
         g.strokeStyle = hot ? P.onSurface : P.onSurfaceVariant; g.lineWidth = 12; g.lineCap = 'round';
         g.beginPath(); g.arc(cx, cy - CORNER.r * 0.35, CORNER.r, a0 + 0.12, a0 + Math.PI / 2 - 0.12); g.stroke();
         const mx = cx + (id === 'resize-left' ? -1 : 1) * CORNER.r * 0.5;

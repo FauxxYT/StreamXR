@@ -10,6 +10,9 @@
 // Recommended, YouTube's next batch is fetched in the background (what scrolling its sidebar
 // does), so the Next arrow stays available; one request at a time, stopping when YouTube has
 // no more, until the list changes (its first video changes).
+// While Shorts of the Shorts feed play one after another (shorts-run.js), a Shorts tab lists the
+// next ones on tall cards (it opens when such a run starts and goes when it ends); picking one
+// plays it and the run carries on from there.
 // A panel controller: see panels.js for the interface.
 (function (ns) {
   'use strict';
@@ -27,9 +30,12 @@
   function create(host) {
     const { actions } = host;
     const per = host.perPage;
-    // tab: 'recs' | 'playlist' | 'end'; Recommended's and the end screen's pages; seen:
-    // "<playlist id>|<playing video id>".
-    let tab = 'recs', recsPage = 0, endPage = 0, seen = '';
+    // tab: 'recs' | 'playlist' | 'end' | 'shorts'; Recommended's, the end screen's and the Shorts
+    // tab's pages; seen: "<playlist id>|<playing video id>"; runSeen: the Shorts run last opened on
+    // its tab (shorts-run.js started()), shortsAt: the first coming Short (its page restarts when it changes).
+    let tab = 'recs', recsPage = 0, endPage = 0, shortsPage = 0, seen = '', runSeen = 0, shortsAt = '';
+    const run = ns.ytVr.shortsRun;
+    const perShorts = () => (host.style.perPageFor ? host.style.perPageFor('tall') : per);
     let list = null, shown = [];                    // the last frame's playlist, and this page's items
     let ends = [], endFor = null, endOn = false, endSince = 0;   // the end screen's items, the video they're for (since when), whether it has started
     let moreLoading = false, moreDone = false, moreKey = '';
@@ -59,7 +65,7 @@
       const vid = ns.youtubeData.currentVideoId();
       if (vid !== endFor) {                       // another video: no end screen until its own starts
         endFor = vid; endSince = frame.now; endOn = false; ends = []; endPage = 0;
-        if (tab === 'end') { tab = 'recs'; opened.close(); }
+        if (tab === 'end') { tab = run.active() ? 'shorts' : 'recs'; opened.close(); }   // (back to the Shorts tab in a Shorts run)
       }
       // Only this video's tiles, and only once it has settled (just after a switch the
       // player's time can still be the previous video's).
@@ -69,6 +75,12 @@
         if (!host.isOpen()) host.open();
         if (host.reveal) host.reveal();           // (panels hidden by auto-hide come back for it)
       }
+      // A Shorts run: its tab opens when one starts, and goes when it ends.
+      if (run.active()) {
+        if (run.started() !== runSeen) { runSeen = run.started(); if (!endOn) { tab = 'shorts'; opened.close(); } }
+        const first = (run.upcoming()[0] || {}).id || '';
+        if (first !== shortsAt) { shortsAt = first; shortsPage = 0; }
+      } else if (tab === 'shorts') tab = 'recs';
       list = st.playlist && st.playlist.items && st.playlist.items.length ? st.playlist : null;
       if (!list) { if (tab === 'playlist') tab = 'recs'; seen = ''; playing.close(); return; }
       if (playing.id() !== list.id) playing.open({ playlistId: list.id, title: list.title }, live);
@@ -79,18 +91,24 @@
     }
 
     function model(frame) {
-      const onPlaylist = tab === 'playlist' && !!list, onEnd = tab === 'end' && endOn;
-      const all = onPlaylist ? [] : onEnd ? ends : frame.st.recommendations || [];
+      const onPlaylist = tab === 'playlist' && !!list, onEnd = tab === 'end' && endOn, onShorts = tab === 'shorts' && run.active();
+      const all = onPlaylist ? [] : onEnd ? ends : onShorts ? run.upcoming() : frame.st.recommendations || [];
       const view = onPlaylist ? playing : opened.isOpen() ? opened : null;
-      const pageCount = view ? 1 : Math.max(1, Math.ceil(all.length / per));
+      const n = onShorts ? perShorts() : per;
+      const pageCount = view ? 1 : Math.max(1, Math.ceil(all.length / n));
       if (!view && onEnd) endPage = Math.min(endPage, pageCount - 1);
+      else if (!view && onShorts) { shortsPage = Math.min(shortsPage, pageCount - 1); if (shortsPage >= pageCount - 2) run.more(); }
       else if (!view) { recsPage = Math.min(recsPage, pageCount - 1); loadMore(all, recsPage, pageCount); }
-      const page = view ? 0 : onEnd ? endPage : recsPage;
-      shown = view ? [] : all.slice(page * per, page * per + per);
+      const page = view ? 0 : onEnd ? endPage : onShorts ? shortsPage : recsPage;
+      shown = view ? [] : all.slice(page * n, page * n + n);
+      if (onShorts) run.fill(shown);                                    // (their titles, channels and views)
       const m = {
-        title: tr('yt.recs.title'), page, pageCount, emptyText: tr('yt.recs.empty'), tab: onPlaylist ? 'playlist' : onEnd ? 'end' : 'recs',
-        tabs: list || endOn ? [{ id: 'recs', label: tr('yt.recs.recommended') },
+        title: tr('yt.recs.title'), page, pageCount, emptyText: tr('yt.recs.empty'), tab: onPlaylist ? 'playlist' : onEnd ? 'end' : onShorts ? 'shorts' : 'recs',
+        shape: onShorts ? 'tall' : null,
+        more: onShorts && run.hasMore(),                                  // ("2 / 9+": the feed is endless)
+        tabs: list || endOn || run.active() ? [{ id: 'recs', label: tr('yt.recs.recommended') },
           ...(list ? [{ id: 'playlist', label: tr(list.queue ? 'yt.recs.queue' : 'yt.recs.playlist', { index: list.index + 1, count: list.count }) }] : []),   // (YouTube's queue takes the playlist's place)
+          ...(run.active() ? [{ id: 'shorts', label: tr('yt.recs.shorts') }] : []),
           ...(endOn ? [{ id: 'end', label: tr('yt.recs.endScreen') }] : [])] : null,
         items: shown.map(it => ns.ytVr.card(it)),
         body: view ? view.body(onPlaylist ? null : tr(onEnd ? 'yt.recs.endScreen' : 'yt.recs.recommended'), host.style) : null,
@@ -179,10 +197,10 @@
     }
 
     function event(ev) {
-      const onPlaylist = tab === 'playlist' && !!list, onEnd = tab === 'end' && endOn;
+      const onPlaylist = tab === 'playlist' && !!list, onEnd = tab === 'end' && endOn, onShorts = tab === 'shorts' && run.active();
       if (ev.type === 'tab') {
         opened.close();                                                  // (any tab, the same one too: back to its cards)
-        tab = ev.value === 'playlist' || ev.value === 'end' ? ev.value : 'recs';
+        tab = ev.value === 'playlist' || ev.value === 'end' || ev.value === 'shorts' ? ev.value : 'recs';
         if (tab === 'playlist') playing.follow();
         return;
       }
@@ -193,13 +211,16 @@
       if (opened.isOpen() && opened.event(ev)) return;
       if (ev.type === 'page') {
         const d = ev.value === 'next' ? 1 : -1;                         // clamped at the next frame
-        if (onEnd) endPage = Math.max(0, endPage + d); else recsPage = Math.max(0, recsPage + d);
+        if (onEnd) endPage = Math.max(0, endPage + d);
+        else if (onShorts) shortsPage = Math.max(0, shortsPage + d);
+        else recsPage = Math.max(0, recsPage + d);
       } else if (ev.type === 'quick') {                                   // a card's Add to queue
         const it = shown[+ev.value];
         if (it && it.id) actions.addToQueue(it.id);
       } else if (ev.type === 'item') {
         const it = shown[+ev.value];
         if (!it) return;
+        if (onShorts) { actions.openVideo(it.id); host.closeMenu(); return; }   // a coming Short: the run carries on from it
         if (ns.ytVr.playlist.opens(it)) { opened.open(it); return; }       // a playlist: its page, in place of the cards
         if (it.type === 'channel') {                                     // another channel (the end screen): the Channel panel
           const ch = host.panel && host.panel('channel');

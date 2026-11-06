@@ -9,7 +9,8 @@
 //   'thread':  pills and a count line, then a scrolling threaded list (thread.js): rows with a picture,
 //              author (optionally highlighted, with a badge) · meta, text with clickable clock
 //              times, a footer (a site slot), and children (replies) opened under them;
-//              more load as you scroll (YouTube's Comments).
+//              more load as you scroll (YouTube's Comments); optionally a message field with its
+//              Send button under the list (writing a comment), as the chat's.
 //   'chat':    a live chat (chat.js): a pinned message in a banner, then the messages oldest
 //              first, following the newest (scrolled to the bottom) while `follow`; when not,
 //              a "jump to newest" button over the bottom of the list; optionally a row of
@@ -33,7 +34,9 @@
 //       { kind: 'thread', pills: [{ id, label }], pill, count, labels: { hide, more, empty },
 //         threads: [{ comment: { id, author, avatar, highlight, badge, meta, text, childrenLabel },
 //                     children: null | { open, items: [comments], loading, more } }],
-//         loading, done, error }
+//         loading, done, error, input: null | { runs, placeholder, focused, canSend, error, context:
+//         null | { label } (a line over the field, e.g. "Replying to @name", with an x: 'unreply') }
+//         (the field under the list, as the chat's; its button's label: labels.send) }
 //       { kind: 'chat', banner: null | { header, item }, items: [item] (chat.js; keep each
 //         item object while it's shown: its layout is kept by id), follow, labels: { newest, empty,
 //         send, support }, reactions: [{ id, emoji (a character), on (just sent: shown selected) }],
@@ -45,11 +48,12 @@
 //         button; fan: { rank, name, avatar, points, badge ({ title, bg, fg } | null), note }) }
 //       { kind: 'message', text, spinner } }
 //   Control ids: 'tab:<id>', 'page:prev', 'page:next', 'row:<index>' (paged / rows),
-//   'link:<index in links>', 'pill:<id>', 'time:<seconds>', 'children:<thread>',
-//   'more:<thread>', 'newest', 'react:<id>', 'field', 'send', 'support', 'fans', 'fansBack' (chat), 'text' (anywhere else in a scrolling area: a trigger
+//   'link:<index in links>', 'pill:<id>', 'time:<seconds>', 'children:<thread>', 'fold:<at>' (thread.js),
+//   'more:<thread>', 'newest', 'react:<id>', 'field', 'send' (chat, and thread with an input), 'unreply' (thread), 'support', 'fans', 'fansBack' (chat), 'text' (anywhere else in a scrolling area: a trigger
 //   drag can start there), plus the footer slot's own ids.
 //   Scrolling: scrollAt(u, v), maxScroll(), shownScroll() (after clamping / following),
-//   pxPerV. Also hitTest(u, v) -> { id } | null, has(id), imagesReady(), perPage.
+//   pxPerV. Also hitTest(u, v) -> { id } | null, has(id), rectOf(id) -> { x, y, w, h } (px) | null,
+//   imagesReady(), perPage.
 (function (ns) {
   'use strict';
 
@@ -274,21 +278,36 @@
     }
 
     // ------------------------------------------------------------ 'thread'
-    // Pills and the count above the list; then the threads (thread.js), scrolling.
+    // Pills and the count above the list; then the threads (thread.js), scrolling; with an
+    // input, the message field (drawInput, the chat's) along the bottom, under the list.
     const CVIEW = { x: PAD, y: 150, w: W - PAD * 2, h: H - 150 - 20 };
     const thread = ns.vrStyleThread.create(g, kit, { slots, fill });
 
     function drawThread(c, m, ui) {
       thread.bar(c, ui, regions, 96, PAD, W - PAD);
-      const lay = thread.layout(c, CVIEW.w);
-      beginScroll(m, lay.height + 12, null, CVIEW);
-      const top = CVIEW.y - scrollPx;
-      g.save(); g.beginPath(); g.rect(CVIEW.x - 8, CVIEW.y, CVIEW.w + 16, CVIEW.h); g.clip();
+      let view = CVIEW;
+      if (c.input) {                                       // the field along the bottom, the list above it
+        const fieldY = H - 20 - INPUT.h;
+        drawInput(c.input, c.labels || {}, fieldY, ui);
+        let room = INPUT.h + 16;
+        if (c.input.context) {                             // what the field is for ("Replying to @name"), an x cancelling it
+          const y = fieldY - CONTEXT.h - 4, mid = y + CONTEXT.h / 2;
+          ns.vrKit.button(g, regions, 'unreply', W - PAD - CONTEXT.h, y, CONTEXT.h, CONTEXT.h, { icon: 'close', kind: 'tonal' }, ui);
+          g.fillStyle = P.onSurfaceVariant; g.font = `20px ${FONT}`; g.textAlign = 'left'; g.textBaseline = 'middle';
+          g.fillText(wrap(g, c.input.context.label, W - PAD * 2 - CONTEXT.h - 48, 1)[0] || '', PAD + 24, mid + 1);
+          room += CONTEXT.h + 4;
+        }
+        view = { ...CVIEW, h: CVIEW.h - room };
+      }
+      const lay = thread.layout(c, view.w);
+      beginScroll(m, lay.height + 12, null, view);
+      const top = view.y - scrollPx;
+      g.save(); g.beginPath(); g.rect(view.x - 8, view.y, view.w + 16, view.h); g.clip();
       const clipRegion = (id, x, y0, w, h) => {                       // only the visible part is clickable
-        const a = Math.max(CVIEW.y, y0), b = Math.min(CVIEW.y + CVIEW.h, y0 + h);
+        const a = Math.max(view.y, y0), b = Math.min(view.y + view.h, y0 + h);
         if (b > a) regions.push({ id, x, y: a, w, h: b - a });
       };
-      thread.draw(c, lay, m, ui, CVIEW.x, top, CVIEW, clipRegion);
+      thread.draw(c, lay, m, ui, view.x, top, view, clipRegion);
       g.restore();
       endScroll();
     }
@@ -302,6 +321,7 @@
     const NEWEST = { h: 52, pad: 28 };                     // the "jump to newest" button
     const REACT = { size: 64, gap: 16, bar: 92 };          // the reaction buttons; the row's height
     const INPUT = { h: 64, gap: 12, sendW: 132, btnH: 56 };   // the message field's row
+    const CONTEXT = { h: 44 };                              // the row over the field saying what it's for (a thread's "Replying to")
 
     // The bottom row: the reaction buttons (round tonal buttons, filled while `on`, the emoji
     // drawn by the font) centred in it, and the Support button at its right end.
@@ -494,11 +514,13 @@
 
     const hitTest = (u, v) => { const r = regionAt(regions, u, v, W, H); return r ? { id: r.id } : null; };
     const has = id => regions.some(r => r.id === id);    // an enabled control from the last draw?
+    // A control's place in the last draw (px; for a menu opening from it, e.g. a comment's "⋮"), or null.
+    const rectOf = id => { const r = regions.find(x => x.id === id); return r ? { x: r.x, y: r.y, w: r.w, h: r.h } : null; };
     // Is (u, v) on the scrolling area of the last draw?
     const scrollAt = (u, v) => scrollable && u * W >= curView.x - 8 && u * W <= W - 16 && v * H >= curView.y && v * H <= curView.y + curView.h;
 
     return {
-      canvas, aspect: H / W, draw, hitTest, has, scrollAt, perPage: PER_PAGE, animating: motion.moving,
+      canvas, aspect: H / W, draw, hitTest, has, rectOf, scrollAt, perPage: PER_PAGE, animating: motion.moving,
       imagesReady: () => kit.imagesReady() + chatKit.imagesReady(),
       maxScroll: () => maxScrollPx,          // how far the last drawn tab can scroll (px)
       shownScroll: () => scrollPx,           // where it actually is (after clamping / following)

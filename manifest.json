@@ -1,10 +1,11 @@
 {
   "manifest_version": 3,
   "name": "StreamXR",
-  "version": "0.101.16",
+  "version": "0.102.0",
   "description": "Watch streaming video in a SteamVR headset: 360° and VR180 videos around you, regular videos on a cinema screen. Supports YouTube.",
   "action": {
-    "default_title": "StreamXR: open YouTube and click the VR button (the headset)",
+    "default_title": "StreamXR",
+    "default_popup": "src/streamxr/home/action-popup.html",
     "default_icon": {
       "16": "icons/icon-16.png",
       "32": "icons/icon-32.png",
@@ -17,6 +18,9 @@
     "32": "icons/icon-32.png",
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
+  },
+  "background": {
+    "service_worker": "src/streamxr/home/background.js"
   },
   "host_permissions": [
     "https://www.youtube.com/*"
@@ -86,8 +90,10 @@
         "src/streamxr/page/video-sphere.js",
         "src/streamxr/page/cinema-screen.js",
         "src/streamxr/page/cinema-options.js",
+        "src/streamxr/page/settings-panel.js",
         "src/streamxr/page/pause-overlay.js",
         "src/streamxr/page/captions-overlay.js",
+        "src/streamxr/page/fade-pass.js",
         "src/streamxr/page/xr-session.js",
         "src/sites/youtube/page/youtube-data.js",
         "src/sites/youtube/page/youtube-player.js",
@@ -103,6 +109,7 @@
         "src/sites/youtube/page/provider/cards.js",
         "src/sites/youtube/page/provider/comments.js",
         "src/sites/youtube/page/provider/playlist.js",
+        "src/sites/youtube/page/provider/shorts-run.js",
         "src/sites/youtube/page/provider/upnext.js",
         "src/sites/youtube/page/provider/browse.js",
         "src/sites/youtube/page/provider/search.js",
@@ -134,7 +141,11 @@
         "src/sites/youtube/ui/site.js",
         "src/sites/youtube/ui/skip-helper.js",
         "src/streamxr/ui/goggles-icon.js",
+        "src/streamxr/ui/troubleshoot.js",
+        "src/streamxr/ui/vr-elsewhere.js",
         "src/streamxr/ui/panel.js",
+        "src/streamxr/ui/auto-enter.js",
+        "src/streamxr/ui/vr-presence.js",
         "src/sites/youtube/ui/player-button.js",
         "src/sites/youtube/ui/topbar-button.js",
         "src/sites/youtube/ui/main.js"

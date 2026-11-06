@@ -6,6 +6,8 @@
 //   const style = ns.vrStyles.queue.create(onImageLoaded, W, H);   // canvas size in px
 //   style.draw(model, ui)   model: { title (when there are no tabs), tabs: null | [{ id, label, icon }],
 //                                    tab, items: [cards for this page] (kit.js), page, pageCount,
+//                                    more (more pages can still load: "2 / 9+"),
+//                                    shape: 'tall' (9:16 cards, e.g. Shorts) | null (the standard 16:9 ones),
 //                                    emptyText (shown when there are no items),
 //                                    body: null | { kind: 'collection', ... } (a playlist as a page in
 //                                      the cards' place: collection.js; under a back button when
@@ -16,7 +18,7 @@
 //   collection: 'back', 'action:<id>', 'row:<index>', 'text' (the page: a drag can start there).
 //   Scrolling (a collection): scrollAt(u, v), maxScroll(), shownScroll(), pxPerV.
 //   Also: hitTest(u, v) -> { id } | null, has(id), rectOf(id) -> { x, y, w, h } (px) | null,
-//   imagesReady(), perPage, canvas, aspect.
+//   imagesReady(), perPage, perPageFor(shape) (cards per page in a layout), canvas, aspect.
 (function (ns) {
   'use strict';
 
@@ -45,6 +47,17 @@
     let regions = [];                                       // clickable rectangles from the last draw: [{ id, x, y, w, h }]
     const kit = createCardKit(g, onImageLoaded);
     const BOX = { w: CARD_W, h: CARD_H, thumbH: THUMB_H };
+    // The tall layout (model.shape 'tall', e.g. Shorts): 9:16 pictures filling the grid's height,
+    // in as many rows as keep the cards at least MIN_TALL_W px wide (at least one); as many
+    // columns as fit, spread across the width.
+    const MIN_TALL_W = 150, ROOM = H - TOP - BOTTOM, TEXT_H = CARD_H - THUMB_H;
+    const tallW = rows => Math.round(((ROOM - GAP * (rows - 1)) / rows - TEXT_H) * 9 / 16);
+    let TL_ROWS = 1;
+    while (tallW(TL_ROWS + 1) >= MIN_TALL_W) TL_ROWS++;
+    const TL_W = tallW(TL_ROWS), TL_H = (ROOM - GAP * (TL_ROWS - 1)) / TL_ROWS;
+    const TL_COLS = Math.max(1, Math.floor((W - PAD * 2 + GAP) / (TL_W + GAP)));
+    const TL_GAP = TL_COLS > 1 ? (W - PAD * 2 - TL_COLS * TL_W) / (TL_COLS - 1) : 0;
+    const TL_BOX = { w: TL_W, h: TL_H, thumbH: TL_H - TEXT_H }, PER_PAGE_TALL = TL_COLS * TL_ROWS;
 
     // A paging arrow: a round tonal button (kit button) with ‹ or ›. Disabled arrows are
     // faded and aren't added to the clickable regions.
@@ -101,13 +114,13 @@
       g.fillStyle = P.onSurface; g.font = T.font('titleLargeEmphasized', 30); g.textAlign = 'left'; g.textBaseline = 'middle';
       const paged = m.pageCount > 1;
       g.font = `22px ${FONT}`;
-      const countLeft = ARROWS.prev.x - 16 - (paged ? g.measureText(`${m.page + 1} / ${m.pageCount}`).width + 16 : 0);
+      const countLeft = ARROWS.prev.x - 16 - (paged ? g.measureText(`${m.page + 1} / ${m.pageCount}${m.more ? '+' : ''}`).width + 16 : 0);
       g.font = T.font('titleLargeEmphasized', 30);
       if (m.tabs && m.tabs.length) headerTabs(g, m.tabs, m.tab, ui, regions, PAD, { maxX: paged ? countLeft : W - PAD });
       else g.fillText(m.title || '', PAD, 42);
       if (paged) {
         g.fillStyle = P.onSurfaceVariant; g.font = `22px ${FONT}`; g.textAlign = 'right'; g.textBaseline = 'middle';
-        g.fillText(`${m.page + 1} / ${m.pageCount}`, ARROWS.prev.x - 16, 42);
+        g.fillText(`${m.page + 1} / ${m.pageCount}${m.more ? '+' : ''}`, ARROWS.prev.x - 16, 42);
         drawArrow('prev', -1, m.page > 0, ui);
         drawArrow('next', 1, m.page < m.pageCount - 1, ui);
       }
@@ -117,6 +130,13 @@
       if (!items.length) {
         g.fillStyle = P.onSurfaceVariant; g.font = `24px ${FONT}`; g.textAlign = 'left';
         g.fillText(m.emptyText || '', PAD, TOP + 30);
+        return;
+      }
+      if (m.shape === 'tall') {
+        items.forEach((card, i) => {
+          const col = i % TL_COLS, row = Math.floor(i / TL_COLS);
+          kit.drawCard(card, PAD + col * (TL_W + TL_GAP), TOP + row * (TL_H + GAP), TL_BOX, ui, regions, `item:${i}`);
+        });
         return;
       }
       items.forEach((card, i) => {
@@ -133,6 +153,7 @@
     const scrollAt = (u, v) => scrollable && !!view && u * W >= view.x - 8 && u * W <= W - 16 && v * H >= view.y && v * H <= view.y + view.h;
 
     return { canvas, aspect: H / W, draw, hitTest, has, rectOf, scrollAt, imagesReady: kit.imagesReady, perPage: PER_PAGE, animating: motion.moving,
+      perPageFor: shape => (shape === 'tall' ? PER_PAGE_TALL : PER_PAGE),   // cards per page in a layout
       maxScroll: () => maxScrollPx, shownScroll: () => scrollPx, pxPerV: H };   // (a collection page's scrolling)
   }
 

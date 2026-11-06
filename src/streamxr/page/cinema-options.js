@@ -1,22 +1,27 @@
-// The "2D Cinema" settings tab, which belongs to the shell (the cinema screen is the
-// shell's, whatever the site): Follow your head on/off (a 2D video's screen and the panels
-// catching up as you turn: xr-session.js; switchable any time) with its Delay and Speed, then Curve on/off, Curve
-// intensity, Distance, Glow on/off, Glow strength and Glow length, all dimmed and inactive
-// unless the cinema screen is showing (intensity also needs Curve on, the glow's sliders Glow
-// on). Each slider has a Default button. A site's Options panel includes it as one of its tabs.
+// The "2D Cinema" and "3D Cinema" settings tabs, which belong to the shell (the cinema screen
+// is the shell's, whatever the site). 2D Cinema: Follow your head on/off (a 2D video's screen
+// and the panels catching up as you turn: xr-session.js; switchable any time) with its Delay and
+// Speed, then Curve on/off, Curve intensity, Distance, Glow on/off, Glow strength and Glow
+// length, all dimmed and inactive unless the cinema screen is showing (intensity also needs
+// Curve on, the glow's sliders Glow on). 3D Cinema: 3D depth and Swap eyes, active for a 3D
+// format on the cinema screen. Each slider has a Default button. A site's Options panel
+// includes them as two of its tabs (settings-panel.js).
 //
-//   ns.vrCinemaOptions.content(viewSettings) -> the Options style's 'rows' content
+//   ns.vrCinemaOptions.content(viewSettings) -> 2D Cinema's 'rows' content (the Options style's)
+//   ns.vrCinemaOptions.content3d(viewSettings) -> 3D Cinema's
 //   ns.vrCinemaOptions.event(ev, viewSettings, actions) -> true if it was one of this tab's
 //     controls ('switch:follow', 'slider:followAfter' / 'slider:followRate', 'switch:curve',
 //     'slider:curveAmount' / 'slider:distance', 'switch:glow',
-//     'slider:glowStrength', 'slider:glowReach', 'default:...')
+//     'slider:glowStrength', 'slider:glowReach', 'slider:depth', 'switch:swapEyes', 'default:...')
 //   viewSettings: { distance: { value, min, max, default } (metres) | null (not on the
 //                   cinema screen), cinema: { active, follow: { on, after, rate } (each a
 //                   slider's { value, min, max, default }: seconds, 1/s), on, amount, defaultAmount, format (the
 //                   current format's name, shown as the tab's note), glow, glowStrength,
 //                   defaultGlowStrength, glowReach: { value, min, max, default } (a share
-//                   of the screen's height) } }
-//   actions used: setFollow({ on?, after?, rate? }), setCurve({ on?, amount? }), setGlow({ on?, strength?, reach? }), setDistance(metres).
+//                   of the screen's height), stereo (a 3D format on the screen), depth (-1..1),
+//                   swapEyes } }
+//   actions used: setFollow({ on?, after?, rate? }), setCurve({ on?, amount? }), setGlow({ on?, strength?, reach? }),
+//     setStereo({ depth?, swap? }), setDistance(metres).
 (function (ns) {
   'use strict';
 
@@ -31,6 +36,8 @@
   const linTo = s => (s.value - s.min) / (s.max - s.min), linFrom = (s, f) => s.min + f * (s.max - s.min);
   const logTo = s => Math.log(s.value / s.min) / Math.log(s.max / s.min), logFrom = (s, f) => s.min * Math.pow(s.max / s.min, f);
   const tr = (key, vars) => ns.i18n.t(key, vars);   // words in the interface language (i18n.js)
+  // The 3D depth slider's value: -100% .. +100%, 0 as the video was made.
+  const depthText = d => (Math.round(d * 100) === 0 ? '0%' : `${d > 0 ? '+' : ''}${Math.round(d * 100)}%`);
 
   function content(vs) {
     const c = (vs && vs.cinema) || { active: false, on: false, amount: 0 };
@@ -67,6 +74,23 @@
     };
   }
 
+  // The "3D Cinema" tab: 3D depth (-1..1 on a 0..1 slider, the middle as the video was made) and
+  // Swap eyes, active for the cinema screen's 3D formats (side by side, top and bottom) only.
+  function content3d(vs) {
+    const c = (vs && vs.cinema) || {};
+    const on = !!(c.active && c.stereo);
+    return {
+      kind: 'rows', note: tr(on ? 'cinema.now' : 'cinema.nowNot3d', { format: c.format || '' }),
+      rows: [
+        { label: tr('cinema.depth'), hint: tr('cinema.depthHint'), dim: !on,
+          control: { type: 'slider', id: 'depth', fraction: ((c.depth || 0) + 1) / 2, text: depthText(c.depth || 0),
+            enabled: on, defaultButton: true, ends: [tr('cinema.closer'), tr('cinema.farther')] } },
+        { label: tr('cinema.swapEyes'), hint: tr('cinema.swapEyesHint'), dim: !on,
+          control: { type: 'switch', id: 'swapEyes', on: !!c.swapEyes, enabled: on } },
+      ],
+    };
+  }
+
   function event(ev, vs, actions) {
     const c = (vs && vs.cinema) || null, d = vs && vs.distance;
     const fo = c && c.follow;
@@ -85,9 +109,12 @@
     else if (ev.type === 'default' && ev.value === 'glowStrength') { if (c) actions.setGlow({ strength: c.defaultGlowStrength }); }
     else if (ev.type === 'slider' && ev.value === 'glowReach') { if (c && c.glowReach) actions.setGlow({ reach: fractionToReach(c.glowReach, ev.fraction) }); }
     else if (ev.type === 'default' && ev.value === 'glowReach') { if (c && c.glowReach) actions.setGlow({ reach: c.glowReach.default }); }
+    else if (ev.type === 'slider' && ev.value === 'depth') { if (actions.setStereo) actions.setStereo({ depth: ev.fraction * 2 - 1 }); }
+    else if (ev.type === 'default' && ev.value === 'depth') { if (actions.setStereo) actions.setStereo({ depth: 0 }); }
+    else if (ev.type === 'switch' && ev.value === 'swapEyes') { if (actions.setStereo) actions.setStereo({ swap: !(c && c.swapEyes) }); }
     else return false;
     return true;
   }
 
-  ns.vrCinemaOptions = { content, event };
+  ns.vrCinemaOptions = { content, content3d, event };
 })(globalThis.__streamxr = globalThis.__streamxr || {});

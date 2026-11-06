@@ -87,6 +87,7 @@
     'yt.recs.endScreen': 'End screen',
     'yt.recs.playlist': 'Playlist · {index} / {count}',
     'yt.recs.queue': 'Queue · {index} / {count}',
+    'yt.recs.shorts': 'Shorts',                     // the next Shorts of the Shorts feed, while one of them plays
     'yt.queue.clear': 'Clear',
     'yt.queue.clearTitle': 'Clear the queue?',
     'yt.queue.clearText': 'Its videos leave the queue; the video playing now keeps playing.',
@@ -115,6 +116,7 @@
     'yt.browse.shorts': 'Shorts',
     'yt.browse.music': 'Music',
     'yt.browse.movies': 'Movies & TV',
+    'yt.browse.moviesBlocked': 'YouTube’s movies and shows are copy-protected, so they can’t play in VR yet. Watch them on the desktop.',
     'yt.browse.hype': 'Hype',
     'yt.browse.live': 'Live',
     'yt.browse.gaming': 'Gaming',
@@ -166,6 +168,23 @@
     'yt.comments.count': { one: '{n} comment', other: '{n} comments' },
     'yt.comments.failed': 'Couldn’t load comments ({error}).',
     'yt.comments.off': 'Comments are turned off for this video.',
+    // Writing a comment (the field at the bottom of the Comments panel).
+    'yt.comments.placeholder': 'Add a comment…',     // (YouTube's own placeholder is used when it sends one)
+    'yt.comments.post': 'Comment',                    // the field's button
+    'yt.comments.postFailed': 'Couldn’t post',
+    'yt.comments.you': 'You',                         // your new comment's author, if YouTube's answer couldn't be read
+    'yt.comments.justNow': 'just now',
+    'yt.comments.reply': 'Reply',                     // a comment's Reply button, and the field's button while replying
+    'yt.comments.replyingTo': 'Replying to {name}',   // over the field ({name}: "@somebody")
+    'yt.comments.replyPlaceholder': 'Add a reply…',
+    // Your own comments' "⋮" menu (YouTube's own delete question is used when it sends one).
+    'yt.comments.edit': 'Edit',
+    'yt.comments.delete': 'Delete',
+    'yt.comments.editing': 'Editing your comment',   // over the field while editing
+    'yt.comments.save': 'Save',                       // the field's button while editing
+    'yt.comments.saveFailed': 'Couldn’t save',
+    'yt.comments.deleteTitle': 'Delete comment',
+    'yt.comments.deleteText': 'Delete your comment permanently?',
 
     // Live chat panel.
     'yt.chat.none': 'This video has no live chat.',
@@ -222,18 +241,11 @@
     'yt.channel.tabFailed': 'Couldn’t load this tab ({error}).',
     'yt.channel.aboutFailed': 'Couldn’t load the About page ({error}).',
 
-    // Settings panel (the shell adds its own tabs' words: 2D Cinema, Laser, Keyboard, Language).
+    // Settings panel: YouTube's own tabs (the shared panel's: the 'settings.*' words, StreamXR's).
     'yt.settings.playback': 'Playback',
     'yt.settings.audio': 'Audio',
-    'yt.settings.cinema': '2D Cinema',
-    'yt.settings.appearance': 'Appearance',
     'yt.theme.material': 'Material 3',
     'yt.theme.youtube': 'YouTube',
-    'yt.settings.safezone': 'Safe zone',
-    'yt.settings.fade': 'Auto-hide',
-    'yt.settings.laser': 'Laser',
-    'yt.settings.keyboard': 'Keyboard',
-    'yt.settings.language': 'Language',
     'yt.settings.loop': 'Loop',
     'yt.settings.loopHint': 'Replays this video',
     'yt.settings.autoplay': 'Autoplay',

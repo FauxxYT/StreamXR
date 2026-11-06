@@ -1,0 +1,97 @@
+<!doctype html>
+<!-- StreamXR Dashboard (called "Home" in the code and docs/Home-Page.md): a page of StreamXR's own, opened from the toolbar popup
+     and once on install (with ?welcome=1: the first-run welcome). The headset's status and
+     Quick troubleshooting, and the sites. Built by home.js from home-ui.js's pieces (shared
+     with the toolbar popup); styled by the site popup's panel styles (popup.css), home-ui.css
+     and home.css. Scripts in load order, plain (no modules); extension pages can't run inline
+     scripts. -->
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StreamXR Dashboard</title>
+<link rel="icon" href="../../../icons/icon-32.png">
+<link rel="stylesheet" href="../ui/popup.css">
+<link rel="stylesheet" href="home-ui.css">
+<link rel="stylesheet" href="home.css">
+</head>
+<body>
+<main class="streamxr-pop streamxr-home"></main>
+<!-- Google's Material Color Utilities (third_party/; the panels' Material 3 palette, tokens.js),
+     first, as on a site's page (manifest.json's page-world list). -->
+<script src="../../../third_party/material-color-utilities/material-color-utilities.js"></script>
+<!-- The shared words and helpers (the ui/ copies of the shared files; each loaded once). -->
+<script src="../../core/ui/shared/bridge.js"></script>
+<script src="../../core/ui/shared/i18n.js"></script>
+<script src="../../core/ui/shared/strings-en.js"></script>
+<script src="../../core/ui/shared/strings-es.js"></script>
+<script src="../../core/ui/shared/controls.js"></script>
+<script src="../ui/shared/strings-en.js"></script>
+<script src="../ui/shared/strings-es.js"></script>
+<script src="../ui/shared/formats.js"></script>
+<!-- The VR shell, as on a site's page (manifest.json's page-world list, without the sites'
+     files and StreamXR's page entry point main.js): Test VR runs it with Home's provider. -->
+<script src="../../core/page/math3d.js"></script>
+<script src="../../core/page/pose-smoother.js"></script>
+<script src="../../core/page/gl-utils.js"></script>
+<script src="../../core/page/storage.js"></script>
+<script src="../../core/page/sites.js"></script>
+<script src="../../core/page/frame-clock.js"></script>
+<script src="../../core/page/diagnostics.js"></script>
+<script src="../../core/page/input.js"></script>
+<script src="../../core/page/controllers/config.js"></script>
+<script src="../../core/page/controllers/icons.js"></script>
+<script src="../../core/page/controllers/models.js"></script>
+<script src="../../core/page/controllers/model-pass.js"></script>
+<script src="../../core/page/controllers/icon-pass.js"></script>
+<script src="../../core/page/controllers/controllers.js"></script>
+<script src="../../core/page/vr-panel/config.js"></script>
+<script src="../../core/page/vr-panel/tokens.js"></script>
+<script src="../../core/page/vr-panel/glyphs.js"></script>
+<script src="../../core/page/vr-panel/symbols.js"></script>
+<script src="../../core/page/vr-panel/motion.js"></script>
+<script src="../../core/page/vr-panel/panel-ui.js"></script>
+<script src="../../core/page/vr-panel/styles/kit.js"></script>
+<script src="../../core/page/vr-panel/styles/grid.js"></script>
+<script src="../../core/page/vr-panel/styles/thread.js"></script>
+<script src="../../core/page/vr-panel/styles/collection.js"></script>
+<script src="../../core/page/vr-panel/styles/chat.js"></script>
+<script src="../../core/page/vr-panel/styles/queue.js"></script>
+<script src="../../core/page/vr-panel/styles/catalog.js"></script>
+<script src="../../core/page/vr-panel/styles/profile.js"></script>
+<script src="../../core/page/vr-panel/styles/info.js"></script>
+<script src="../../core/page/vr-panel/styles/options.js"></script>
+<script src="../../core/page/vr-panel/orbiters-ui.js"></script>
+<script src="../../core/page/vr-panel/popups-ui.js"></script>
+<script src="../../core/page/vr-panel/laser-options.js"></script>
+<script src="../../core/page/vr-panel/appearance-options.js"></script>
+<script src="../../core/page/vr-panel/safe-zone.js"></script>
+<script src="../../core/page/vr-panel/safe-zone-options.js"></script>
+<script src="../../core/page/vr-panel/fade-options.js"></script>
+<script src="../../core/page/vr-panel/keyboard-options.js"></script>
+<script src="../../core/page/vr-panel/language-options.js"></script>
+<script src="../../core/page/vr-panel/hover-card-ui.js"></script>
+<script src="../../core/page/vr-panel/keyboard.js"></script>
+<script src="../../core/page/vr-panel/panel-pass.js"></script>
+<script src="../../core/page/vr-panel/laser-pass.js"></script>
+<script src="../../core/page/vr-panel/vr-panel.js"></script>
+<script src="../../streamxr/page/media-source.js"></script>
+<script src="../../streamxr/page/video-sphere.js"></script>
+<script src="../../streamxr/page/cinema-screen.js"></script>
+<script src="../../streamxr/page/cinema-options.js"></script>
+<script src="../../streamxr/page/settings-panel.js"></script>
+<script src="../../streamxr/page/pause-overlay.js"></script>
+<script src="../../streamxr/page/captions-overlay.js"></script>
+<script src="../../streamxr/page/fade-pass.js"></script>
+<script src="../../streamxr/page/xr-session.js"></script>
+<!-- Home's own: the popup's pieces, the sites, Home's provider, the page. -->
+<script src="../ui/goggles-icon.js"></script>
+<script src="../ui/troubleshoot.js"></script>
+<script src="../ui/vr-elsewhere.js"></script>
+<script src="sites.js"></script>
+<script src="../../sites/youtube/home/site.js"></script>
+<script src="home-ui.js"></script>
+<script src="home-provider.js"></script>
+<script src="home.js"></script>
+</body>
+</html>

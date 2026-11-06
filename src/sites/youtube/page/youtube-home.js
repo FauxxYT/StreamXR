@@ -131,6 +131,17 @@
     return [...older, ...newer].filter(c => c.text);
   }
 
+  // The Home feed's chips in a steady order: YouTube sends its personalised chips in a
+  // different order on each load, and every chip picked loads the feed again, so the row
+  // re-shuffled once the chip's videos came in (seen 2026-10-28). The order first shown is kept
+  // while the page is open; chips new since then go at the end; ones no longer offered drop out.
+  let homeChipOrder = null;                    // chip texts in the order first shown
+  function steadyChips(list) {
+    if (!homeChipOrder) homeChipOrder = list.map(c => c.text);
+    else list.forEach(c => { if (!homeChipOrder.includes(c.text)) homeChipOrder.push(c.text); });
+    return list.slice().sort((a, b) => homeChipOrder.indexOf(a.text) - homeChipOrder.indexOf(b.text));
+  }
+
   // ---------------------------------------------------------------- home feed
   // home(chip) -> pager over the Home feed's videos (Shorts included, flagged `short`).
   //   chip: a chip's text ('All' by default; e.g. 'Immersive videos', 'Gaming', 'Live',
@@ -143,7 +154,7 @@
       if (token) r = await more(token);
       else {
         r = await browse(FEEDS.home);
-        p.chips = chipsOf(r).map(({ text, selected }) => ({ text, selected }));
+        p.chips = steadyChips(chipsOf(r).map(({ text, selected }) => ({ text, selected })));
         const c = chip !== 'All' && chipsOf(r).find(x => x.text.toLowerCase() === chip.toLowerCase());
         if (c && c.token) {
           r = await more(c.token);
@@ -214,6 +225,68 @@
     }, null);
   }
 
+  // ---------------------------------------------------------------- shorts
+  // shorts() -> pager over YouTube's Shorts feed (what the left menu's Shorts opens): an
+  //   endless list, ~25 Shorts a page, items flagged `short` (their thumbnails vertical).
+  //   The way in (probed 2026-10): the guide's reelWatchEndpoint -> reel/reel_item_watch
+  //   (no video id, its params) gives the first sequence params -> reel/reel_watch_sequence
+  //   pages, each with the next page's token. Shorts seen on an earlier page are skipped.
+  //   The sequence names only a page's first Short (the others come untitled), so
+  //   p.fill(items) looks up the details (title, channel, views) of the given items still
+  //   missing any of them (a page's first Short can come without its views): the ones on
+  //   screen, each once, through `player`; p.version()
+  //   changes as they arrive, so the panel showing them redraws.
+  function shorts() {
+    const seen = new Set();
+    // Fill an item from a player response's videoDetails (what it lacks).
+    const detail = (it, vd) => {
+      if (!vd) return;
+      if (!it.title && vd.title) { it.title = vd.title; it.kind = D.kindOf(vd.title); }
+      if (!it.channel && vd.author) it.channel = vd.author;
+      if (!it.channelId && vd.channelId) it.channelId = vd.channelId;
+      if (!it.views && vd.viewCount) it.views = `${D.compactNumber(+vd.viewCount)} views`;
+    };
+    // One sequence entry (its reelWatchEndpoint) as a video item, or null.
+    const itemOf = e => {
+      const w = dig(e, 'command', 'reelWatchEndpoint') || findKey(e, 'reelWatchEndpoint');
+      const id = w && w.videoId;
+      if (!id || seen.has(id)) return null;
+      seen.add(id);
+      const it = { type: 'video', id, title: strOf(findKey(w.overlay || {}, 'reelTitleText')) || '', channel: '', channelId: '',
+        badge: null, views: '', age: '', duration: '', kind: '2D', thumb: D.bestImage(w.thumbnail) || D.thumbOf(id), short: true };
+      detail(it, findKey(w.unserializedPrefetchData || {}, 'videoDetails'));
+      return it;
+    };
+    const p = D.pager(async token => {
+      if (!token) {
+        const g = await D.innertube('guide', {});
+        const reel = findKey(g, 'reelWatchEndpoint');
+        if (!reel) throw new Error('no Shorts feed in the menu');
+        const body = { playerRequest: { videoId: reel.videoId || '' }, params: reel.params || '' };
+        if (reel.inputType) body.inputType = reel.inputType;
+        const r = await D.innertube('reel/reel_item_watch', body);
+        token = reel.sequenceParams || findKey(r, 'sequenceContinuation') || findKey(r, 'sequenceParams');
+        if (!token) throw new Error('no Shorts sequence');
+      }
+      const r = await D.innertube('reel/reel_watch_sequence', { sequenceParams: token });
+      const entries = r.entries || findKey(r, 'entries') || [];
+      const next = dig(r, 'continuationEndpoint', 'continuationCommand', 'token') || findKey(r.continuationEndpoint || {}, 'token') || null;
+      return { items: entries.map(itemOf).filter(Boolean), token: next };
+    }, null);
+    const asked = new Set();
+    let ver = 0;
+    p.fill = list => {
+      for (const it of list || []) {
+        if (!it || !it.short || (it.title && it.channel && it.views) || asked.has(it.id)) continue;
+        asked.add(it.id);
+        D.innertube('player', { videoId: it.id }).then(r => { detail(it, r && r.videoDetails); ver++; },
+          err => console.warn('[streamxr] Short details unavailable:', err && err.message || err));
+      }
+    };
+    p.version = () => ver;
+    return p;
+  }
+
   // ---------------------------------------------------------------- left menu
   // guide() -> Promise of [{ title, section, browseId, params, url }] - the left menu as
   // YouTube sends it now (Home, Shorts, Subscriptions, You, History, Explore: Music, Live,
@@ -274,5 +347,5 @@
     }
   }
 
-  ns.youtubeHome = { FEEDS, home, feed, feedVideos, viewAll, guide, myChannelId, suggestions, sectionsOf, chipsOf };
+  ns.youtubeHome = { FEEDS, home, shorts, feed, feedVideos, viewAll, guide, myChannelId, suggestions, sectionsOf, chipsOf };
 })(globalThis.__streamxr = globalThis.__streamxr || {});

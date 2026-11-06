@@ -2,7 +2,7 @@
 
 One list of what's still open, gathered from the feature backlogs (`docs/features/`) and
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
-Last updated for 0.101.16.
+Last updated for 0.102.0.
 
 ## Top priority: before the first release
 
@@ -52,7 +52,7 @@ until another headset or two has been tried and the unverified items are cleared
 2. Done: Add to queue (0.100.0 to 0.101.7; free on desktop, not Premium; how the page's queue is driven:
    `features/video-page.md`).
 3. Explore page tabs: Live, Gaming, Music, Hype, Courses, Podcasts and Memberships done (0.94.0 to
-   0.96.6); Shorts and Movies & TV are next.
+   0.96.6); Shorts done (0.101.48 to 0.101.53); Movies & TV explains why it can't be (0.101.45).
 4. Done: Live chat (0.79.0 to 0.88.1), YouTube Premium (1080p Premium 0.91.0, Jump ahead 0.92.3).
 5. Commenting in-headset (writing comments and replies with the VR keyboard).
 6. Chrome Web Store release as **1.0** (the maintainer, 2026-10-17: once the YouTube features are
@@ -118,14 +118,23 @@ list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps 
    the maintainer, 2026-10-19): probe how desktop YouTube's queue can be driven, then
    a way to add from cards, the queue in Up Next, and what plays when a video ends
    (`features/video-page.md`).
-9. [ ] **Explore's other tabs** (large): Shorts and Movies & TV need new readers first (Learning deferred)
-   (`features/home-page.md`).
-10. [ ] **Commenting in VR** (large): writing comments and replies with the VR keyboard (posting,
-    threads, typing into the Comments panel).
-11. [ ] **Chrome Web Store release, StreamXR 1.0** (last: it waits on the rest): the store
+9. [x] **Explore's other tabs**: Shorts done and working in the headset (`features/home-page.md`:
+   the tab on tall cards 0.101.48, the next Short when one ends 0.101.51, the next Shorts in Up Next
+   0.101.52 to 0.101.53). Movies & TV: not built, as every film is copy-protected; its tabs explain
+   that instead of "Coming soon" (0.101.45). Learning deferred.
+10. [x] **Commenting in VR** (large; done 2026-10-30): writing comments and replies with the VR keyboard, in steps
+    (`features/video-page.md`): posting a comment (0.101.56), replies (0.101.57), nested replies to any
+    depth with thread lines that fold them (0.101.58 to 0.101.62) all work in the headset. Editing and
+    deleting your own comments (0.101.63 to 0.101.67) work too.
+11. [x] **StreamXR Dashboard** ("Home" in the code; 0.101.20 to 0.101.37, works in the headset): a toolbar popup and a page of
+    StreamXR's own (status, Quick troubleshooting, Test VR in the shell, the sites, a
+    first-run welcome), so StreamXR shows from day one that more sites are coming
+    ([Home-Page.md](Home-Page.md)). Cross-page VR (entering VR on a page opened from it) is
+    built but hidden until it works without the Skip Helper.
+12. [ ] **Chrome Web Store release, StreamXR 1.0** (last: it waits on the rest): the store
     listing, the privacy questions (the README's "Your privacy" covers them), review.
 
-Set aside: the Back button (0.73.0; comes back on demand). Deferred: Movies in Up Next (YouTube's
+Set aside: the Back button (0.73.0; deferred again 2026-10-30: no controller button is free). Deferred: Movies in Up Next (YouTube's
 movies are copy-protected, so they can't play in VR yet: `features/video-page.md`, "Deferred").
 
 ## Next: from u/TehSuperFruitSnack's Reddit feedback (after 0.88.1)
@@ -155,6 +164,12 @@ movies are copy-protected, so they can't play in VR yet: `features/video-page.md
    regular (not VR180) 3D videos, each eye its half on the cinema screen.
    - Test: "Demo 3D[SBS] (HD : 1080P)" (half side
      by side: a 16:9 frame, each eye squeezed into half).
+4. [x] **3D Top & Bottom on the cinema screen** (0.101.68 to 0.101.71, works in the headset;
+   requested by [u/Timtronic125](https://www.reddit.com/user/Timtronic125)): a "3D Top & Bottom"
+   format after 3D side by side, each eye its half of a frame with the eyes stacked. The five test
+   videos and what to check: `features/video-page.md`. Works in the headset (0.101.68); some
+   videos' 3D felt harsh, so 0.101.69 adds **3D depth** and **Swap eyes** (Settings → 3D Cinema since 0.101.70; the
+   controls' menus stand in front of Settings since 0.101.71). All verified 2026-11-05.
 
 ## Features to build (easiest first)
 
@@ -162,19 +177,25 @@ movies are copy-protected, so they can't play in VR yet: `features/video-page.md
   Quality menu and **Jump ahead**, marked with the Diamond (purple without Premium, YouTube Red
   with it). 1080p Premium (0.91.0) and Jump ahead (0.92.3) work in the headset. **Add to queue** is its own item
   (not Premium on desktop).
-- [ ] **Explore's "Coming Soon" tabs**: Live, Gaming, Music, Hype, Courses, Podcasts,
-  Memberships built in 0.94.0 (to check); Shorts, Movies & TV, Learning need more first
-  (`features/home-page.md`).
-- [ ] **News**: its own tabs (Top stories, Sports ...) and the Sports feed.
+- [x] **Explore's "Coming Soon" tabs**: Live, Gaming, Music, Hype, Courses, Podcasts,
+  Memberships (0.94.0 to 0.96.6, work in the headset, released in v0.101.7); Shorts (0.101.48 to
+  0.101.53, works in the headset); Movies & TV explains it can't play; Learning deferred.
+- [x] **News** (0.94.1, works in the headset): its own tabs as pills (Top stories, Sports,
+  Entertainment, Business ...) on Explore's News tab (Road to 1.0, item 6).
 - [x] **Subscriptions** (0.90.0 to 0.92.2, work in the headset): the Channels tab with its sort pills, the bell on the Channel
   panel; posts in the feed (desktop has none) and its shelves deferred (`features/subscriptions-page.md`).
-- [ ] **Live chat**: reading (0.79.1) and reactions (0.80.0) work in the headset; typing, the
+- [x] **Live chat**: reading (0.79.1) and reactions (0.80.0) work in the headset; typing, the
   keyboard's emoji pages and Support on desktop built in 0.81.0, Top fans (XP, the list, rank
   pills) in 0.82.0 and chat replays in 0.87.0 (all work in the headset). Other viewers' floating
   reactions are deferred (`features/video-page.md`, "Deferred"). Left: the unverified items in `known-issues.md`, which the
   README's "How you can help" asks users to check (`features/video-page.md`).
 - [x] **End screen** (0.98.0 to 0.98.2) and **Info cards** (0.97.0 to 0.97.4) done (`features/video-page.md`).
-- [ ] **Back button**: set aside (0.73.0); comes back on demand.
+- [ ] **Back button**: set aside (0.73.0); now "A Back for VR" under "From Android's XR and
+  desktop design guides" below (one item, not two), deferred 2026-10-30 (no free button).
+- [x] **One shared Settings panel** (0.101.42: `streamxr/page/settings-panel.js`; YouTube adds Playback and Audio, the Dashboard nothing; the same panel as before, compared tab by tab) (cleanup): the shell's Settings tabs (2D Cinema to
+  Language) are built twice, in YouTube's `settings.js` and the Dashboard's
+  `home-provider.js`; a shell Settings panel that a site adds its own tabs to (YouTube's
+  Playback, Audio) would keep them in one place.
 
 ## Diagnostics: more for Copy details (later)
 
@@ -199,16 +220,100 @@ shown by `src/streamxr/ui/panel.js`). Left for later, most useful first:
   and then calls the real console would keep the links right; it means switching the 67
   `console.warn` / `console.error` calls in 21 files over to it.
 
+## From the WebXR capabilities review (2026-10-28)
+
+What desktop Chrome's WebXR allows, checked against StreamXR (the maintainer, 2026-10-28).
+Already how StreamXR works, nothing to do: one VR session per site tab (moving between pages
+uses the site's in-page navigation), Enter VR only from a real click, everything in VR drawn
+on canvases, no copy-protected (DRM) video, no passthrough, eye tracking or WebXR Layers on
+desktop Chrome. To do:
+
+- [x] ~~**A sharpness setting**~~ (render scale): built in 0.101.42, removed in 0.101.44: Chrome
+  caps `framebufferScaleFactor` at the headset's recommended size (`nativeScale` 1 on the Frame:
+  5288×2644 at both 1 and 1.5), so it changed nothing. SteamVR's Render Resolution is the real
+  setting (the README's "Want it sharper?"; `docs/hardware.md`).
+- [x] **Upload video frames only when a new one arrives** (`requestVideoFrameCallback`): already
+  done: `media-source.js` uploads only on a new frame where the browser has it (audit, 2026-10-28).
+- [ ] **A second site: Twitch** (needs the maintainer's OK for its host permission): an
+  ordinary `<video>` with no DRM, chat on the page, mostly flat streams (the cinema screen),
+  ads inside the stream (detect the ad overlay to show it in VR). The best test of the
+  shell / provider split (`docs/Future-Plans.md`).
+- [ ] **Jellyfin / Plex** (later; each needs a host permission for the user's own server):
+  test first on a real server. WebXR needs HTTPS or localhost (a plain `http://192.168…`
+  address blocks VR); Plex's video comes from the server's own address and needs CORS; Plex's
+  free movies and live TV may be DRM.
+- [x] **StreamXR Dashboard** (Road to 1.0, item 11; done, its cross-page VR hidden): the plan and its steps are
+  in [Home-Page.md](Home-Page.md). Both checks passed (`tools/xr-check/`): VR works on an
+  extension page (0.101.17), and a site tab opened from it can start VR by itself through the
+  Skip Helper (0.101.18).
+- [ ] **On hold, with BrowseXR** (`docs/Future-Plans.md`): Home holding the VR session for
+  local video files (a folder granted once with `showDirectoryPicker()`, formats from
+  file-name tags like `_180`, `_360`, `_sbs`). Not decided; new permissions.
+
+Not for StreamXR: libraries (three.js, mp4box.js), a helper app, Electron / Tauri / CEF, a
+native rewrite, a bundled Chromium (a build step or a second product), and recommending
+unofficial browser builds to users.
+
+## From Android's XR and desktop design guides (2026-10-28)
+
+Read in full: the XR guides' sidebar (get started, foundations, spatial UI, environments,
+anchors, 3D models, OpenXR / Unity / WebXR and its "Considerations", visual design, Glimmer,
+motion) and the desktop guides (get started, across form factors, pointer, cursors,
+keyboard, system bars, multitasking). Most XR pages are for native Android XR apps (Home
+Space, environments, anchors, 3D models, Glimmer for glasses) and don't apply to a WebXR
+page. What does:
+
+- [x] **Either hand** ("Considerations": usable with either hand, essential actions with one):
+  the left controller works with everything (the maintainer, 2026-10-28). The few one-hand
+  buttons (A / B on the right, the panel button on the left, the stick reset) are in
+  `shared/controls.js` and the README's Controls.
+- [ ] **A Back for VR** ("Considerations": WebXR apps don't get the system's back, so build
+  one): **deferred (the maintainer, 2026-10-30): every controller button already has a use**, so
+  there's none left for a Back; the panels' own back buttons stay the way back. Comes back if a
+  button frees up.
+- [x] **Recenter without a jump** (0.101.42: 0.12 s to dark, recenter, 0.18 s back; Recenter button and Grip; `fade-pass.js`) (Motion: whole-world movement should fade, not jump):
+  check how recentering looks; if everything leaps, a short fade out and in around it.
+- [x] **Small targets easier to hit** (mostly there already: every panel style and the controls panel stretch a control smaller than 72 px (56 dp) to that size, kit.js `regionAt`; 0.101.42 adds the menus and dialogs) (anchors: a target catcher behind small targets; about
+  7° targets): give small buttons (close, chevrons, the queue's quick button) a hit area a
+  little bigger than they look, so the laser doesn't slip off them.
+
+Already in line, nothing to do: 72 fps (the headset's rate; the session stats under
+"Diagnostics" would show it), seated use without locomotion, panels sized in dp at a set distance,
+Follow your head off by default (motion the user controls), captions. Not for StreamXR:
+hand-tracking sizes (controllers only), button remapping (later, if asked), SDF fonts (the
+panels draw text into canvases at full size). For the Home page and popup (desktop guides):
+content and buttons at a max width, short lines (about 60 characters), text sizes that
+follow the browser's zoom and font size, hover and focus states, keyboard first.
+
 ## Known quirks (`known-issues.md`)
 
 - Captions on 180°/360° need improvement (0.77.1: "good enough for now").
 - Glass popups blur only the video, not the panels behind them.
-- One level of comment replies (not YouTube's nested replies-to-replies).
 - Some readers expect YouTube in English.
 - Limits on YouTube's or Chrome's side: no controller vibration, a channel's Featured tab
   can be missing, a channel's subscribed state can be wrong.
 
 ## Still to check in the headset
 
-- Signed-in Home feeds other than the main one.
-- The Captions button greyed out on a video with no captions.
+- [ ] **SteamVR 2.19.1's new default resolution** (beta, 2026-11): a Copy details paste after
+  entering VR shows the new drawing size; then update `hardware.md` (2644×2644 per eye was 2.18)
+  and the README's "Want it sharper?" tip if it needs it.
+- [ ] **WebXR in the Frame's own browser** (when Valve's flag shows up; `hardware.md`, "The
+  Frame's own browser"): the WebXR samples page there, then whether it installs an extension,
+  then StreamXR. Only then plan the native port (decoding, GPU headroom, controller mapping).
+- ~~Signed-in Home feeds other than the main one~~ (History, Playlists, Watch later, Liked): work
+  (2026-10-28); the main feed's chips too (they re-shuffled once a chip's videos loaded,
+  fixed in 0.101.39).
+- ~~The Captions button greyed out on a video with no captions~~: works (2026-10-28).
+- ~~The SteamVR dashboard while in VR~~: the video plays on and the panels fade as usual; the
+  controllers and lasers stayed frozen in the air (no controller updates while the session is
+  `visible-blurred`): hidden while it's open since 0.101.41, works. (2026-10-28)
+- ~~Switching tabs or minimizing Chrome while in VR~~: nothing happens, VR goes on as it was
+  (2026-10-28).
+- ~~WebXR hand input on the Frame~~: nothing happens with the controllers down and the hands
+  up (2026-10-28): a known limit, in `docs/hardware.md`.
+- ~~Chrome's VR prompt~~ done: Chrome asks before VR starts ("… wants to use virtual reality
+  devices and data": Allow
+  while visiting the site / Allow this time / Never allow; seen on the extension page,
+  2026-10-28); the README's Get started now says to choose "Allow while visiting the site"
+  (0.101.37). Its exact wording on YouTube on a fresh profile is unseen but the same choices.

@@ -6,6 +6,628 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.102.0
+
+The release of everything since 0.101.16 (0.101.17 to 0.101.75, below): Commenting in VR, the
+StreamXR Dashboard, Shorts in Explore, 3D Top & Bottom with the 3D Cinema settings, Sharpness,
+and better troubleshooting. No code changes since 0.101.75.
+
+### Docs
+- **The README puts installing first**: Get started (with a "You'll need" line, steps for the
+  Steam Frame and other headsets, pinning the toolbar button, the Skip Helper as an optional
+  extra) right after the intro, then What you need, What's new (rewritten for this release:
+  everything since v0.101.16), the features, Controls and Quick troubleshooting (a row for
+  "another tab is already in VR"). The background sections follow, and the developer sections
+  sit under "For developers" at the end. The roadmap marks the Explore tabs and Commenting as
+  done; the known issue about very tall Shorts is gone (fixed in 0.101.46).
+
+## 0.101.75
+
+### Fixed
+- **A click on nothing didn't hide the panels while the keyboard was out** (it does with the controls
+  panel): the keyboard counted as something to let go of. Now, unless you're typing into a field (the
+  first click still stops that), a click on nothing hides everything, the keyboard included, and a
+  trigger pull brings it all back with the keyboard still up. The keyboard button while it's hidden
+  this way brings everything back too, instead of putting the keyboard away.
+
+## 0.101.74
+
+### Fixed
+- **The keyboard lit up only one laser's key**: with both lasers on the keyboard, only one hand's
+  key showed its hover ring. Each laser now lights its own key (and the grab bar or a corner
+  handle): the panels' hover easing takes a list of controls pointed at (`motion.js` `hovers`),
+  which the keyboard gets from both hands.
+
+## 0.101.73
+
+### Fixed
+- **Enter VR on YouTube while the Dashboard's Test VR runs gave the generic "VR wouldn't start"**:
+  the same as 0.101.72, the other way round. The Dashboard now answers for itself while Test VR
+  runs, and the "Watch in VR" popup checks for another tab in VR when it opens (and every 2 s, and
+  when Enter VR fails): Enter VR is greyed out and the same note names that tab, with **Exit VR
+  there**. The note's code is shared (`vr-elsewhere.js`); the background answers StreamXR's site
+  scripts as well as its own pages, never counting the tab that asks.
+
+## 0.101.72
+
+### Fixed
+- **Test VR on the Dashboard said something was wrong while a YouTube tab was in VR**: Chrome
+  allows one VR session at a time and refuses the second with "NotSupportedError", which Quick
+  troubleshooting read as a lost headset. The Dashboard now asks StreamXR's background which tab
+  is in VR (`vr-presence.js` answers for each site tab): while one is, Test VR is greyed out and a
+  note names that tab, with **Exit VR there**. Quick troubleshooting also reads that error as
+  "another tab or app is already in VR" (any page), not a lost headset.
+
+## 0.101.71
+
+### Fixed
+- **The controls panel's menus cut into the Settings panel** (Format, Quality, Speed, Volume opened
+  while Settings is up): both stood 32 dp in front of the controls panel. The menus now stand at
+  48 dp, in front of Settings.
+
+## 0.101.70
+
+### Changed
+- **3D depth and Swap eyes have their own Settings tab, "3D Cinema"** (after 2D Cinema, with the 3D
+  icon), instead of the end of 2D Cinema. Its note says when the video isn't 3D on the cinema
+  screen.
+- **The Settings panel is wider** (1280 px, was 1024) so its ten tabs fit with their names at
+  full size.
+
+## 0.101.69
+
+### Added
+- **3D depth and Swap eyes** (Settings → 2D Cinema, for 3D side by side and 3D top & bottom on the
+  cinema screen): the 3D depth slider moves the two eyes' pictures apart (Farther: everything sits
+  further back, easier on the eyes when a video's 3D feels harsh) or together (Closer), by up to 5%
+  of the picture's width each, with a Default button (as the video was made); Swap eyes is for a
+  video whose depth looks inside out. Both are remembered, and the glow and the glass behind the
+  panels follow them.
+
+## 0.101.68
+
+### Added
+- **3D Top & Bottom on the cinema screen** (requested by
+  [u/Timtronic125](https://www.reddit.com/user/Timtronic125) on Reddit): a new format, listed after 3D
+  side by side with the same icon, for 3D videos that arrive with both eyes stacked in one frame
+  (left eye on top). Each eye sees its half; a tall frame (two full pictures, narrower than 1.2:1) and
+  a 16:9 one (each eye squeezed) both show at the picture's own shape. The glow and the glass behind
+  the panels read each eye's half too. Picked by hand, as side by side is.
+
+### Changed
+- Each eye's part of the frame (`formats.eyeSpans`) is now 2D (`[scaleX, scaleY, offsetX, offsetY]`),
+  read by the cinema screen, its glow, the video sphere and the glass (`panel-pass.js`).
+
+## 0.101.67
+
+### Fixed
+- **An edited comment kept showing its old text** (in the list it was edited in; another sort showed
+  the new one): the comment layout cached each comment's wrapped lines by its id and the sort, so
+  the same comment drew its old lines. The cache now also checks the text and lays an edited
+  comment out again (`thread.js`).
+
+## 0.101.66
+
+### Fixed
+- **Editing still said "Couldn't save"** (the console: "We weren't able to add your reply"): that text
+  is a ready-made error inside the Reply dialog YouTube sends with every comment, the edited one too,
+  and any `errorMessage` in the answer counted as a refusal. Posting, replying and editing now go by
+  the answer's own action result only (a failed status, with YouTube's reason).
+
+## 0.101.65
+
+### Changed
+- **An edited comment shows YouTube's "(edited)"**: YouTube answers an edit with the comment's new
+  entity alone (no thread around it), which wasn't read; now its saved text and time ("30 seconds ago
+  (edited)") show in place.
+
+## 0.101.64
+
+### Fixed
+- **Editing a comment said "Couldn't save"** (confirmed by a probe of YouTube's answer in 0.101.65): an answer holding a confirm dialog
+  counted as a refusal, and an edited comment comes back with its own "⋮" menu, Delete's confirm
+  dialog included. Now only an error message or a failed action status counts.
+
+## 0.101.63
+
+### Added
+- **Edit and delete your own comments in VR** (Commenting in VR, step 3): your comments and replies
+  have a "⋮" after Reply, opening a small menu with **Edit** and **Delete**. Edit puts the comment's
+  text in the field at the bottom, with "Editing your comment" and an x over it; **Save** updates it in
+  place (POST `comment/update_comment`). Delete asks first, with YouTube's own question ("Delete
+  your comment permanently?"), then takes it from the list, its replies with it (POST
+  `comment/perform_comment_action` with its delete token). Both read from the comment's own "⋮" menu
+  (`youtube-content.js` `ownMenu`); the Info style gained `rectOf` (for the menu under the "⋮").
+
+## 0.101.62
+
+### Added
+- **Click a thread line to fold its replies**: a comment's line folds its replies (as its Hide), a
+  reply's line folds that reply's own replies, which then shows "⌄ N replies" to open them again.
+  Pointed at, a comment's lines light up in the accent colour, showing what a click folds. A reply
+  you post under a folded reply opens it. (`thread.js`: a 28 px strip along each line, ids
+  `children:<thread>` / `fold:<at>`; `comments.js` `toggleFold`.)
+
+## 0.101.61
+
+### Added
+- **Thread lines in the comments**: a line runs down from each comment's picture and curves into each
+  of its replies, so every reply shows which comment it answers, at any depth (as YouTube's desktop
+  draws them; past the 3-level indent, a straight line down). In the shared thread layout
+  (`thread.js`), so a channel post's comments get them too.
+
+## 0.101.60
+
+### Added
+- **Nested replies to any depth**: a reply to a reply to a reply (and deeper) now shows too. The
+  reader follows each reply's inline replies all the way down (and keeps a continuation token with
+  the reply it belongs to); the Comments panel lists the whole tree in reading order, each level a
+  step further in, the indent stopping at 3 levels so deep replies keep the panel's width. A reply
+  you post goes right under the comment you answered, at any depth.
+
+## 0.101.59
+
+### Fixed
+- **Replies to replies still didn't show**: YouTube sends a reply's own replies inline, in the
+  same answer as the reply (its `subThreads`, `replyLevel` 2), not behind a separate "N replies"
+  token as 0.101.58 assumed; the reader stopped at each reply's wrapper. It now reads them with
+  their reply (a comment's `inlineReplies`), and the Comments panel shows them under it.
+
+## 0.101.58
+
+### Added
+- **Replies to replies show in VR**: YouTube now threads a reply to a reply under it, and the
+  Comments panel only showed one level. Opening a thread's replies now also reads each reply's own
+  replies (its "N replies" token, up to 3 pages each) and shows them one step further in, under
+  their reply, as on desktop. A reply you post to a reply shows there too. The thread layout takes
+  a comment's `depth` (2).
+
+## 0.101.57
+
+### Added
+- **Reply to comments in VR** (Commenting in VR, step 2): signed in, each comment (and reply) has
+  a **Reply** button. It turns the field at the bottom into a reply: "Replying to @name" shows
+  over it with an x to go back to a new comment, and the field's button says Reply. Replying to a
+  reply starts with "@name ", as YouTube does. Enter or Reply posts it (POST
+  `comment/create_comment_reply` with the comment's reply token), and it shows first under its
+  comment, that thread's replies opened. The Info style's field takes an optional `context` line.
+
+## 0.101.56
+
+### Added
+- **Write a comment in VR** (Commenting in VR, step 1): signed in, the Comments panel has an
+  "Add a comment..." field along its bottom (live chat's field, with a Comment button). A click
+  brings up the VR keyboard; Enter or Comment posts it (no confirm), and your comment shows at the
+  top at once, the list scrolled there. YouTube's own placeholder and posting token come with the
+  first page of comments (`youtube-content.js` `composeOf`, `postComment`: POST
+  `comment/create_comment`); each comment's reply token is read too, for step 2. The Info style's
+  `thread` kind takes an optional `input`.
+
+## 0.101.55
+
+### Changed
+- **Quick troubleshooting: reinstall SteamVR when it says it's already the OpenXR runtime but
+  nothing finds the headset.** Its registration can be broken while its settings say it's set;
+  found and tested with [u/Timtronic125](https://www.reddit.com/user/Timtronic125) on Reddit, whose Steam Frame was found again after
+  reinstalling SteamVR, which then asked to become the default runtime. In the popup's check 2 (check 7 points to it), a new row in the README's Quick
+  troubleshooting table, and Copy details' headset hint.
+
+## 0.101.54
+
+### Changed
+- **Quick troubleshooting points to the WebXR samples test** when no headset is found: the most
+  likely issue now ends "Quick test: if the WebXR samples (check 7) can't enter VR either, it's
+  the PC's VR setup, not StreamXR", and check 7 says what a greyed-out Enter VR there means. The
+  README's Quick troubleshooting table gets the same row ("Not sure it's StreamXR?"). From a
+  user report where Chrome saw no headset on any site (`docs/known-issues.md`).
+
+## 0.101.53
+
+### Fixed
+- **Shorts: a random Short played instead of the next one in Up Next**: when a Short ended,
+  YouTube's own autoplay jumped to a related Short of its choosing, and won over the feed's next
+  one. A Short of a run now hands over to the next one just before it ends (0.35 s), so YouTube's
+  autoplay never starts (its countdown is cancelled if it does); not within 1.5 s of a Short
+  opening (the player can still report the last one's time), and not with Loop on.
+- **Up Next's Shorts tab showed no "+" on its page count**: the Queue style now takes `more`
+  ("1 / 4+", as Explore), set while the Shorts feed can load more.
+
+## 0.101.52
+
+### Added
+- **Up Next shows the next Shorts**: while Shorts picked in Explore → Shorts play one after another,
+  Up Next has a Shorts tab (it opens when such a run starts and goes when it ends) listing the
+  coming Shorts on tall cards, with their titles, channels and views; it reads more of the feed
+  as you page. Picking one plays it, and the run carries on from there. The Queue style gained the
+  tall layout (`shape: 'tall'`, `perPageFor`).
+
+## 0.101.51
+
+### Added
+- **Shorts play one after another**: a Short picked in Explore → Shorts, when it ends, opens the
+  next one in the feed if YouTube's Autoplay is on (else it stays paused), reading more of the
+  feed as it goes. Opening any other video ends the run. New `shorts-run.js` (YouTube provider).
+
+## 0.101.50
+
+### Fixed
+- **Shorts: a few cards had no view count** (each page's first one): it came with its title and
+  channel but not always its views, and only untitled cards were looked up. Any card missing its
+  title, channel or views is now looked up.
+
+## 0.101.49
+
+### Fixed
+- **Shorts: two cards filled the Explore panel**: the tall layout took one row as tall as all the
+  standard rows. It now uses as many rows as keep the cards at least 150 px wide (Explore: 4 x 2,
+  8 a page).
+- **Shorts: most cards had no title or channel**: YouTube's Shorts feed names only the first Short
+  of each page. The Shorts on screen now have their title, channel and views looked up (once each,
+  YouTube's `player` request) and appear as they arrive.
+
+## 0.101.48
+
+### Added
+- **Explore → Shorts**: YouTube's endless Shorts feed (what the left menu's Shorts button opens),
+  on tall 9:16 cards, four to a page, more loading as you page through. Clicking one plays it on
+  the cinema screen. A new tall card layout in the Catalog style (`shape: 'tall'`, grid.js) and a
+  feed reader (`youtube-home.js` `shorts()`: the reel sequence API). Next: the next Short when one
+  ends (following Autoplay), then the next Shorts in Up Next.
+
+## 0.101.47
+
+### Fixed
+- **The cinema screen's move bar ran into the corner handles on a narrow screen** (a Short):
+  it was always 0.9 m wide. It now shrinks with the screen, leaving room for the corners (a Short
+  at the default size: about 0.4 m), never under 0.2 m; its grab zone shrinks with it.
+
+## 0.101.46
+
+### Fixed
+- **A Short on the cinema screen came out very tall, and resizing it made the next regular
+  video small**: the screen kept one width for every video, its height following the video's
+  shape. It now keeps a 16:9 frame and fits each video inside it, as a TV does: 16:9 and wider
+  fill its width (as before), taller ones fill its height (a Short at the default size: 1.0 x
+  1.8 m instead of 3.2 x 5.7 m). The remembered size is the frame's, so one size suits both.
+
+## 0.101.45
+
+### Changed
+- **The Movies & TV tabs (Explore, You) explain instead of promising**: "Coming Soon" is now
+  "YouTube's movies and shows are copy-protected, so they can't play in VR yet. Watch them on
+  the desktop." under the Movie icon. Every film on YouTube, free ones too, is DRM-protected,
+  so this tab won't be built. A placeholder too long for one line now wraps, centered, with its
+  icon above (short ones like "Coming Soon" look as before).
+
+## 0.101.44
+
+### Removed
+- **Settings → Appearance → Sharpness** (0.101.42): Chrome caps the drawing size at the
+  headset's recommended size (Copy details: `framebuffer` 5288×2644 at both Standard and
+  Sharpest, `nativeScale` 1 on the Steam Frame), so it changed nothing. Copy details still
+  records the drawing size each time it changes.
+
+### Docs
+- README, Quick troubleshooting: **Want it sharper?** Raise SteamVR's own Render Resolution
+  (Settings → Video), which decides the size StreamXR draws at.
+
+## 0.101.43
+
+### Changed
+- **Copy details records the drawing size again after each Sharpness change** (the
+  headset's `framebuffer`, now with the `sharpness` asked for, beside Chrome's maximum
+  `nativeScale`): it was recorded once per VR session. To see whether Sharper and Sharpest
+  really draw more pixels on a given PC (they looked the same on the maintainer's).
+
+## 0.101.42
+
+### Added
+- **Sharpness** (Settings → Appearance): Standard, Sharper or Sharpest draws the headset's
+  picture with more pixels (WebXR's `framebufferScaleFactor`: 1, 1.25, 1.5) for sharper
+  video and text, at more work for the graphics card. Remembered; changes right away.
+
+### Changed
+- **Recentering fades instead of jumping** (the Recenter button and Grip): the view dims to
+  black for a moment, recenters, and comes back (0.12 s out, 0.18 s in), as Android XR's
+  motion guide asks for whole-world moves (`src/streamxr/page/fade-pass.js`). The recenter as
+  VR starts stays instant.
+- **Menus and dialogs have easier small targets**, like every panel already did: a control
+  drawn smaller than 72 px (Android XR's 56 dp) can be hit anywhere within that size.
+- **One shared Settings panel** (`src/streamxr/page/settings-panel.js`): the shell's tabs
+  (2D Cinema to Language) are built once; YouTube adds Playback and Audio before them, the
+  Dashboard adds none. The same panel as before (compared tab by tab from the same data).
+
+## 0.101.41
+
+### Fixed
+- **The controllers and lasers froze in the air while the SteamVR dashboard was open**: the
+  browser gets no controller updates then (the session is "visible-blurred"). They're now
+  hidden while it's open and come back when it closes; the video keeps playing as before.
+
+## 0.101.40
+
+### Fixed
+- **The Home feed's chip row slid back to its start after picking a chip** (signed in): after
+  a pick YouTube may offer a slightly different set of chips, and a row whose contents change
+  slides back. The chips already shown now stay, in place, with new ones after them (as
+  Gaming's pills since 0.96.6). A sliding row (tabs, chips) also keeps its place through a
+  moment with nothing in it.
+
+## 0.101.39
+
+### Fixed
+- **The Home feed's chips re-shuffled once a chip's videos loaded** (signed in): picking a
+  chip loads the feed again, and YouTube sends its personalised chips in a different order
+  each time. The order first shown now stays while the page is open (new chips go at the end).
+
+### Notes
+- Checked in the headset (2026-10-28): the left controller does everything the right one does;
+  switching tabs or minimizing Chrome leaves VR running as it was; the Captions button is
+  greyed out on a video without captions.
+
+## 0.101.38
+
+### Fixed
+- **"Material Color Utilities missing: keeping the default palette"** on the StreamXR
+  Dashboard's Test VR (in `chrome://extensions` → Errors): the Dashboard didn't load Google's
+  Material Color Utilities (`third_party/`), which the panels' Material 3 palette is made with,
+  so its VR panels fell back to the default colors. It now loads them first, as a site's page
+  does (the only script of that list it was missing).
+
+## 0.101.37
+
+### Removed
+- The toolbar popup's temporary "WebXR check (developer test)" link (0.101.27). The page
+  itself stays for developers: `chrome-extension://<id>/tools/xr-check/xr-check.html`.
+
+### Docs
+- **The README covers the StreamXR Dashboard**: Get started (the welcome when you install,
+  checking your setup with Test VR, choosing "Allow while visiting the site" when Chrome asks
+  to use VR devices), a "The StreamXR Dashboard" section, Quick troubleshooting from the
+  toolbar button, and Your privacy (the Dashboard and popup run on your PC, the background
+  script only opens the Dashboard once and the sites you pick, no new permissions).
+- `docs/whats-left.md`: the StreamXR Dashboard is done (Road to 1.0, item 11), its cross-page
+  VR hidden; `docs/Home-Page.md`: step 6 done.
+
+## 0.101.36
+
+### Changed
+- **Cross-page VR is hidden for now**: the Dashboard's "Enter VR when a site opens" switch
+  (sites just open), the toolbar popup's "Enter Dashboard in VR" and the Sites panel in the
+  Dashboard's VR. They work, but without the Skip Helper they need a key press or click on the
+  new page, too clumsy for users. One switch brings them back (`CROSS_PAGE_VR` in
+  `src/streamxr/home/home-ui.js`) once VR can carry over without the Skip Helper. Test VR and
+  everything else on the Dashboard stay.
+
+## 0.101.35
+
+### Changed
+- **StreamXR Home is now the StreamXR Dashboard** everywhere you see it: the page's title, its
+  name in VR (the controls panel, the Your setup panel), the toolbar popup, the layer on a site
+  opened from it ("Opened from the StreamXR Dashboard"), the README. The code and the docs
+  still call it Home.
+
+## 0.101.34
+
+### Added
+- **A Sites panel in Test VR on StreamXR Home** (the right side): each site with "Opens in VR";
+  picking one leaves Home's VR and opens the site, entering VR there (by itself with the
+  Skip Helper, on a key press or click without it). "More sites coming" in its corner.
+- **Enter Dashboard in VR** in the toolbar popup: opens StreamXR Home with a full-page
+  "Press any key or click anywhere to enter VR" (after "Getting VR ready…"); that input starts
+  VR on Home. Esc cancels.
+
+### Changed
+- The toolbar popup's **Open StreamXR Home** is now **Open StreamXR Dashboard**.
+- `home-ui.js` has `openSite(site, vr)`, shared by Home's rows, the popup and the Sites panel.
+
+## 0.101.33
+
+### Fixed
+- **The countdown showed without the Skip Helper** (a site opened from StreamXR Home): the
+  site always offers its helper's click, installed or not, so it counted down for a click
+  that couldn't come before asking for a key. It now asks the Skip Helper first
+  (`ns.siteHelper.available()`) and goes straight to "Press any key or click" without it.
+
+## 0.101.32
+
+### Changed
+- **"Starting VR in 3…2…1" before the Skip Helper clicks** (a site opened from StreamXR Home):
+  Esc there cancels cleanly (VR never starts); any other key or a click starts VR at once.
+
+### Fixed
+- **Esc right as VR started didn't leave VR** (0.101.31): when VR started first, the layer was
+  already gone and Esc did nothing. For 3 s after VR starts, Esc now leaves it again.
+
+## 0.101.31
+
+### Fixed
+- **No logo, or YouTube's plain logo instead of Premium, on the screen when VR started by
+  itself** (a site opened from StreamXR Home with the Skip Helper): VR started before the page
+  had drawn its logo, or while it still showed the plain one. The screen now looks at the
+  site's logo again 1.5, 4 and 8 s after VR starts and shows it if it changed.
+- **Esc on "Starting VR…" still entered VR**: the Skip Helper's click had already gone out. Esc
+  now also leaves VR again as soon as it starts.
+
+## 0.101.30
+
+### Fixed
+- **Opening a site from StreamXR Home didn't enter VR** (0.101.29): the background only
+  accepted the request from StreamXR pages outside a tab (the toolbar popup), so Home's (in a
+  tab) was turned away and a plain tab opened. It now accepts any page of StreamXR's own.
+- **Home's Test VR session kept running** in Home's tab when a site was opened from Home,
+  which stops the site from entering VR (one VR session at a time): it now ends first.
+
+## 0.101.29
+
+### Added
+- **Enter VR when a site opens** (StreamXR Home, step 5; `docs/Home-Page.md`): a switch in
+  Home's Sites (on by default). Opening a site from Home or the toolbar popup then goes
+  straight into VR there: by itself with the Skip Helper installed (its real click), or, without
+  it, a full-page **"Press any key or click anywhere to enter VR"** (any key press, e.g. the
+  space bar, or a click starts VR; Esc cancels). "Getting VR ready…" shows while the headset is
+  found. Home and the popup say which you'll get.
+- StreamXR's background now opens sites for Home and the popup and remembers, for that tab
+  only and for a minute, that VR is meant; a site's page asks it on load
+  (`src/streamxr/ui/auto-enter.js`, the shell's; the site gives its helper as
+  `ns.siteHelper`). Only StreamXR's own pages can ask, so no link or web page can start VR.
+  No new permission.
+
+### Removed
+- Test 2's address mark (`#streamxr-autovr`): any web page could link to it. Test 2 on the
+  developer check page now opens YouTube the way Home does.
+
+## 0.101.28
+
+### Fixed
+- For developers, Test 3 in `tools/xr-check/`: Start Test 3 kept keyboard focus, so a Space
+  pressed it again instead of reaching the test; and presses while VR was still running
+  re-armed the test (each then failing with "already an active XRSession"). Start now gives up
+  focus and does nothing once running, and only a press with no session running counts.
+
+### Notes
+- **Test 3 works** (0.101.26): the keyboard's space bar (or a click) starts VR again with no
+  Skip Helper, as long as the page has keyboard focus (lost after the SteamVR dashboard or
+  taking the headset off; a click brings it back). StreamXR Home's step 5 uses it for people
+  without the Skip Helper: a "Press any key or click anywhere to enter VR" layer
+  (`docs/Home-Page.md`, `docs/hardware.md`).
+
+## 0.101.27
+
+### Added
+- **TEMPORARY: a "WebXR check (developer test)" link** at the bottom of the toolbar popup,
+  opening `tools/xr-check/` in a new tab (there was no way to reach it). To remove before the
+  release (`docs/Home-Page.md`, step 6).
+
+## 0.101.26
+
+### Added
+- For developers: **Test 3 in `tools/xr-check/`**: can a real key press (e.g. a Steam Frame
+  controller button mapped to a keyboard key in Steam Input) start VR again from inside the
+  headset, with no Skip Helper? After each session ends, the page waits for any key press or
+  click and enters VR right inside it; it logs what arrived, keys pressed while in VR, and the
+  page's focus. Chrome has no WebXR in-VR navigation (`sessiongranted`: `false` in the
+  maintainer's Chrome 156), so this is the Skip-Helper-free route to check first.
+
+### Notes
+- StreamXR Home's step 4 (Test VR, with Settings and the grab bar fix) works in the headset.
+
+## 0.101.25
+
+### Added
+- **Settings in Test VR on StreamXR Home**: the controls panel's Settings pill (it was
+  missing: Settings is a site's panel), with the shell's own tabs: 2D Cinema, Appearance,
+  Safe zone, Auto-hide, Laser, Keyboard and Language (a site's Settings adds its own, e.g.
+  YouTube's Playback and Audio).
+
+### Fixed
+- **The grab bar's handle stuck out of a short toolbar's grab bar** (a side with one panel,
+  as on Home): the handle is now shorter on a short grab bar, inside it with room at each end.
+
+## 0.101.24
+
+### Added
+- **Test VR on StreamXR Home** (step 4; `docs/Home-Page.md`): a red **Test VR** button under
+  the headset's status (usable once a headset is found; Exit VR while in VR) enters VR right
+  on Home with the real StreamXR shell: StreamXR's logo on the screen, the controls panel
+  saying your setup works, and a **Your setup** side panel with what to try and what to do
+  next. A failure says why, opens Quick troubleshooting and goes into Copy details. Home's
+  VR settings are its own (an extension page keeps its own storage).
+- For other sites and BrowseXR: the shell now also runs on a page that isn't a site, with
+  Home's own provider (`src/streamxr/home/home-provider.js`); nothing in the shell changed.
+
+## 0.101.23
+
+### Added
+- **StreamXR Home** (step 3; `docs/Home-Page.md`): a page of StreamXR's own, on the desktop:
+  the headset's status and Quick troubleshooting (with Copy details), the sites (Open
+  YouTube), and the version. Material 3 Expressive like the popup, a fixed-width card.
+- **A first-run welcome**: Home opens once when StreamXR is installed (not on updates or
+  reloads), with three steps (start SteamVR, wait for Headset ready, open a site and press
+  its VR button, choosing Allow when Chrome asks); "Got it" puts it away. A small background
+  script does it; no permission.
+- **Open StreamXR Home** in the toolbar popup.
+
+### Changed
+- The toolbar popup and Home share their pieces (`src/streamxr/home/home-ui.js` and
+  `home-ui.css`): the status line, the sites' rows, Quick troubleshooting.
+
+## 0.101.22
+
+### Changed
+- **The toolbar popup says "Looking for a headset…" first**: a newly opened page doesn't
+  see the headset for a few seconds (Chrome answers "none", then reports its VR devices
+  changed), so it said "No headset found" with Quick troubleshooting open before turning
+  green. Now "no headset" only counts once Chrome has reported in, or after 8 s; meanwhile
+  the status is neutral, troubleshooting stays folded, and it checks every 0.5 s.
+- **Sites show their own icon** in the toolbar popup (YouTube's, on a light tile), loaded
+  from the site itself, not copied into StreamXR; the plain mark on the site's color shows
+  if it can't load. A site's entry names its icon (`icon`).
+
+## 0.101.21
+
+### Added
+- **A popup on StreamXR's toolbar button** (StreamXR Home, step 2; `docs/Home-Page.md`): the
+  headset's status ("Headset ready", or what's wrong), **Open YouTube** (a new tab), a plain
+  "More sites coming", and **Quick troubleshooting** folded, opened by itself when something's
+  wrong, with its Copy details. It checks the headset itself, again every 2 s while open.
+  No new permission (`manifest.json` `action` popup; `chrome.tabs.create`). Its Open StreamXR
+  Home button comes with Home (step 3).
+- For other sites: `ns.homeSites` (`src/streamxr/home/sites.js`), where each site adds its
+  entry (name, address, color) from `src/sites/<site>/home/site.js`, so Home and the popup
+  never name a site.
+
+## 0.101.20
+
+### Changed
+- **StreamXR Home, step 1** (the plan: `docs/Home-Page.md`): Quick troubleshooting and Copy
+  details moved from the popup's code into a shared file, `src/streamxr/ui/troubleshoot.js`,
+  for the toolbar popup and StreamXR Home to use too. Nothing visible changes (the popup's
+  HTML compared identical before and after from the same mock data).
+
+### Docs
+- **StreamXR Home is a 1.0 item**: the agreed plan in `docs/Home-Page.md`, the decisions in
+  `docs/design-choices.md`, and Road to 1.0's new item 11 in `docs/whats-left.md`.
+
+## 0.101.19
+
+### Fixed
+- **Copy details' `gpus` on Windows**: Chrome there ignores WebGPU's "high-performance" /
+  "low-power" choice (it warned in the console every check and always reported one card),
+  so the two-card check couldn't work and Quick troubleshooting hid its graphics card hint.
+  It's no longer asked on Windows (`gpus` says why); the hint goes back to guessing a
+  built-in card from its name.
+
+### Notes
+- Test 2 (0.101.18) works: VR started by itself on a YouTube tab opened from the check
+  page, 0.6 s after the headset was found, through the Skip Helper's real click
+  (`docs/hardware.md`).
+
+## 0.101.18 (Skip Helper 1.4.0)
+
+### Added
+- For developers: **Test 2 in `tools/xr-check/`**: can VR start on a page opened from
+  elsewhere with no click of yours? "Open YouTube and start VR" opens YouTube's home page
+  marked `#streamxr-autovr`; StreamXR then puts a see-through Enter VR target on the page
+  and asks the Skip Helper to click it for real (VR only starts from real input). Results in
+  the console's "[streamxr] auto Enter VR" lines and Details' `lastStart`. Nothing happens
+  without the mark.
+- **Skip Helper 1.4.0** can press one more thing, still only in YouTube tabs and only when
+  StreamXR asks: StreamXR's own Enter VR target (`#streamxr-autoenter`), found by itself,
+  no coordinates taken.
+
+## 0.101.17
+
+### Added
+- For developers: **`tools/xr-check/`**, a test page the extension owns
+  (`chrome-extension://<id>/tools/xr-check/xr-check.html`) that checks whether WebXR works on
+  an extension page: what the page can see, then Enter VR into a plain changing color, and
+  how the session started and ended (a one-line outcome, and Copy results). The first check
+  toward a StreamXR Home page; nothing users see changes. Styled like the popup (Material 3
+  Expressive: its color roles, dark or light with the system, a 28 px card, pill buttons with
+  hover and press states) and following Android's desktop design principles (a fixed-width
+  card, buttons at their own width, a visible focus ring, Enter VR focused first).
+
 ## 0.101.16
 
 The release after v0.101.7: everything from 0.101.8 to here (help for a headset that isn't

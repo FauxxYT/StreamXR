@@ -98,7 +98,7 @@
   const tr = (key, vars) => ns.i18n.t(key, vars);   // words in the interface language (i18n.js)
 
   // Which icon a format gets on the Format button.
-  const FORMAT_ICONS = { flat: '2d_2', flatsbs: '3d_2', '360mono': '360', '360eac': 'view_in_ar', '180mono': 'panorama_photosphere', '180sbs': '3d_rotation' };
+  const FORMAT_ICONS = { flat: '2d_2', flatsbs: '3d_2', flattb: '3d_2', '360mono': '360', '360eac': 'view_in_ar', '180mono': 'panorama_photosphere', '180sbs': '3d_rotation' };
   // The speaker for a volume (0-100) / muted.
   const volumeIcon = v => (v.muted ? 'volume_off' : v.level <= 0 ? 'volume_mute' : v.level < 50 ? 'volume_down' : 'volume_up');
 
