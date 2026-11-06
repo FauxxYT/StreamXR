@@ -549,8 +549,21 @@
         const pillUp = orbiters.pill ? halfDeg(pillButtonH() - dp(12)) * 2 : 0;
         const full = metres(topPanel.style.canvas), room = z.top - z.bottom - GAP * 2 - pillUp, roomW = z.right - z.left - GAP * 2;
         const k = Math.min(1, room / (halfDeg(full[1]) * 2), roomW / (halfDeg(full[0]) * 2));
-        topPanel.size = [full[0] * k, full[1] * k];
-        topPanel.pose = facing(Z.point(0, z.top - GAP - halfDeg(topPanel.size[1]), D), eye);
+        const sized = [full[0] * k, full[1] * k];
+        // Behind the controls panel's popup (Settings): it rises in the controls panel's plane,
+        // which is tilted back to face you from below, so its top edge ends up farther than D
+        // and would cut into a panel at D. The top panel goes just behind that edge (at least
+        // D), made as much bigger so it looks the same size from where you are.
+        let r = D;
+        if (popupPanel && orbiters.pill) {
+          const pm = popupModel(popupPanel), [pw, ph] = popupPanel.size;
+          for (const x of [-pw / 2, 0, pw / 2]) {
+            const c = M.transformPoint(pm, [x, ph / 2, 0]);
+            r = Math.max(r, Math.hypot(c[0] - eye[0], c[1] - eye[1], c[2] - eye[2]) + dp(24));
+          }
+        }
+        topPanel.size = [sized[0] * r / D, sized[1] * r / D];
+        topPanel.pose = facing(Z.point(0, z.top - GAP - halfDeg(sized[1]), r), eye);
       }
       laidOut = Z.zone.version;
     }
@@ -1365,7 +1378,9 @@
       if (V < 0.01 && !staying) return;
       const K = Math.min(1, Math.max(0, anim.kb.get())), vRaw = anim.vis.get(), kRaw = anim.kb.get();
       gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL);
-      gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      // (Blended so the frame's alpha only ever rises: a passthrough session shows the room by
+      // that alpha, so a glass panel over the solid video must not let the room through.)
+      gl.enable(gl.BLEND); gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
       // What to draw: [pass, model, size, backdrop, alpha], the controls panel / keyboard
       // scaled about their centre, the panels about the point they grow from; the panels
       // before the orbiters on them.

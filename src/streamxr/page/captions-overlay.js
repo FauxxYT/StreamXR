@@ -73,6 +73,7 @@
       gl.bindTexture(gl.TEXTURE_2D, tex);
       gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+      G.canvasMipmaps(gl);                              // smooth text when shown smaller than its pixels
     }
 
     // 180°/360°: the anchor `below` degrees under the horizon, in the direction it faces: that
@@ -127,7 +128,7 @@
         gl.uniformMatrix4fv(U.view, false, view.transform.inverse.matrix);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
       }
-      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
       gl.disable(gl.BLEND);
       vaos.bind(null);
     }

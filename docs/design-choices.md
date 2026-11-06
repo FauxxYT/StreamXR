@@ -39,7 +39,9 @@ even where they look like something to "fix".
   the VR keyboard in the controls panel's place
   (searching puts it away again, unless you brought it up yourself with B); suggestions
   drop down from the bar while typing; the results open in a **middle panel** under the
-  bar, inside the zone (shrunk if the zone is too short for it), and go away when the bar
+  bar, inside the zone (shrunk if the zone is too short for it; set back just behind the
+  Settings popup's top edge so the two never cut into each other: the maintainer, 2026-11-06),
+  and go away when the bar
   is cleared (×, which also stops typing). A trigger click on nothing (no panel, button or
   handle) lets go of what was last clicked: typing stops (the keyboard goes if it came up
   by itself) and an open controls-panel menu closes (0.66.1).
@@ -272,10 +274,26 @@ even where they look like something to "fix".
   show in English. Separate from the keyboard's language (Settings → Keyboard).
 - The Settings panel's tab row has no format text in its corner: the current format shows as
   the 2D Cinema tab's note ("Now: 360°"), and on the controls panel's Format button.
-- **Passthrough** (seeing your room around the video) is a choice in the popup, off by
-  default and remembered, because the session type is picked when you press Enter VR. It's
-  greyed out with the reason while the browser doesn't offer it (today, on desktop Chrome
-  with SteamVR).
+- **Passthrough** (seeing your room around the video; the maintainer, 2026-11-06): off by
+  default and remembered, switched in the popup ("See your room", before VR) or in VR with
+  Settings → Appearance → **Passthrough** (after Panel size; any format), one setting for both.
+  Wherever the browser offers a see-through session (the Steam Frame's own browser), StreamXR
+  always starts one, so the switch works at any time; switched off, the frame is drawn opaque,
+  just like VR. Where it isn't offered (desktop Chrome with SteamVR), the popup's checkbox is
+  greyed out with the reason and the rows don't show in VR.
+- **Text sharpness** (the maintainer, 2026-11-06): Settings → Appearance, after Panel size, a
+  slider from 0% (smooth: plain mipmaps) to 100% (one mipmap level sharper plus an equal
+  edge sharpening), default 50% (also the best at the Frame's 3408, 2026-11-06), in 10% steps. It's for the panels' text where the headset
+  shows them with fewer pixels than they have (the Steam Frame's own browser); too high can
+  shimmer. (The earlier Sharpness, the drawing size, was dropped: browsers cap it.)
+- **Passthrough strength** (the maintainer, 2026-11-06; "Your room" in 2D Cinema in 0.102.4):
+  under the switch, a slider sets how much of the room shows, from 0% (hidden) to 100%
+  (fully, the default), in 5% steps, dimmed while the switch is off. Remembered; the global
+  reset turns passthrough off and the strength back to 100%.
+- **Through the video** (the maintainer, 2026-11-06): under Strength, how much of the room shows
+  through the video itself, from 0% (**solid**, the default: a clear picture) to 100% (as much
+  as around it), in 5% steps, dimmed while passthrough is off. The cinema screen only: 360° and
+  VR180 videos are always solid. Remembered; the global reset puts it back to solid.
 - **The popup** closes itself once VR has started (opened again during VR, its button is
   Exit VR); if VR can't start it stays open and says why. Enter VR and Exit VR are both
   YouTube red (the popup's most important button). The controller help is folded into a

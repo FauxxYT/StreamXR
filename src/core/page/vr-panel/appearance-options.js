@@ -1,7 +1,8 @@
 // The "Appearance" settings tab, which belongs to the shell (the panels' look is the shell's,
 // whatever the site): the colour theme (one of the site's themes), the glass look on or off,
 // and its tint (how much of the surface colour covers the blurred video behind a panel), with
-// a Default button; the panel size (80-130%); the controllers' vibration on or off (greyed out,
+// a Default button; the panel size (80-130%); the text sharpness (0-100%); Passthrough on / off and its strength (your room around the video, only
+// where the browser offers passthrough); the controllers' vibration on or off (greyed out,
 // with a note, while no controller can vibrate); all
 // remembered. The glass lives in tokens.js (ns.vrTokens.glass), which
 // every panel draws from; each change (a theme too) bumps its `version`, so every panel
@@ -10,7 +11,10 @@
 //   ns.vrAppearanceOptions.content() -> the Options style's 'rows' content
 //   ns.vrAppearanceOptions.event(ev) -> true if it was one of this tab's controls
 //     ('prev:theme' / 'next:theme', 'switch:glass', 'slider:tint', 'default:tint',
-//     'slider:size', 'default:size', 'switch:haptics')
+//     'slider:size', 'default:size', 'slider:sharpness', 'default:sharpness', 'switch:passthroughOn', 'slider:passthrough', 'default:passthrough', 'slider:passthroughVideo', 'switch:haptics')
+//   ns.vrAppearanceOptions.passthroughOn() / passthrough() / passthroughVideo() -> the switch, how much
+//     of the room shows (0..1), and how much of it shows through the video (0: solid)
+//   ns.vrAppearanceOptions.setPassthroughSession({ offered } | null) -> from the VR session
 //   ns.vrAppearanceOptions.scale() -> the panel size (1 = the layout's own); sizeVersion()
 //     bumps when it changes
 //   ns.vrAppearanceOptions.haptics() -> true while the controllers may vibrate
@@ -101,6 +105,74 @@
   const sizeFraction = s => (s - SIZE.min) / (SIZE.max - SIZE.min);
   const canVibrate = () => !!(ns.diagnostics && ns.diagnostics.canVibrate());   // a controller seen so far can vibrate
 
+  // ------------------------------------------------------------ sharpness
+  // How crisp the panels' text is (0..1, in 10% steps): panel-pass.js reads sharpness() each
+  // draw and samples the canvases up to one mipmap level sharper, with as much edge
+  // sharpening. 0: smooth (plain mipmaps, softer where a headset shows the panels with fewer
+  // pixels than they have); higher: crisper, and at the top text can shimmer again.
+  const SHARP_KEY = 'textSharpness', SHARP_DEF = 0.5;   // remembered (storage.js name)
+  let sharp = SHARP_DEF;
+  function loadSharp() {
+    const v = parseFloat(ns.storage.get(SHARP_KEY));
+    sharp = v >= 0 && v <= 1 ? v : SHARP_DEF;
+  }
+  function setSharp(v) {
+    sharp = Math.min(1, Math.max(0, Math.round(v * 10) / 10));
+    if (sharp === SHARP_DEF) ns.storage.remove(SHARP_KEY); else ns.storage.set(SHARP_KEY, String(sharp));
+  }
+  loadSharp();
+
+  // ------------------------------------------------------------ passthrough
+  // Passthrough on / off (your room around the video, any format) and its strength: how much
+  // of the room shows, 0 (hidden) .. 1 (fully, the default), in 5% steps. Both rows show only
+  // in a see-through session: the VR session (xr-session.js) asks for one wherever the
+  // browser offers it and says so with setPassthroughSession({ offered }); it reads
+  // passthroughOn() and passthrough() each frame. The switch is the same remembered setting
+  // as the site popup's "See your room" checkbox ('passthrough': '1' / '0').
+  // Through the video: how much of that room shows through the video itself, 0 (solid, the
+  // default: a clear picture) .. 1 (as much as around it), in 5% steps; passthroughVideo().
+  const PASS_KEY = 'passthroughAmount', ON_KEY = 'passthrough', VIDEO_KEY = 'passthroughVideo';   // remembered (storage.js names)
+  let pass = 1, passOn = false, passVideo = 0, passSession = null;   // passSession: { offered } during VR, else null
+  function loadPass() {
+    const v = parseFloat(ns.storage.get(PASS_KEY));
+    pass = v >= 0 && v <= 1 ? v : 1;
+    passOn = ns.storage.get(ON_KEY) === '1';
+    const w = parseFloat(ns.storage.get(VIDEO_KEY));
+    passVideo = w >= 0 && w <= 1 ? w : 0;
+  }
+  function setPassVideo(v) {
+    passVideo = Math.min(1, Math.max(0, Math.round(v * 20) / 20));
+    if (passVideo === 0) ns.storage.remove(VIDEO_KEY); else ns.storage.set(VIDEO_KEY, String(passVideo));
+  }
+  function setPassOn(on) {
+    passOn = !!on;
+    ns.storage.set(ON_KEY, passOn ? '1' : '0');
+  }
+  loadPass();
+  function setPass(v) {
+    pass = Math.min(1, Math.max(0, Math.round(v * 20) / 20));
+    if (pass === 1) ns.storage.remove(PASS_KEY); else ns.storage.set(PASS_KEY, String(pass));
+  }
+  function setPassthroughSession(s) {
+    passSession = s ? { offered: !!s.offered } : null;
+    G.version++;
+  }
+  // The Passthrough switch and its Strength slider (dimmed while it's off), or nothing while
+  // this session can't show the room.
+  function passRows() {
+    if (!passSession || !passSession.offered) return [];
+    return [
+      { label: tr('appearance.passthrough'), hint: tr('appearance.passthroughSwitchHint'),
+        control: { type: 'switch', id: 'passthroughOn', on: passOn } },
+      { label: tr('appearance.passthroughAmount'), hint: tr('appearance.passthroughHint'), dim: !passOn,
+        control: { type: 'slider', id: 'passthrough', fraction: pass, text: `${Math.round(pass * 100)}%`, enabled: passOn,
+          defaultButton: true, ends: [tr('appearance.passthroughHidden'), tr('appearance.passthroughShown')] } },
+      { label: tr('appearance.passthroughVideo'), hint: tr('appearance.passthroughVideoHint'), dim: !passOn,
+        control: { type: 'slider', id: 'passthroughVideo', fraction: passVideo, text: `${Math.round(passVideo * 100)}%`, enabled: passOn,
+          defaultButton: true, ends: [tr('appearance.passthroughSolid'), tr('appearance.passthroughSeeThrough')] } },
+    ];
+  }
+
   // The slider's position (0..1) for a tint, and back.
   const fractionOf = tint => (tint - TINT.min) / (TINT.max - TINT.min);
   const tintAt = f => TINT.min + f * (TINT.max - TINT.min);
@@ -117,6 +189,10 @@
             enabled: G.on, defaultButton: true, ends: [tr('appearance.clearer'), tr('appearance.darker')] } },
         { label: tr('appearance.size'), hint: tr('appearance.sizeHint'),
           control: { type: 'slider', id: 'size', fraction: sizeFraction(scale), text: `${Math.round(scale * 100)}%`, enabled: true, defaultButton: true } },
+        { label: tr('appearance.sharpness'), hint: tr('appearance.sharpnessHint'),
+          control: { type: 'slider', id: 'sharpness', fraction: sharp, text: `${Math.round(sharp * 100)}%`, enabled: true,
+            defaultButton: true, ends: [tr('appearance.smoother'), tr('appearance.sharper')] } },
+        ...passRows(),
         // (greyed out and off, saying why, while no controller can vibrate: diagnostics.js canVibrate)
         canVibrate()
           ? { label: tr('appearance.haptics'), hint: tr('appearance.hapticsHint'), control: { type: 'switch', id: 'haptics', on: haptics } }
@@ -132,6 +208,13 @@
     else if (ev.type === 'default' && ev.value === 'tint') set({ tint: G.DEFAULT_TINT });
     else if (ev.type === 'slider' && ev.value === 'size') setScale(SIZE.min + ev.fraction * (SIZE.max - SIZE.min));
     else if (ev.type === 'default' && ev.value === 'size') setScale(SIZE.def);
+    else if (ev.type === 'slider' && ev.value === 'sharpness') setSharp(ev.fraction);
+    else if (ev.type === 'default' && ev.value === 'sharpness') setSharp(SHARP_DEF);
+    else if (ev.type === 'switch' && ev.value === 'passthroughOn') { if (passSession && passSession.offered) setPassOn(!passOn); }
+    else if (ev.type === 'slider' && ev.value === 'passthrough') { if (passOn) setPass(ev.fraction); }
+    else if (ev.type === 'default' && ev.value === 'passthrough') setPass(1);
+    else if (ev.type === 'slider' && ev.value === 'passthroughVideo') { if (passOn) setPassVideo(ev.fraction); }
+    else if (ev.type === 'default' && ev.value === 'passthroughVideo') setPassVideo(0);
     else if (ev.type === 'switch' && ev.value === 'haptics' && canVibrate()) setHaptics(!haptics);
     else return false;
     return true;
@@ -142,13 +225,14 @@
   function reset() {
     G.on = true; G.tint = G.DEFAULT_TINT; ns.storage.remove(KEY);
     ns.storage.remove(THEME_KEY); if (themes.length) applyTheme(themes[0]);
-    setScale(SIZE.def); setHaptics(true);
+    setScale(SIZE.def); setHaptics(true); setSharp(SHARP_DEF); setPass(1); setPassVideo(0); passOn = false; ns.storage.remove(ON_KEY);
     G.version++;
   }
 
   ns.vrAppearanceOptions = {
-    content, event, reset, useSite,
-    load: () => { load(); loadFeel(); },
+    content, event, reset, useSite, setPassthroughSession,
+    load: () => { load(); loadFeel(); loadPass(); loadSharp(); },
     scale: () => scale, sizeVersion: () => sizeVer, haptics: () => haptics,
+    passthrough: () => pass, passthroughOn: () => passOn, passthroughVideo: () => passVideo, sharpness: () => sharp,
   };
 })(globalThis.__streamxr = globalThis.__streamxr || {});

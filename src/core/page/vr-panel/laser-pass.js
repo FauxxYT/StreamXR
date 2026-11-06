@@ -62,7 +62,7 @@
       gl.uniformMatrix4fv(U.proj, false, view.projectionMatrix);
       gl.uniformMatrix4fv(U.view, false, view.transform.inverse.matrix);
       gl.uniform3fv(U.color, cfg.color);
-      gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      gl.enable(gl.BLEND); gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
       gl.depthMask(false);                 // translucent: don't hide things drawn behind it
       vaos.bind(vao);
 

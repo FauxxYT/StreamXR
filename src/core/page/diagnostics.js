@@ -70,6 +70,9 @@
           fov,
           fovTotal: { horizontal: round(fov.left + fov.right), vertical: round(fov.up + fov.down) },
           renderSize: `${vp.width}x${vp.height}`,
+          // Pixels per degree across the middle of the view: what limits how sharp the panels'
+          // text can be (they're drawn at layout.pxPerDegree, 26; fewer here means shrunk).
+          pxPerDegree: round(vp.width / Math.max(1, fov.left + fov.right)),
         };
       }
       const out = { views: views.length, eyes };
@@ -89,6 +92,10 @@
       }
       if (session.environmentBlendMode) out.blendMode = session.environmentBlendMode;
       if (session.enabledFeatures) out.enabledFeatures = [...session.enabledFeatures];
+      // WebXR layers: panels the headset draws itself at its display's full sharpness, instead
+      // of in the page's picture. layersApi: the browser has the functions; whether this
+      // session may use them is 'layers' in enabledFeatures (xr-session.js asks for it).
+      out.layersApi = typeof XRWebGLBinding !== 'undefined' && typeof XRWebGLBinding.prototype.createQuadLayer === 'function';
       headset = out;
     } catch (err) {
       headset = { error: String(err) };
@@ -143,6 +150,12 @@
     const at = new Date().toISOString();
     lastStart = err ? { ok: false, name: err.name || 'Error', message: err.message || String(err), step: err.streamxrStep || 'setup', at } : { ok: true, at };
   }
+  // How the last VR session ended: { why (e.g. "Exit VR in VR", "video frame: ...", "ended by
+  // the browser or headset"), frames (drawn), seconds (it lasted), at }; 'none yet' before.
+  // A session that ends at once with few frames, by the browser or headset, points away from
+  // StreamXR's own code.
+  let lastEnd = 'none yet';
+  function noteEnd(e) { lastEnd = { ...e, at: new Date().toISOString() }; }
 
   // The browser's "VR devices changed" event (a headset or runtime appearing or going): how
   // many times it came since the page loaded, and when last.
@@ -276,6 +289,7 @@
       // the headset's own blend mode in a VR session is `headset.blendMode`.
       try { passthrough = { immersiveAr: await navigator.xr.isSessionSupported('immersive-ar') }; }
       catch (err) { passthrough = { immersiveAr: `${err.name}: ${err.message}` }; }
+      arKnown = passthrough.immersiveAr === true;
       if (!xrError) noteFound(!!headsetFound);
     }
     const notYet = 'none seen yet (enter VR first)';
@@ -284,7 +298,7 @@
     return {
       webxrAllowedHere, headsetFound, xrError, passthrough, checkedFrom: 'page',
       browser: await browser(), gpu: gpu(), gpus: gpus(), xrNative: xrNative(),
-      lastStart, deviceChanges: { ...deviceChanges },
+      lastStart, lastEnd, deviceChanges: { ...deviceChanges },
       timeline: { firstCheck: timeline.firstCheck, foundAfter: timeline.foundAfter, lostAfter: timeline.lostAfter },
       warnings: warnings.slice(),
       headset: headset || (headsetFound ? notYet : noRuntime),
@@ -293,5 +307,12 @@
     };
   }
 
-  ns.diagnostics = { noteController, noteBuzz, canVibrate, noteHeadset, noteStart, check };
+  // Whether the last check found passthrough offered (true / false), or null before any check.
+  // Read when VR starts (xr-session.js), so Enter VR doesn't have to ask the browser first:
+  // asking can take long enough on a headset's first query that the click no longer counts
+  // as one, and the browser then refuses to start VR.
+  let arKnown = null;
+  const arOffered = () => arKnown;
+
+  ns.diagnostics = { noteController, noteBuzz, canVibrate, noteHeadset, noteStart, noteEnd, check, arOffered };
 })(globalThis.__streamxr = globalThis.__streamxr || {});

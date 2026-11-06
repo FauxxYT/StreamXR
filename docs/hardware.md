@@ -61,9 +61,50 @@ Steam Frame with SteamVR, desktop Chrome). For supporting other hardware, see th
 - **Streaming with no game:** the Frame is ready for WebXR once it streams SteamVR itself: in
   the headset, **Streaming Status** → the PC running SteamVR → **Advanced** → **Stream VR
   without game**.
-- **The Frame's own browser:** its built-in Chromium browser has no WebXR yet, so StreamXR runs
-  from desktop Chrome on the PC. Once it gets WebXR, StreamXR will be updated to run there
-  natively (README roadmap, "as soon as it's possible").
+- **The Frame's desktop** (2026-11-06): right-click is a click of the right stick. Chromium's
+  Load unpacked file picker shows only folders, so a downloaded `.zip` / `.tar.gz` must be
+  unpacked first (the file manager had no Extract entry; `tar` / `bsdtar` in Konsole work).
+- **The Frame's own browser: StreamXR works there** (checked by the maintainer, 2026-11-06).
+  SteamOS 0.5.7 (beta) enabled WebXR in the Frame's Chromium Flatpak from Chromium 157
+  (`flatpak update org.chromium.Chromium`; the Flatpak lagged a few days behind Chromium's
+  stable release). StreamXR installs there as on a PC (Load unpacked; the release's tar.gz
+  unpacked with `tar` in Konsole, kept in `~/Downloads/StreamXR`, which the Flatpak can read)
+  and runs unchanged, no PC or SteamVR streaming. Its drawing size is capped too:
+  `nativeScale` is 1 there as on a PC (Copy details), so a page can't draw more pixels.
+  The video looked fine but the panels' text was very aliased: the browser draws fewer pixels
+  per degree than the panels' 26 (`layout.pxPerDegree`), so each canvas was shrunk with plain
+  filtering. Panels and captions have mipmaps and anisotropic filtering since 0.102.2; that
+  made the text slightly more readable but blurry, so Settings → Appearance → Text sharpness
+  (0.102.7, default 50%) reads the panels up to one mipmap level sharper with an equal
+  unsharp mask (panel-pass.js uSharp). It helps, but the sharper the more it shimmers, and
+  streamed from a PC the text is far clearer (2026-11-06): the Frame's own browser likely draws
+  fewer pixels per eye. Copy details now shows each eye's `pxPerDegree` and `layersApi` (and
+  `enabledFeatures` says whether `layers` was granted: 0.102.8 asks for it) to compare the two
+  and to see whether WebXR layers (panels drawn by the headset at full sharpness) are possible.
+  **The answer (Copy details, 0.102.8, Chromium 157.0.8103.38, 2026-11-06):** each eye is
+  **2048×2640** (framebuffer 4096×2640, `nativeScale` 1) over a 109.5° × 109.4° view: 18.7 px
+  per degree across but 24.1 up and down (streamed from a PC: 2644×2644 per eye, ~24 px/° both
+  ways). **The width is a setting:** the Frame's VR video settings for Chromium (the Steam button while in
+  VR) have a per-eye resolution, 1728 by default; the maintainer had raised it to about 2000,
+  which gave the 2048. At 1728 the panels (26 px/°) are shrunk about 1.65× across, the
+  direction letters' vertical strokes need: no filter can bring that detail back. Raised to
+  2640 the text still shimmers; at the maximum, **3408**, it looks closest to streamed (the
+  maintainer, 2026-11-06), so the README's Frame steps say to set it there. (At 1728:
+  `pxPerDegree` 15.8, framebuffer 3456×1728.) `layersApi` is true but `layers` wasn't
+  granted (`enabledFeatures`: local, viewer, local-floor), and chrome://flags lists **WebXR
+  Layers as unavailable** there (also WebXR/WebGPU binding, plane and mesh detection;
+  available: WebXR Incubations, the WebXR Internals page, Force WebXR Runtime, hand
+  anonymization). GPU: Adreno 750 ("FD750") through ANGLE on OpenGL ES 3.2; `blendMode`
+  alpha-blend in passthrough sessions.
+  **Entering VR again on the same page:** the browser or headset closes every new session
+  after the page's first, before its first frame (0.4 s in; Copy details' `lastEnd`), and asking
+  again at once gets NotSupportedError while it shuts down. Asking again after short waits
+  (0.3 to 1.1 s, inside the 5 s a click counts for) works: VR starts on the first click, a
+  second or two later (0.102.11, checked 2026-11-06). The Dashboard's Test VR never showed it.
+  **Videos there:** 4K at 60 fps plays well; 8K stutters a little (the Frame's chip decoding 8K
+  while drawing two 3408-wide eyes; the maintainer, 2026-11-06: expected). Text sharpness's
+  default, 50%, is the maintainer's pick at 3408.
+  Earlier notes:
   - **Signs it's coming (2026-11-02):** Valve appears to be working on WebXR for that browser
     ("Enable support for WebXR via flatpak overrides and launch options", spotted by a VR
     journalist on X), and SteamVR 2.19.1 lets OpenXR runtimes run inside Flatpak and other
@@ -108,7 +149,20 @@ Steam Frame with SteamVR, desktop Chrome). For supporting other hardware, see th
   them).
 - Controller profiles reported (0.49.1): `oculus-touch`, `generic-trigger-squeeze-thumbstick`
   (`xr-standard` mapping, 7 buttons, 4 axes).
-- **No camera passthrough through WebXR** (checked in 0.49.1 with the Arcturus Vision color
+- **Passthrough works in the Frame's own browser** (checked by the maintainer, 2026-11-06,
+  Chromium 157): the popup's "See your room" switch is offered there (`immersive-ar`), and the
+  session shows the room where nothing is drawn. Since 0.102.6 StreamXR always starts a
+  see-through session where one is offered: Settings → Appearance → Passthrough switches the
+  room on and off in VR (off: the frame is cleared opaque, as in VR), and its Strength clears
+  the frame to black at 1 − its value, so the headset blends the room in at that strength.
+  The cinema screen sets the frame's alpha where it's drawn (blendColor + CONSTANT_ALPHA):
+  1 (solid) by default, or down to the room's own amount with Through the video (0.103.0); the
+  sphere (360° / VR180) always writes alpha 1. Before, the video left the alpha alone, so the
+  room showed through it at the Strength.
+  Not checked yet: whether a see-through session costs anything with passthrough off
+  (frame rate, the cameras' power), and: the session's `environmentBlendMode`
+  (Copy details: `blendMode`), and whether the glass panels' tint looks right over the room.
+- **From a PC, no camera passthrough through WebXR** (checked in 0.49.1 with the Arcturus Vision color
   camera module attached): `isSessionSupported('immersive-ar')` is false and a VR session's
   `environmentBlendMode` is `opaque`. SteamVR's own Room View still works over anything.
   (Desktop Chrome doesn't enable OpenXR AR by default, and SteamVR exposes no passthrough to
@@ -121,7 +175,8 @@ Steam Frame with SteamVR, desktop Chrome). For supporting other hardware, see th
   size is 2644×2644 per eye (5288×2644 both) on the maintainer's Frame, and
   `getNativeFramebufferScaleFactor` is 1: asking for more (`framebufferScaleFactor` 1.5) drew
   exactly the same, so Chrome caps it there. More pixels only through SteamVR → Settings →
-  Video → Render Resolution (the Frame's stream may still limit what shows).
+  Video → Render Resolution (the Frame's stream may still limit what shows). The Steam Frame's
+  own browser is capped the same way (`nativeScale` 1, 2026-11-06).
 - **No hand tracking through WebXR** (checked 2026-10-28): with the controllers down and the
   hands held up in VR, nothing happens. StreamXR is built for the controllers and doesn't use
   hand input; whether Chrome offers the Frame's hands to web pages at all (WebXR's
