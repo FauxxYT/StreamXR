@@ -56,9 +56,9 @@
     else if (d.xrError) out = issue('trouble.xrError', { error: d.xrError });
     // No headset: never seen since the page loaded (no runtime at all), or seen then gone.
     else if (!d.headsetFound) out = issue((d.timeline && d.timeline.foundAfter != null) || (d.deviceChanges && d.deviceChanges.count > 0) ? 'trouble.lost' : 'trouble.noRuntime');
-    // Found, but the last Enter VR failed: by the error's kind.
-    else if (failed && last.name === 'InvalidStateError') out = issue('trouble.busy');
-    else if (failed && last.name === 'NotSupportedError') out = issue('trouble.lost');
+    // Found, but the last Enter VR failed: by the error's kind. (Chrome answers NotSupportedError
+    // too while another tab is already in VR: one session at a time.)
+    else if (failed && (last.name === 'InvalidStateError' || last.name === 'NotSupportedError')) out = issue('trouble.busy');
     else if (failed && /^(SecurityError|NotAllowedError)$/.test(last.name)) out = issue('trouble.blockedStart');
     else if (failed) out = issue('trouble.failed', { error: `${last.name}: ${last.message}` });
     else out = { text: t(last ? 'trouble.okStarted' : 'trouble.ok'), problem: false };

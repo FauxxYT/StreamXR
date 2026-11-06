@@ -5,7 +5,8 @@
 //
 //   const motion = ns.vrMotion.create();
 //   ui = motion.step(ui)      at the start of a draw: steps every control's springs towards
-//                             ui.hover / ui.pressed, and returns ui with ui.anim attached
+//                             ui.hover (or each of ui.hovers: both lasers on one canvas) /
+//                             ui.pressed, and returns ui with ui.anim attached
 //   motion.moving()           true while a spring hasn't settled (keep redrawing)
 //   ns.vrMotion.of(ui, id)    -> { h, p }: the control's hover and press amounts (0..1;
 //                             with no tracker attached, 1 or 0 from ui.hover / ui.pressed)
@@ -57,10 +58,10 @@
       const now = performance.now();
       const dt = moving && last != null ? Math.min(MAX_DT, Math.max(0, (now - last) / 1000)) : 0;
       last = now;
-      for (const id of [ui.hover, ui.pressed]) if (id != null && !items.has(id)) items.set(id, { h: { x: 0, v: 0 }, p: { x: 0, v: 0 } });
+      for (const id of [ui.hover, ui.pressed, ...(ui.hovers || [])]) if (id != null && !items.has(id)) items.set(id, { h: { x: 0, v: 0 }, p: { x: 0, v: 0 } });
       moving = false;
       for (const [id, it] of items) {
-        const hGoal = ui.hover === id ? 1 : 0, pGoal = ui.pressed === id ? 1 : 0;
+        const hGoal = isHovered(ui, id) ? 1 : 0, pGoal = ui.pressed === id ? 1 : 0;
         const a = spring(it.h, hGoal, SPRINGS.hover, dt), b = spring(it.p, pGoal, SPRINGS.press, dt);
         // Not moving yet but not at the goal: the first step of a change (dt 0) - it moves next.
         if (a || b || it.h.x !== hGoal || it.p.x !== pGoal) moving = true;
@@ -74,8 +75,11 @@
   }
 
   const clamp01 = x => Math.min(1, Math.max(0, x));
+  // Is the control pointed at: ui.hover, or one of ui.hovers (optional: every control pointed
+  // at, when both lasers can be on one canvas, e.g. the keyboard)?
+  const isHovered = (ui, id) => !!ui && (ui.hover === id || (Array.isArray(ui.hovers) && ui.hovers.includes(id)));
   // A control's amounts from a ui (with or without a tracker).
-  const of = (ui, id) => (ui && ui.anim ? ui.anim(id) : { h: ui && ui.hover === id ? 1 : 0, p: ui && ui.pressed === id ? 1 : 0 });
+  const of = (ui, id) => (ui && ui.anim ? ui.anim(id) : { h: isHovered(ui, id) ? 1 : 0, p: ui && ui.pressed === id ? 1 : 0 });
   const lerp = (a, b, t) => a + (b - a) * t;
 
   // One eased value (e.g. how open a panel is, 0..1) on a named spring, stepped by the

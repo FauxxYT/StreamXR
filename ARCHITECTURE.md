@@ -144,13 +144,15 @@ src/streamxr/                  STREAMXR (shell, part 2): the video player on the
     panel.js                   "Watch in VR" popup (format picker, Enter VR, help, Quick troubleshooting, Details)
     troubleshoot.js            Quick troubleshooting and Copy details, shared (the popup, the toolbar popup, Home)
     auto-enter.js              on a site opened from Home with VR meant: VR by itself (the site's helper) or "press any key or click"
+    vr-presence.js             answers (through background.js) whether VR is running in this tab, and ends it when asked
+    vr-elsewhere.js            "VR is running in another tab": asks background.js, the note and "Exit VR there" (the popup and the Dashboard)
     popup.css                  its styles (Material 3; colours from the site's palette, asked of the page world)
   home/                        StreamXR Home and the toolbar popup (extension pages; docs/Home-Page.md)
     sites.js                   the sites they list (each site adds its entry from src/sites/<site>/home/)
     home.html, .js, .css       StreamXR Home: the first-run welcome, the headset, Quick troubleshooting, the sites
     home-ui.js, .css           what Home and the toolbar popup share: the status line, the sites' rows, troubleshooting
     action-popup.html, .js, .css   the toolbar popup: headset status, Open StreamXR Home, the sites, Quick troubleshooting
-    background.js              opens Home once on install (with its welcome); opens sites for Home and the popup, remembering when VR is meant
+    background.js              opens Home once on install (with its welcome); opens sites for Home and the popup, remembering when VR is meant; finds the tab in VR (vr-presence.js, or the Dashboard) and ends VR there
     home-provider.js           Home's side of the VR shell for Test VR: no video, StreamXR's logo, a "Your setup" panel
 src/sites/youtube/             YOUTUBE
   page/

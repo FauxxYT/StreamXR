@@ -160,6 +160,7 @@
         <input type="checkbox" role="switch" class="streamxr-glass-box" ${readGlass().on ? 'checked' : ''}><i></i></label>
       <div class="streamxr-switch-note">${esc(t('popup.glassNote'))}</div>
       <button class="streamxr-go">${ns.gogglesIcon.standalone()}<span>${esc(t('popup.enter'))}</span></button>
+      ${ns.vrElsewhere.noteHtml()}
       <div class="streamxr-msg" hidden></div>
       <details class="streamxr-controls"><summary>${esc(t('popup.controls'))}</summary><div class="streamxr-help"></div></details>
       <details class="streamxr-trouble"><summary>${esc(t('trouble.title'))}</summary>
@@ -223,10 +224,30 @@
     const setIdle = () => { go.disabled = false; label.textContent = t('popup.enter'); };
     const setActive = () => { go.disabled = false; label.textContent = t('popup.exit'); };
 
+    // VR running in another tab (Chrome allows one VR session at a time; vr-elsewhere.js): while
+    // it is, Enter VR is greyed out and a note names that tab, with "Exit VR there". Checked when
+    // the panel opens, every 2 s while it's open, and when Enter VR fails.
+    const busy = pop.querySelector('.streamxr-busy');
+    let elsewhere = null, blocked = false;
+    const checkElsewhere = () => ns.vrElsewhere.find().then(found => {
+      if (!pop || !busy.isConnected) return null;
+      elsewhere = vrState === 'active' ? null : found;            // (VR here: it's this tab's)
+      ns.vrElsewhere.show(busy, elsewhere);
+      if (vrState === 'idle') go.disabled = blocked || !!elsewhere;
+      return elsewhere;
+    });
+    busy.querySelector('.streamxr-busy-exit').onclick = () => {
+      if (elsewhere) ns.vrElsewhere.exit(elsewhere.tabId).then(() => setTimeout(checkElsewhere, 300));
+    };
+    const elsewhereTimer = setInterval(() => { if (!pop || !busy.isConnected) clearInterval(elsewhereTimer); else checkElsewhere(); }, 2000);
+
     onStateUI = s => {
       if (s.state === 'started') { setActive(); close(); }           // in VR: out of the way (reopen it for Exit VR)
       else if (s.state === 'ended') setIdle();
-      else if (s.state === 'error') { setIdle(); showMsg(s.message || t('popup.stopped')); trouble.open = true; }   // (its likely issue follows at the next refresh)
+      else if (s.state === 'error') {
+        setIdle(); showMsg(s.message || t('popup.stopped')); trouble.open = true;   // (its likely issue follows at the next refresh)
+        checkElsewhere().then(found => { if (found) { msg.hidden = true; trouble.open = false; } });   // another tab is in VR: the note says so
+      }
       else if (s.state === 'format' && s.fmt) pop.querySelector('.streamxr-fmt').value = s.fmt;   // changed in VR
     };
     if (vrState === 'active') setActive();
@@ -251,7 +272,8 @@
 
     // If VR can't work at all (no headset, WebXR blocked...), say why and disable the button.
     const problem = blockingProblem(diag);
-    if (problem) { go.disabled = true; showMsg(problem); }
+    if (problem) { go.disabled = true; blocked = true; showMsg(problem); }
+    checkElsewhere();
 
     const passBox = pop.querySelector('.streamxr-pass-box');
     passBox.onchange = () => writePassthrough(passBox.checked);

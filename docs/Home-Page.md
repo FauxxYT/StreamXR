@@ -30,7 +30,9 @@ its own.
    - **Test VR**: enters VR on Home with the real StreamXR shell: the placeholder screen and
      a panel, so it proves the whole VR interface runs there (and starts the VR side of
      Home). Where Chrome's one-time VR prompt comes up on purpose ("choose Allow while visiting
-     the site").
+     the site"). While a site's tab is in VR (Chrome allows one session at a time), it's greyed
+     out with a note naming that tab and **Exit VR there** (0.101.72); a site's popup does the same while
+     Test VR runs (0.101.73).
    - **Sites**: a card per site ("Open YouTube"), with **Start VR when it opens**: Skip Helper
      users only, said in a note; enabled when the Skip Helper is installed, greyed out with
      the note when it isn't.

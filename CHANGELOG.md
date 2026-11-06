@@ -6,6 +6,43 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.101.75
+
+### Fixed
+- **A click on nothing didn't hide the panels while the keyboard was out** (it does with the controls
+  panel): the keyboard counted as something to let go of. Now, unless you're typing into a field (the
+  first click still stops that), a click on nothing hides everything, the keyboard included, and a
+  trigger pull brings it all back with the keyboard still up. The keyboard button while it's hidden
+  this way brings everything back too, instead of putting the keyboard away.
+
+## 0.101.74
+
+### Fixed
+- **The keyboard lit up only one laser's key**: with both lasers on the keyboard, only one hand's
+  key showed its hover ring. Each laser now lights its own key (and the grab bar or a corner
+  handle): the panels' hover easing takes a list of controls pointed at (`motion.js` `hovers`),
+  which the keyboard gets from both hands.
+
+## 0.101.73
+
+### Fixed
+- **Enter VR on YouTube while the Dashboard's Test VR runs gave the generic "VR wouldn't start"**:
+  the same as 0.101.72, the other way round. The Dashboard now answers for itself while Test VR
+  runs, and the "Watch in VR" popup checks for another tab in VR when it opens (and every 2 s, and
+  when Enter VR fails): Enter VR is greyed out and the same note names that tab, with **Exit VR
+  there**. The note's code is shared (`vr-elsewhere.js`); the background answers StreamXR's site
+  scripts as well as its own pages, never counting the tab that asks.
+
+## 0.101.72
+
+### Fixed
+- **Test VR on the Dashboard said something was wrong while a YouTube tab was in VR**: Chrome
+  allows one VR session at a time and refuses the second with "NotSupportedError", which Quick
+  troubleshooting read as a lost headset. The Dashboard now asks StreamXR's background which tab
+  is in VR (`vr-presence.js` answers for each site tab): while one is, Test VR is greyed out and a
+  note names that tab, with **Exit VR there**. Quick troubleshooting also reads that error as
+  "another tab or app is already in VR" (any page), not a lost headset.
+
 ## 0.101.71
 
 ### Fixed

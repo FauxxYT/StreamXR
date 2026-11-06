@@ -6,6 +6,9 @@
 //     itself (the Skip Helper) or on the next key press or click. Only StreamXR's own pages can
 //     ask to open a site, and a site's page only hears "yes" for the very tab opened that way,
 //     once, within a minute: no web page or link can start VR.
+//   - tells StreamXR (the Dashboard, a site's "Watch in VR" popup) whether VR is running in
+//     another tab, and ends it there when asked (Chrome allows one VR session at a time:
+//     src/streamxr/ui/vr-elsewhere.js).
 // Opening a tab needs no permission.
 'use strict';
 
@@ -39,6 +42,30 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
     if (id != null) vrIntents.delete(id);
     reply({ vr: sender.id === chrome.runtime.id && at != null && Date.now() - at < INTENT_MS });
     return false;
+  }
+  // From StreamXR (the Dashboard, or a site's "Watch in VR" popup): is VR running in another
+  // tab? Chrome allows one VR session at a time. Asks every site tab (those with StreamXR's
+  // content scripts answer: src/streamxr/ui/vr-presence.js; the rest fail quietly) and
+  // StreamXR's own pages (the Dashboard answers while its Test VR runs: home.js); the asking
+  // tab doesn't count. -> { tabId, title } | { tabId: null }
+  if (type === 'streamxr-vr-where') {
+    if (sender.id !== chrome.runtime.id) { reply({ tabId: null }); return false; }
+    const self = sender.tab ? sender.tab.id : null;
+    const sites = chrome.tabs.query({}).then(tabs => Promise.all(tabs.filter(tab => tab.id !== self).map(tab =>
+      chrome.tabs.sendMessage(tab.id, { type: 'streamxr-vr-ask' }).then(r => (r && r.active ? { tabId: tab.id, title: r.title || '' } : null), () => null))));
+    const ours = chrome.runtime.sendMessage({ type: 'streamxr-vr-ask' })                   // (only a page in VR answers)
+      .then(r => (r && r.active && typeof r.tabId === 'number' && r.tabId !== self ? { tabId: r.tabId, title: r.title || '' } : null), () => null);
+    Promise.all([sites, ours]).then(([found, page]) => reply(found.find(Boolean) || page || { tabId: null }), () => reply({ tabId: null }));
+    return true;                                                      // reply comes later
+  }
+  // From StreamXR: end VR in that tab ("Exit VR there"): a site's tab, else StreamXR's own page
+  // in that tab (the Dashboard). -> { ok }
+  if (type === 'streamxr-vr-exit-tab') {
+    if (sender.id !== chrome.runtime.id || typeof msg.tabId !== 'number') { reply({ ok: false }); return false; }
+    const page = () => chrome.runtime.sendMessage({ type: 'streamxr-vr-exit', tabId: msg.tabId }).then(r => !!(r && r.ok), () => false);
+    chrome.tabs.sendMessage(msg.tabId, { type: 'streamxr-vr-exit' }).then(r => !!(r && r.ok), () => false)
+      .then(ok => (ok ? true : page())).then(ok => reply({ ok }), () => reply({ ok: false }));
+    return true;
   }
   return false;
 });

@@ -28,6 +28,7 @@
           <button class="streamxr-test-vr" disabled>${ns.gogglesIcon.standalone()}<span>${esc(t('home.testVr'))}</span></button>
           <p>${esc(t('home.testVrNote'))}</p>
         </div>
+        ${ns.vrElsewhere.noteHtml()}
         <div class="streamxr-msg" hidden></div>
         ${ui.troubleHtml()}
       </section>
@@ -69,7 +70,39 @@
   const testBtn = root.querySelector('.streamxr-test-vr'), label = testBtn.querySelector('span');
   const msg = root.querySelector('.streamxr-msg'), trouble = root.querySelector('.streamxr-trouble');
   let headsetFound = false;
-  const setIdle = () => { label.textContent = t('home.testVr'); testBtn.disabled = !headsetFound; };
+  const setIdle = () => { label.textContent = t('home.testVr'); testBtn.disabled = !headsetFound || !!elsewhere; };
+
+  // VR running in another tab (Chrome allows one VR session at a time; vr-elsewhere.js):
+  // { tabId, title } or null, checked with each headset check. While it is, Test VR is greyed
+  // out and a note names that tab, with "Exit VR there"; Chrome's refusal then isn't mistaken
+  // for a lost headset.
+  let elsewhere = null;
+  const busy = root.querySelector('.streamxr-busy');
+  function findElsewhere() {
+    return ns.vrElsewhere.find().then(found => {
+      elsewhere = ns.xrSession.isActive() ? null : found;     // (our own VR running: it's this tab's)
+      if (elsewhere) msg.hidden = true;
+      ns.vrElsewhere.show(busy, elsewhere);
+      if (!ns.xrSession.isActive() && label.textContent === t('home.testVr')) testBtn.disabled = !headsetFound || !!elsewhere;
+      return elsewhere;
+    });
+  }
+  busy.querySelector('.streamxr-busy-exit').addEventListener('click', () => {
+    if (elsewhere) ns.vrElsewhere.exit(elsewhere.tabId).then(() => setTimeout(findElsewhere, 300));
+  });
+
+  // This page's side of it: while Test VR runs, answer StreamXR's background (asked for
+  // another tab: a site's popup) with this tab, and end Test VR when asked to there.
+  let myTabId = null;
+  try { chrome.tabs.getCurrent(tab => { myTabId = tab ? tab.id : null; }); } catch (_) { /* not in the extension */ }
+  try {
+    chrome.runtime.onMessage.addListener((m, sender, reply) => {
+      if (sender.id !== chrome.runtime.id || !m || myTabId == null || !ns.xrSession.isActive()) return false;   // (not in VR: let another answer)
+      if (m.type === 'streamxr-vr-ask') { reply({ active: true, tabId: myTabId, title: document.title }); return false; }
+      if (m.type === 'streamxr-vr-exit' && m.tabId === myTabId) { ns.xrSession.end(); reply({ ok: true }); return false; }
+      return false;
+    });
+  } catch (_) { /* not in the extension */ }
   testBtn.addEventListener('click', () => {
     if (ns.xrSession.isActive()) { ns.xrSession.end(); return; }
     startVr();
@@ -83,14 +116,15 @@
       else if (s.state === 'error') { setIdle(); msg.textContent = s.message || ''; msg.hidden = !s.message; }
     }, { passthrough: false })
       .then(() => { ns.diagnostics.noteStart(null); label.textContent = t('home.exitVr'); testBtn.disabled = false; })
-      .catch(err => {
+      .catch(err => findElsewhere().then(found => {
+        setIdle();
+        if (found) return;                     // VR is in another tab: the note says so, nothing's wrong
         ns.diagnostics.noteStart(err);
         const named = err && err.name && err.name !== 'Error' ? `${err.name}: ${err.message}` : err && err.message;
         msg.textContent = t('vr.cantStart', { error: named });
         msg.hidden = false;
         trouble.open = true;
-        setIdle();
-      });
+      }));
   }
 
   // Opened with ?vr=1 ("Enter Dashboard in VR" in the toolbar popup): a full-page layer (the
@@ -126,7 +160,8 @@
 
   ui.watch(root, ({ state, diag }) => {
     headsetFound = !!diag.headsetFound;
-    if (!ns.xrSession.isActive() && label.textContent === t('home.testVr')) testBtn.disabled = !headsetFound;
+    if (!ns.xrSession.isActive() && label.textContent === t('home.testVr')) testBtn.disabled = !headsetFound || !!elsewhere;
+    findElsewhere();
     // (the layer's line: ready once a headset is found; what's wrong once it's clear there's none)
     if (vrLayer) {
       const b = vrLayer.querySelector('b');
