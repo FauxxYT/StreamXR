@@ -111,7 +111,7 @@
         gl.colorMask(false, false, false, false);
         gl.drawElements(gl.TRIANGLES, mesh.count, gl.UNSIGNED_SHORT, 0);
         gl.colorMask(true, true, true, true);
-        gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.enable(gl.BLEND); gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         gl.depthFunc(gl.EQUAL); gl.depthMask(false);
         gl.drawElements(gl.TRIANGLES, mesh.count, gl.UNSIGNED_SHORT, 0);
         gl.depthFunc(gl.LEQUAL); gl.depthMask(true); gl.disable(gl.BLEND);

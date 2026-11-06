@@ -115,7 +115,7 @@
       projection: i.projection, stereo: i.stereo, spherical: i.spherical,
       video: i.video, videoAspect: aspectOf(i.video),
       webxrAllowedHere: d.webxrAllowedHere, headsetFound: d.headsetFound, xrError: d.xrError, passthrough: d.passthrough,
-      vrActive: d.vrActive, lastStart: d.lastStart, deviceChanges: d.deviceChanges, timeline: d.timeline,
+      vrActive: d.vrActive, lastStart: d.lastStart, lastEnd: d.lastEnd, deviceChanges: d.deviceChanges, timeline: d.timeline,
       checkedFrom: d.checkedFrom || (d.timedOut ? 'page script not responding' : '?'),
       headset: d.headset, controllerModels: d.controllerModels, controllers: d.controllers,
       warnings: d.warnings,

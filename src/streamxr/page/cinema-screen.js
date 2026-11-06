@@ -1,7 +1,8 @@
 // Shows a regular (flat) video on a big screen in front of you, like a cinema. Same
 // interface as the video sphere: upload(video), draw(viewerPose, layer), backdrop() (for the
 // panels' glass), place(head, yaw, pitch),
-// dispose(); plus reset() (the global reset: default size, curve, glow and 3D settings). Unlike the sphere, the screen stays put in the room, so you can lean and
+// dispose(); plus reset() (the global reset: default size, curve, glow and 3D settings) and
+// setFrameAlpha(a) (how solid the video is over the room in passthrough). Unlike the sphere, the screen stays put in the room, so you can lean and
 // look around it.
 //
 // It can also be resized (rounded handles around the bottom corners) and moved (bar under
@@ -495,13 +496,21 @@
       gl.enable(gl.BLEND);
       gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ZERO, gl.ONE);
       gl.drawArrays(gl.TRIANGLES, 0, SETTINGS.columns * 6);
-      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
       gl.disable(gl.BLEND);
     }
 
+    // How opaque the video makes the frame where it's drawn (the frame's alpha, which a
+    // passthrough session uses to blend the room in): 1 (solid: no room through the video) ..
+    // the room's own amount (as see-through as around it). Set each frame by xr-session.js
+    // from Settings → Appearance → Through the video.
+    let frameAlpha = 1;
+    const setFrameAlpha = a => { frameAlpha = Math.min(1, Math.max(0, a)); };
+
     // Draw the glow, the video (bent by uBend when curved, its corners rounded), then the
-    // handles, once per eye. All are blended over what's behind without changing the frame's
-    // alpha (blendFuncSeparate), so the headset never treats the image as see-through.
+    // handles, once per eye. The glow blends over what's behind without changing the frame's
+    // alpha; the video (and its handles) set it to frameAlpha (blendColor's alpha, weighted by
+    // the rounded corners' soft edge), so the room shows through it only as much as asked.
     function draw(viewerPose, layer) {
       gl.disable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE);
       const b = bend();
@@ -523,10 +532,11 @@
         gl.uniformMatrix4fv(U.proj, false, view.projectionMatrix);
         gl.uniformMatrix4fv(U.view, false, view.transform.inverse.matrix);
         gl.enable(gl.BLEND);
-        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ZERO, gl.ONE);
+        gl.blendColor(0, 0, 0, frameAlpha);
+        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.CONSTANT_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.drawArrays(gl.TRIANGLES, 0, SETTINGS.columns * 6);   // (its rounded corners' soft edge blends in)
         drawHandles(view);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         gl.disable(gl.BLEND);
       }
       if (vaos) vaos.bind(null);
@@ -649,7 +659,7 @@
       gl.deleteProgram(prog); gl.deleteProgram(hprog); if (gprog) gl.deleteProgram(gprog);
     }
 
-    return { upload, draw, backdrop, place, dispose, interaction, pauseAnchor, captionAnchor, distance, setDistance, setCurve, setGlow, setStereo, reset };
+    return { upload, draw, backdrop, place, dispose, interaction, pauseAnchor, captionAnchor, distance, setDistance, setCurve, setGlow, setStereo, setFrameAlpha, reset };
   }
 
   // Follow your head on a 2D video: on / off, its delay and speed (remembered):

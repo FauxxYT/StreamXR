@@ -310,7 +310,10 @@ your eyes were at the last recenter, each piece turned to face you:
   returns, besides the panel's model, `bar` (the field) and `open`. While `open` (Search:
   once there's a search, until the bar is cleared), the panel (the results) shows in the
   zone's middle, its top edge 20 dp under the zone's top, shrunk if the zone is too short
-  (or narrow) for it, leaving room for the Settings pill.
+  (or narrow) for it, leaving room for the Settings pill. It sits just behind the Settings
+  popup's top edge (0.103.0): Settings rises in the controls panel's plane, tilted back to face
+  you from below, so its top ends up farther than the other panels and cut into the results at
+  D. The results go to that distance plus 24 dp (at least D), scaled up to look the same size.
 - A panel asking for keys (`host.typeInto(true)`) brings up the in-VR keyboard; giving them
   back puts it away, if it came up that way.
 

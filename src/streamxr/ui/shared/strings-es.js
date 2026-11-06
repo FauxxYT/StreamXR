@@ -134,6 +134,7 @@
     'vr.cantStart': 'No se pudo iniciar la VR: {error}',
     'vr.blockedFrames': '{site} bloqueó la lectura de los fotogramas de este vídeo (origen cruzado).',
     'vr.cantRead': 'No se pudo leer el vídeo: {error}',
+    'vr.endedAtOnce': 'el visor cerró la VR enseguida. Pulsa Entrar en VR otra vez.',
 
     // The 2D Cinema settings tab.
     'cinema.now': 'Ahora: {format}',

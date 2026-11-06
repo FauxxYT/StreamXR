@@ -74,7 +74,7 @@
       gl.uniformMatrix4fv(U.view, false, view.transform.inverse.matrix);
       gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, atlas);
       gl.uniform1i(U.tex, 0);
-      gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      gl.enable(gl.BLEND); gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
       gl.depthMask(false);
       vaos.bind(vao);
 

@@ -82,5 +82,27 @@
     return want;
   }
 
-  ns.gl = { createProgram, uniforms, vertexArrays, floatAttribute, indexBuffer, texture2D, videoMipmaps };
+  // For canvases with text (the panels, captions): after a new canvas is uploaded into the
+  // bound 2D texture, rebuild its mipmaps and sample them trilinearly, with anisotropic
+  // filtering where the browser offers it (panels seen at an angle). Without them, a canvas
+  // drawn smaller on the headset than its own pixels (a headset drawing fewer pixels per
+  // degree than the panels' layout.pxPerDegree, e.g. the Steam Frame's own browser) skips
+  // pixels and its text looks jagged and shimmers. WebGL 2 only (WebGL 1 can't mipmap the
+  // canvases' odd sizes; it keeps plain filtering). Returns whether it has mipmaps now.
+  const anisoOf = new WeakMap();             // gl -> { ext, max } (looked up once)
+  function canvasMipmaps(gl) {
+    const isGL2 = typeof WebGL2RenderingContext !== 'undefined' && gl instanceof WebGL2RenderingContext;
+    if (isGL2) gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, isGL2 ? gl.LINEAR_MIPMAP_LINEAR : gl.LINEAR);
+    let a = anisoOf.get(gl);
+    if (!a) {
+      const ext = gl.getExtension('EXT_texture_filter_anisotropic') || gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic');
+      a = { ext, max: ext ? gl.getParameter(ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 1 };
+      anisoOf.set(gl, a);
+    }
+    if (a.ext) gl.texParameterf(gl.TEXTURE_2D, a.ext.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(8, a.max));
+    return isGL2;
+  }
+
+  ns.gl = { createProgram, uniforms, vertexArrays, floatAttribute, indexBuffer, texture2D, videoMipmaps, canvasMipmaps };
 })(globalThis.__streamxr = globalThis.__streamxr || {});

@@ -30,7 +30,11 @@
       gl_Position = uProj * uView * w;
     }`;
 
-  // Fragment shader. Without the glass (uGlass 0): the canvas pixel; fully transparent
+  // Fragment shader. The canvas is read with uSharp (Settings → Appearance → Sharpness): x is
+  // a mipmap bias (negative: a sharper, larger mipmap than the size on screen asks for), y
+  // an edge sharpening amount (the pixel pushed away from a one-step-blurrier read of
+  // itself, an unsharp mask); (0, 0) reads it plainly.
+  // Without the glass (uGlass 0): the canvas pixel; fully transparent
   // pixels are discarded so they don't write depth (rounded corners stay see-through).
   // Either way, uAlpha fades the result (a panel opening or closing).
   // With the glass:
@@ -67,6 +71,7 @@
     uniform vec2 uScrSize, uTexel;
     uniform vec4 uUvX;
     uniform vec3 uGlow;                     // the cinema screen's glow: strength (0: none), reach (m), corner radius (m)
+    uniform vec2 uSharp;
     varying vec2 vUv; varying vec3 vWorld;
     const float PI = 3.14159265;
 
@@ -131,7 +136,11 @@
     float maskAt(vec2 uv) { return clamp(texture2D(uTex, uv).a / max(uTint, 0.05), 0.0, 1.0); }
 
     void main() {
-      vec4 c = texture2D(uTex, vUv);
+      vec4 c = texture2D(uTex, vUv, uSharp.x);
+      if (uSharp.y > 0.0) {
+        vec3 soft = texture2D(uTex, vUv, uSharp.x + 1.0).rgb;
+        c.rgb = clamp(c.rgb + (c.rgb - soft) * uSharp.y, 0.0, 1.0);
+      }
       if (uGlass < 0.5) { if (c.a < 0.01) discard; gl_FragColor = vec4(c.rgb, c.a * uAlpha); return; }
       float m = clamp(c.a / max(uTint, 0.05), 0.0, 1.0);
       if (m < 0.01) discard;
@@ -189,19 +198,23 @@
     const prog = G.createProgram(gl, VS, FS, 'vr panel');
     const U = G.uniforms(gl, prog, { proj: 'uProj', view: 'uView', model: 'uModel', size: 'uSize', tex: 'uTex', back: 'uBack',
       alpha: 'uAlpha', glass: 'uGlass', tint: 'uTint', kind: 'uKind', span: 'uSpan', yaw: 'uYaw', bend: 'uBend', blur: 'uBlur', eye: 'uEye',
-      scrC: 'uScrC', scrR: 'uScrR', scrU: 'uScrU', scrN: 'uScrN', voidC: 'uVoid', scrSize: 'uScrSize', texel: 'uTexel', glow: 'uGlow', uvX: 'uUvX' });
+      scrC: 'uScrC', scrR: 'uScrR', scrU: 'uScrU', scrN: 'uScrN', voidC: 'uVoid', scrSize: 'uScrSize', texel: 'uTexel', glow: 'uGlow', uvX: 'uUvX',
+      sharp: 'uSharp' });
     const vao = vaos.create(); vaos.bind(vao);
     // Two triangles making the square (6 corners, x/y pairs).
     const buf = G.floatAttribute(gl, prog, 'aCorner', new Float32Array([-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5]), 2);
     vaos.bind(null);
     const tex = G.texture2D(gl);
 
-    // Re-upload the canvas after the UI redrew it. (Not premultiplied: the shader outputs
-    // straight alpha and the caller blends with SRC_ALPHA.)
+    // Re-upload the canvas after the UI redrew it, with its mipmaps (text stays smooth where
+    // the headset shows the panel with fewer pixels than the canvas has: gl-utils.js
+    // canvasMipmaps). (Not premultiplied: the shader outputs straight alpha and the caller
+    // blends with SRC_ALPHA.)
     function upload() {
       gl.bindTexture(gl.TEXTURE_2D, tex);
       gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+      G.canvasMipmaps(gl);
     }
 
     // model: the panel's pose (centre, +Z facing you); size: [width, height] in metres.
@@ -216,6 +229,9 @@
       gl.uniformMatrix4fv(U.model, false, model);
       gl.uniform2f(U.size, size[0], size[1]);
       gl.uniform1f(U.alpha, alpha);
+      // Sharpness (0..1): up to one mipmap level sharper and an equal edge sharpening.
+      const sh = ns.vrAppearanceOptions && ns.vrAppearanceOptions.sharpness ? ns.vrAppearanceOptions.sharpness() : 0;
+      gl.uniform2f(U.sharp, -sh, sh);
       gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex);
       gl.uniform1i(U.tex, 0);
       const on = !!(glass.on && backdrop);

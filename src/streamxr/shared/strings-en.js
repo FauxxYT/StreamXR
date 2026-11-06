@@ -147,6 +147,7 @@
     'vr.cantStart': 'Couldn’t start VR: {error}',
     'vr.blockedFrames': '{site} blocked reading this video’s frames (cross-origin).',
     'vr.cantRead': 'Couldn’t read the video: {error}',
+    'vr.endedAtOnce': 'the headset closed VR right away. Click Enter VR again.',
 
     // The 2D Cinema settings tab.
     'cinema.now': 'Now: {format}',

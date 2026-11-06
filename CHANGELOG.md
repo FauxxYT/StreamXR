@@ -6,10 +6,251 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.103.0
+
+The release of everything since 0.102.0 (0.102.1 to 0.102.11, below): StreamXR runs right on
+the Steam Frame's own browser (with plain install steps), smoother panel text with Text
+sharpness, Passthrough switched on and off in VR with its Strength, one-click Enter VR on the
+Frame, and Copy details showing pixel density, WebXR layers and how the last session ended.
+Plus, new in this version:
+
+### Added (works in the headset, 2026-11-06)
+- **Through the video** (Settings → Appearance, under Passthrough's Strength): how much of the
+  room shows through the cinema screen itself, from **Solid** (0%, the default: a clear
+  picture) to **See-through** (100%, as much as around it). Until now the video left the
+  frame's alpha alone, so in passthrough the room showed through it at the Strength. The
+  cinema screen now sets the frame's alpha where it's drawn (`blendColor` with
+  `CONSTANT_ALPHA`, `cinema-screen.js` `setFrameAlpha`, from `xr-session.js` each frame);
+  360° and VR180 videos were already solid. Remembered (`passthroughVideo`); the global reset
+  puts it back to solid. Checked in WebGL: a frame cleared to 40% alpha reads 100% / 70% / 40%
+  under the video at 0% / 50% / 100%.
+
+### Fixed (work in the headset, 2026-11-06)
+- **Panels and buttons over the video let the room through in passthrough** (at the
+  Strength, as if through the video): drawn with straight alpha blending, a glass panel
+  lowered the frame's alpha wherever it was, even over the solid video. Everything blended
+  (panels, keyboard, toolbars, lasers, controller icons and models, captions, the pause
+  symbol) now uses `blendFuncSeparate(SRC_ALPHA, ONE_MINUS_SRC_ALPHA, ONE,
+  ONE_MINUS_SRC_ALPHA)`: the frame's alpha only ever rises. No change without passthrough.
+- **The search results panel cut into the Settings panel** with both open: Settings rises in
+  the controls panel's plane, tilted back to face you from below, so its top edge ends up
+  farther than D, where the results were. The results panel now sits just behind that edge
+  (its farthest point plus 24 dp, at least D), scaled up by the same ratio so it looks the
+  same size (`vr-panel.js` relayout). The search bar needs no change: its suggestions don't
+  clash with Settings.
+
+### Docs
+- README: What's new rewritten for v0.103.0 (with a "Smaller changes" line), with Through the
+  video in its passthrough line and in Make it yours; the early access note says version 0.103.
+  `design-choices.md` (the results panel's depth), `hardware.md` and `Spatial-Layout.md`.
+
+## 0.102.11
+
+### Fixed (works in the headset, 2026-11-06)
+- **The retry after the Frame closes a new session (0.102.10) failed** with "Couldn't start
+  VR: NotSupportedError: The specified session configuration is not supported" (and Quick
+  troubleshooting's "another tab or app is already in VR"): asked at once, the closed session
+  was still shutting down. StreamXR now asks again after short waits (0.3, 0.5, 0.7, 0.9 and
+  1.1 s: 3.5 s in all, inside the 5 s a click counts for), going on while the answer is
+  NotSupportedError or another quick close. If every try fails, the popup says "the headset
+  closed VR right away. Click Enter VR again." instead of the NotSupportedError.
+
+### Docs
+- Checked on the Steam Frame's own browser (2026-11-06): 4K 60 fps plays well, 8K stutters a
+  little (the README's known issues: pick 4K there); Text sharpness stays at 50% by default
+  (the best at 3408). `hardware.md`, `whats-left.md`, `design-choices.md`.
+- **README, Right on the Steam Frame, in plain steps:** two lines to copy into Konsole (update
+  Chromium; download and unpack the latest StreamXR into Downloads → StreamXR, which also
+  updates it later) instead of finding and unpacking the archive by hand. The download line
+  fetches `main`'s source archive from GitHub (`archive/refs/heads/main.tar.gz`), which is
+  always the latest release, since `main` only takes merges at a release. Tips under the
+  steps: right-click on the Frame's desktop is a click of the right stick (Konsole's Paste is
+  there too), and Load unpacked only shows folders, not `.zip` / `.tar.gz` files. Chromium is
+  installed or updated through **Discover** (the Frame's app store) first, with a Konsole line
+  (`flatpak install -y --or-update flathub org.chromium.Chromium`) as the other way, in the
+  tips. A clarity pass: SteamOS 0.5.7 is on the Beta update channel for now; the code block's
+  copy button; confirming the folder in Load unpacked's window; where the VR button is; that
+  entering VR can take a second or two; the exact paths: System → Beta Participation → System
+  Update Channel → Beta, and the Steam button in VR for Chromium's VR video settings.
+
+## 0.102.10
+
+### Fixed (to check)
+- **Enter VR needed two clicks on YouTube in the Steam Frame's own browser** (every VR entry
+  after the page's first): Copy details' `lastEnd` (0.102.9) showed the browser or headset
+  closing the new session after 0 frames and 0.4 s, not StreamXR. StreamXR now asks once
+  more at once when a session closes before its first frame, while the click still counts
+  (`navigator.userActivation`); if that's refused too, the popup stays open and says "the
+  headset closed VR right away. Click Enter VR again." (`vr.endedAtOnce`). To make that
+  work, `xrSession.start()` now resolves only once the headset asks for its first frame,
+  so the popup (and the Dashboard's Test VR) say VR started only once it really has. A
+  session StreamXR itself ended before its first frame (Exit VR) isn't asked again.
+
+### Docs
+- README, Right on the Steam Frame: a step to set Chromium's per-eye resolution (the Frame's
+  VR video settings) to the maximum, 3408, for sharp text (1728 by default; 2640 still
+  shimmers). `hardware.md` and `whats-left.md` record it.
+
+## 0.102.9
+
+### Fixed (to check)
+- **Enter VR still needed two clicks on YouTube in the Steam Frame's own browser** (not on
+  the Dashboard): Copy details after the first click showed the session started (`lastStart`
+  ok) but ended before its first full frame (no `headset` noted), with no message. One
+  suspect: a failed upload of the video's first frame ended VR at once, and its message was
+  lost with the popup already closed (the Dashboard has no video). A failed upload is now
+  tried again on the next frames, and ends VR only after about a second of failures (a
+  refused, cross-origin frame still ends it at once); the first failure is logged.
+
+### Added
+- **Copy details' `lastEnd`:** how the last VR session ended: `why` (Exit VR in VR, Exit VR
+  from the page, a video frame error, or "ended by the browser or headset"), the `frames` it
+  drew and the `seconds` it lasted (`diagnostics.js` `noteEnd`, from `xr-session.js`).
+
+## 0.102.8
+
+### Added
+- **Copy details shows what limits text clarity:** each eye's `pxPerDegree` (pixels per degree
+  across the view; the panels are drawn at 26) and `layersApi` (whether the browser has WebXR
+  layers, which let the headset draw panels itself at its display's full sharpness). VR
+  sessions now also ask for the optional `layers` feature (not used yet), so
+  `enabledFeatures` says whether the browser grants it. For the Steam Frame's own browser,
+  where the text is much blurrier than streamed from a PC (Text sharpness helps but shimmers
+  when high).
+
+### Docs
+- `hardware.md` and `whats-left.md`: the text clarity investigation, with the Frame's answer:
+  each eye 2048×2640 (18.7 px/° across, 24 up and down), `layers` not granted. README What's new
+  heading now v0.102.8.
+
+## 0.102.7
+
+### Added
+- **Text sharpness** (Settings → Appearance, after Panel size): the panels' text with mipmaps
+  (0.102.2) was slightly more readable on the Steam Frame's own browser but blurry. The
+  slider (0-100%, default 50%) reads each panel's canvas up to one mipmap level sharper
+  (a negative mipmap bias) with an equal edge sharpening (an unsharp mask against a read one
+  level blurrier): `panel-pass.js` `uSharp`, from `appearance-options.js` `sharpness()`.
+  On a panel drawn about three times smaller than its canvas, edge contrast rose 42% at 50%
+  and 72% at 100% (a WebGL render in Chrome). Too high can shimmer. Remembered
+  (`textSharpness`); the global reset puts it back to 50%.
+
+### Fixed
+- **Enter VR needed two clicks on the Steam Frame** (since 0.102.6): before starting VR,
+  StreamXR asked the browser whether passthrough was offered, and that first answer could
+  take long enough for the click to stop counting, so the browser refused to start VR. The
+  popup's own check now remembers the answer (`diagnostics.js` `arOffered()`), and Enter VR
+  uses it without asking again.
+
+### Docs
+- README (What's new, now v0.102.7; Make it yours; Want it sharper?), `design-choices.md`,
+  `hardware.md`, `whats-left.md` and ARCHITECTURE.
+
+## 0.102.6
+
+### Added
+- **Turn passthrough on and off in VR** (Settings → Appearance → Passthrough, a switch with
+  Strength under it): wherever the browser offers a see-through session (the Steam Frame's
+  own browser), StreamXR now always starts one, falling back to VR if it's refused. With the
+  switch off, the frame is cleared opaque and the glass panels blur the video again, just
+  like VR; on, the room shows at the Strength set. The switch and the popup's "See your room"
+  checkbox are one remembered setting (`passthrough`), so the popup now sets how VR starts.
+  Where passthrough isn't offered (desktop Chrome with SteamVR), nothing changes: a VR
+  session, no rows. The global reset turns passthrough off.
+
+### Changed
+- The Strength slider is dimmed while the switch is off (no more "Needs See your room
+  (popup)" note: the switch is always there when passthrough is possible).
+
+### Docs
+- README (What's new, now v0.102.6; Make it yours; Why StreamXR), `design-choices.md` (the
+  passthrough decision updated: it's no longer chosen only before VR), `hardware.md` and
+  ARCHITECTURE.
+
+## 0.102.5
+
+### Changed
+- **"Your room" is now Settings → Appearance → Passthrough** (after Panel size): it affects
+  every format (around the cinema screen, beside 3D and VR180 videos), not just 2D Cinema.
+  It shows only where the browser offers passthrough at all (the Steam Frame's own browser;
+  not desktop Chrome with SteamVR), and is greyed out with "Needs See your room (popup)" when
+  this session isn't see-through. `appearance-options.js` holds the value (remembered as
+  `passthroughAmount`, reset by the global reset); `xr-session.js` tells it whether
+  passthrough is offered and on, and clears each frame to black at 1 − its value.
+
+### Docs
+- README (What's new, now v0.102.5; Make it yours; Why StreamXR), `design-choices.md`,
+  `hardware.md` and ARCHITECTURE name it Passthrough, in Appearance.
+
+## 0.102.4
+
+### Added
+- **Your room** (Settings → 2D Cinema, first row): in a passthrough session (the popup's See
+  your room, which the Steam Frame's own browser offers: checked 2026-11-06), how much of the
+  room shows around the video, 0% (hidden) to 100% (fully, the default), in 5% steps. Each
+  frame is cleared to black at 1 − its value (`xr-session.js`), so the headset blends the room
+  in at that strength. Greyed out with "Needs See your room (popup)" outside passthrough.
+  Remembered (`roomVisibility`); the global reset puts it back to 100%.
+
+### Docs
+- README: What's new (now v0.102.4) and Make it yours mention passthrough on the Frame and Your
+  room; "Why StreamXR" says it works there. `hardware.md` records passthrough in the Frame's
+  own browser; `design-choices.md` has the slider.
+
+## 0.102.3
+
+### Removed
+- **Settings → Appearance → Sharpness** (0.102.1): the Steam Frame's own browser caps the
+  drawing size too (`nativeScale` 1, as on a PC), so the slider was greyed out on every
+  setup it was tried on. The Frame's soft look was the panels' text, fixed in 0.102.2.
+  `xr-session.js` makes its drawing surface at the headset's recommended size again.
+
+### Docs
+- The README (What's new, now v0.102.3; Make it yours; Want it sharper?), `hardware.md`,
+  `whats-left.md` and ARCHITECTURE no longer mention Sharpness; the 0.102.0 summary below no
+  longer lists it (it came in 0.102.1).
+
+## 0.102.2
+
+### Fixed
+- **The panels' text looked very aliased in the Steam Frame's own browser** (jagged and
+  shimmering; the video looked fine): that browser draws fewer pixels per degree than the
+  panels' canvases have (`layout.pxPerDegree` 26), so each canvas was shrunk with plain
+  linear filtering, skipping pixels. The panels (every one: side panels, toolbars, menus,
+  dialogs, the keyboard) and the captions now upload with mipmaps, sampled trilinearly, with
+  8x anisotropic filtering for panels seen at an angle (`gl-utils.js` `canvasMipmaps`; WebGL 2,
+  as StreamXR prefers; WebGL 1 keeps plain filtering).
+
+### Docs
+- **Sharpness doesn't help on the Steam Frame:** its own browser caps the drawing size too
+  (`nativeScale` 1, as on a PC), so the slider is greyed out there. The README's What's new
+  (now v0.102.2) and Want it sharper? say so; `hardware.md` and `whats-left.md` record it.
+
+## 0.102.1
+
+### Added
+- **Runs right on the Steam Frame** (checked 2026-11-06): the Frame's own Chromium browser has
+  WebXR from Chromium 157 (SteamOS 0.5.7), and StreamXR works there unchanged, no PC needed.
+- **Sharpness is back** (Settings → Appearance, after Panel size): a slider from 100% to 200%
+  of the headset's recommended drawing size (WebXR's `framebufferScaleFactor`), capped at what
+  the browser allows (`XRWebGLLayer.getNativeFramebufferScaleFactor`). Its hint shows the size
+  it draws at (both eyes); where nothing more can be drawn (a PC whose SteamVR already asks for
+  the full size, as in 0.101.44) it's greyed out with "Already at this headset's full size".
+  Changes right away (a new drawing surface from the next frame), remembered (`renderScale`),
+  reset by the global reset. `appearance-options.js` holds it; `xr-session.js` applies it.
+
+### Docs
+- **README:** Get started has two paths, **On a PC** and **Right on the Steam Frame (no PC)**:
+  updating Chromium, downloading the tar.gz and unpacking it in Konsole (`tar`, or `bsdtar`
+  for the zip) into a `StreamXR` folder that updates write over. The PC path says how to unzip
+  in File Explorer. What you need, Want it sharper? and the roadmap (native Steam Frame support:
+  done) follow; What's new is rewritten for v0.102.1. `hardware.md` and `whats-left.md` record
+  the Frame's own browser working.
+
 ## 0.102.0
 
 The release of everything since 0.101.16 (0.101.17 to 0.101.75, below): Commenting in VR, the
-StreamXR Dashboard, Shorts in Explore, 3D Top & Bottom with the 3D Cinema settings, Sharpness,
+StreamXR Dashboard, Shorts in Explore, 3D Top & Bottom with the 3D Cinema settings,
 and better troubleshooting. No code changes since 0.101.75.
 
 ### Docs
