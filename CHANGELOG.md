@@ -15,6 +15,15 @@ developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
   trigger pull brings it all back with the keyboard still up. The keyboard button while it's hidden
   this way brings everything back too, instead of putting the keyboard away.
 
+### Docs
+- **The README puts installing first**: Get started (with a "You'll need" line, steps for the
+  Steam Frame and other headsets, pinning the toolbar button, the Skip Helper as an optional
+  extra) right after the intro, then What you need, What's new (rewritten for this release:
+  everything since v0.101.16), the features, Controls and Quick troubleshooting (a row for
+  "another tab is already in VR"). The background sections follow, and the developer sections
+  sit under "For developers" at the end. The roadmap marks the Explore tabs and Commenting as
+  done; the known issue about very tall Shorts is gone (fixed in 0.101.46).
+
 ## 0.101.74
 
 ### Fixed
