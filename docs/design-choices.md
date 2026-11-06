@@ -26,7 +26,7 @@ even where they look like something to "fix".
     (0.78.4, the maintainer), coming back as soon as the laser is on anything.
 - Side panels are narrower and taller than before (900 × 1100 px: about 1.0 × 1.26 m at 1.7 m,
   about 35° × 43°; there's more room up and down than across): Browse, Search and Up Next
-  show 3 × 3 cards of today's size (Channel 3 × 2); Settings is 1024 px wide (the controls panel's width until 0.77.0, when the controls panel grew to 1216).
+  show 3 × 3 cards of today's size (Channel 3 × 2); Settings is 1280 px wide (1024 until 0.101.70, when the 3D Cinema tab made ten tabs; the controls panel is 1216).
 - **The Safe Zone (0.63.0):** the part of your view the video keeps, set as shares of what
   the headset shows (so it fits any headset): width 50% of the horizontal field of view,
   height 45% of the vertical one, centre 1% of it below eye level (the defaults, set by
@@ -262,7 +262,7 @@ even where they look like something to "fix".
   along solid things on it (buttons, a toolbar's grown name pill, a solid toolbar), so they
   don't look like glass.
 - The controls panel's Quality, Speed and Format menus and the Volume slider float in front
-  of it (32 dp) on the panels' glass (0.67.2), rising from their button (which shows selected while its menu is open), as
+  of it (32 dp; 48 dp since 0.101.71, in front of the Settings popup they overlapped) on the panels' glass (0.67.2), rising from their button (which shows selected while its menu is open), as
   M3 menus: one row per choice (shorter rows when there are many, e.g. Premium's speeds up
   to 4×), the current one ticked; they close on a choice, on their
   button again, or on a click on nothing (0.67.0).
@@ -344,6 +344,16 @@ even where they look like something to "fix".
   shows during ads, not in the button row: the Diamond, "Jump ahead", fast-forward.
 - **3D side by side on the cinema screen** (the maintainer, 2026-10-17, 0.93.0): its own
   format with Material Symbols' `3d_2` icon (0.93.3); 180° 3D side by side keeps `3d_rotation`.
+- **3D Top & Bottom on the cinema screen** (the maintainer, 2026-10-30; built in 0.101.68): a
+  format of its own named **"3D Top & Bottom"**, listed right after 3D side by side, for 3D videos
+  with both eyes stacked in one frame (`features/video-page.md`). Picked by hand, as SBS is. Its
+  icon is 3D side by side's `3d_2` (the maintainer, 2026-11-05).
+- **3D depth and Swap eyes** (the maintainer, 2026-11-05, 0.101.69; some top & bottom videos felt
+  harsh): their own Settings tab, **3D Cinema** (after 2D Cinema, icon `3d_2`; the maintainer, 0.101.70; two rows at the end of 2D Cinema in 0.101.69), active for the cinema screen's 3D formats
+  (side by side, top & bottom). **3D depth** is a slider from Closer to Farther, the middle (0%) as
+  the video was made (the default), moving each eye's picture up to 5% of its width apart or
+  together; **Swap eyes** is a switch, off by default. Both remembered, one setting for every 3D
+  video (not per video).
 - **The Format button says "Format"** (the maintainer, 2026-10-17, 0.93.2), whatever's chosen;
   its icon shows the format, and the Format menu shows every format's icon and name. The
   cinema screen's icon is `2d_2`, 3D Cinema's `3d_2` (0.93.3).

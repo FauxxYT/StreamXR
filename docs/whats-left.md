@@ -2,7 +2,7 @@
 
 One list of what's still open, gathered from the feature backlogs (`docs/features/`) and
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
-Last updated for 0.101.67.
+Last updated for 0.101.71.
 
 ## Top priority: before the first release
 
@@ -164,6 +164,12 @@ movies are copy-protected, so they can't play in VR yet: `features/video-page.md
    regular (not VR180) 3D videos, each eye its half on the cinema screen.
    - Test: "Demo 3D[SBS] (HD : 1080P)" (half side
      by side: a 16:9 frame, each eye squeezed into half).
+4. [x] **3D Top & Bottom on the cinema screen** (0.101.68 to 0.101.71, works in the headset;
+   requested by [u/Timtronic125](https://www.reddit.com/user/Timtronic125)): a "3D Top & Bottom"
+   format after 3D side by side, each eye its half of a frame with the eyes stacked. The five test
+   videos and what to check: `features/video-page.md`. Works in the headset (0.101.68); some
+   videos' 3D felt harsh, so 0.101.69 adds **3D depth** and **Swap eyes** (Settings → 3D Cinema since 0.101.70; the
+   controls' menus stand in front of Settings since 0.101.71). All verified 2026-11-05.
 
 ## Features to build (easiest first)
 
@@ -289,6 +295,12 @@ follow the browser's zoom and font size, hover and focus states, keyboard first.
 
 ## Still to check in the headset
 
+- [ ] **SteamVR 2.19.1's new default resolution** (beta, 2026-11): a Copy details paste after
+  entering VR shows the new drawing size; then update `hardware.md` (2644×2644 per eye was 2.18)
+  and the README's "Want it sharper?" tip if it needs it.
+- [ ] **WebXR in the Frame's own browser** (when Valve's flag shows up; `hardware.md`, "The
+  Frame's own browser"): the WebXR samples page there, then whether it installs an extension,
+  then StreamXR. Only then plan the native port (decoding, GPU headroom, controller mapping).
 - ~~Signed-in Home feeds other than the main one~~ (History, Playlists, Watch later, Liked): work
   (2026-10-28); the main feed's chips too (they re-shuffled once a chip's videos loaded,
   fixed in 0.101.39).

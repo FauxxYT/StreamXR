@@ -109,7 +109,8 @@ more likely they are to open the door. **If and when they do, I'll make it work 
 ### 🎥 Every kind of video, the way it was meant to be seen
 - **360° and VR180** wrap around you (YouTube's cubemap "mesh" format included); the format
   is detected automatically and can be changed any time. **3D side-by-side** videos play in
-  real 3D, as VR180 or on the cinema screen (pick it in the Format menu).
+  real 3D, as VR180 or on the cinema screen, and **3D top & bottom** ones on the cinema screen
+  (pick it in the Format menu).
 - **Regular videos** play on a **cinema screen** you can **curve**, **resize**, **move** and
   **push away**, with **rounded corners** and an optional **ambient glow** that spills the
   picture's colors around it, like a TV with backlighting. 🌈
@@ -157,7 +158,8 @@ glassy toolbars on each side:
 - Looks: **YouTube** or **Material 3** colors, **glass** panels with an adjustable tint, the
   **panel size**.
 - The cinema screen's **curve**, **distance** and **glow**, and **Follow your head** (the screen
-  and panels catch up when you turn).
+  and panels catch up when you turn). For 3D videos, **3D depth** (push everything back if the
+  3D feels harsh) and **Swap eyes**.
 - The **Safe Zone**, how long each part waits before it **fades**, the **laser's
   steadiness**, the **keyboard layout** and the **language**.
 
@@ -369,7 +371,8 @@ what bugs you most):
 - **Most 3D (stereo) videos play flat.** On desktop, YouTube sends only one eye's picture for
   most 3D videos (and caps some VR180 videos at 4K), while the Meta Quest app gets both eyes.
   StreamXR shows what YouTube's own player plays and won't bypass it: [why](docs/decisions/0002-site-player-only.md).
-  The 3D videos that do arrive with both eyes side by side play in 3D (Format menu).
+  The 3D videos that do arrive with both eyes side by side or stacked (top & bottom) play in
+  3D (Format menu).
 - **Shorts are very tall** on the cinema screen: they keep their vertical shape at the
   screen's full width. Honestly, I left this in because I think it's funny, but I'll fix it
   eventually lol 😂

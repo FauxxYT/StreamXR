@@ -17,12 +17,14 @@
     // Format button; \n = line break).
     'format.flat': 'Cinema screen (regular video)',
     'format.flatsbs': 'Cinema screen 3D side by side (both eyes in one frame)',
+    'format.flattb': 'Cinema screen 3D top and bottom (both eyes in one frame)',
     'format.360mono': '360°',
     'format.360eac': '360° cubemap (YouTube "mesh")',
     'format.180mono': '180° (VR180)',
     'format.180sbs': '180° 3D side by side (both eyes in one frame)',
     'format.short.flat': 'Cinema\nscreen',
     'format.short.flatsbs': 'Cinema 3D\nside by side',
+    'format.short.flattb': 'Cinema 3D\ntop & bottom',
     'format.short.360mono': '360°',
     'format.short.360eac': '360°\ncubemap',
     'format.short.180mono': '180°',
@@ -79,6 +81,7 @@
     // The shell's Settings tabs (StreamXR Dashboard's Settings; a site's Settings has its own words).
     'settings.title': 'Settings',
     'settings.cinema': '2D Cinema',
+    'settings.cinema3d': '3D Cinema',
     'settings.appearance': 'Appearance',
     'settings.safezone': 'Safe zone',
     'settings.fade': 'Auto-hide',
@@ -146,6 +149,7 @@
     // The 2D Cinema settings tab.
     'cinema.now': 'Now: {format}',
     'cinema.nowNotFlat': 'Now: {format} · these work on the cinema screen (2D videos) only',
+    'cinema.nowNot3d': 'Now: {format} · these work on 3D videos on the cinema screen only (3D side by side, 3D top & bottom)',
     'cinema.follow': 'Follow your head',
     'cinema.followHint': 'On a 2D video, the screen and panels catch up when you turn',
     'cinema.followDelay': 'Follow delay',
@@ -163,6 +167,10 @@
     'cinema.glowHint': 'A soft light around the screen in the colors of its edges',
     'cinema.glowStrength': 'Glow strength',
     'cinema.glowLength': 'Glow length',
+    'cinema.depth': '3D depth',
+    'cinema.depthHint': 'Push the 3D back if it feels harsh',
+    'cinema.swapEyes': 'Swap eyes',
+    'cinema.swapEyesHint': 'If near things look far away (the depth looks inside out)',
     'cinema.shorter': 'Shorter',
     'cinema.longer': 'Longer',
   });

@@ -26,6 +26,48 @@ published; what matters from them is in this file and docs/youtube.md).
 
 ## Small to medium: additions to existing panels
 
+- [x] **3D Top & Bottom on the cinema screen** DONE (0.101.68 to 0.101.71, verified in the headset 2026-11-05; icon `3d_2`
+  like side by side; the frame check (Step 0) was skipped: the full / half rule covers both;
+  works in the headset; some videos' 3D felt harsh (e.g. `xITP9xUlbKQ`), so 0.101.69 adds
+  **3D depth** and **Swap eyes** for both 3D formats (Settings → 3D Cinema since 0.101.70); requested by
+  [u/Timtronic125](https://www.reddit.com/user/Timtronic125) on Reddit): some 3D videos reach
+  desktop with both eyes **stacked** in one frame (left eye on top, as a rule), and today show as
+  one squashed or doubled picture. A new Format menu entry, **"3D Top & Bottom"**, right after 3D
+  side by side, gives each eye its half, as `flatsbs` does across. Picked by hand, like SBS
+  (YouTube's data doesn't mark these videos).
+  - Test videos (the maintainer's picks): `v4Bp9os8HrM`, `XW0mOp_gLEw`, `J6IbDKltXJs`,
+    `BDAAmGVjw5s`, `hzgqUZ1DMms` (youtube.com/watch?v=...).
+  - **Step 0, look before building:** for each test video, the popup's **Save video frame**
+    (the raw frame as YouTube sends it) shows the layout: **full** top & bottom (two full 16:9
+    pictures stacked, a tall frame, about 0.89:1) or **half** (each eye squeezed into half of a
+    16:9 frame), which eye is on top, and whether any of them reaches desktop as one eye only
+    (then it's not this format: desktop YouTube's limit, decisions/0002).
+  - **Code** (one format id, e.g. `flattb`; the shell, no YouTube code):
+    - `shared/formats.js`: the id after `flatsbs` in `IDS`; `isTb`; `eyeSpans` grows from
+      across only (`[scale, offset]`) to both directions (`[scaleX, scaleY, offsetX, offsetY]`:
+      top & bottom = the top half for the left eye, the bottom for the right); `isFlat` takes it.
+      Then regenerate the `ui/shared/` copy.
+    - `cinema-screen.js`: the screen's and the glow's shaders read the frame through a 2D
+      transform (`uUvX` vec2 -> a vec4 like `video-sphere.js`'s `uUvXform`); `eyeAspect`: a
+      frame taller than about 1.2:1 is full top & bottom (one eye = twice the frame's ratio),
+      else half (shown at the frame's ratio, as half SBS is).
+    - `video-sphere.js` already takes a 2D transform (`uUvXform`), so the 4-number `eyeSpans`
+      just has to be passed through (no new sphere format now).
+    - `vr-panel/panel-pass.js` (the glass blur behind the panels samples the screen per eye):
+      its `uUvX` becomes 2D too, for the 'screen' and 'sphere' backdrops; `xr-session.js` /
+      the screen's `backdrop()` hand it over.
+    - `vr-panel/panel-ui.js` `FORMAT_ICONS`: `3d_2`, the same as 3D side by side (the
+      maintainer's pick).
+    - Strings (en, es): `format.flattb` "Cinema screen 3D top and bottom (both eyes in one
+      frame)" and `format.short.flattb` "Cinema 3D\ntop & bottom"; the popup's format picker and
+      the Format menu list it from `IDS` on their own.
+  - **Check in the headset:** depth looks right (not inside out: if it is, the eyes are the
+    other way round on that video), the screen's shape is right for full and half, the glass
+    behind the panels matches each eye, captions and the pause symbol sit right, and switching
+    back to 2D / SBS still works.
+  - **Later, if asked:** 180° / 360° top & bottom (over-under) on the sphere: with 2D
+    `eyeSpans` in place it's mostly new ids (`180tb`, `360tb`) and their strings and icons.
+
 - [x] ~~**Endless Up Next**~~ DONE (v0.20.1: loads the next batch near the last page)
   - ~~Code: `youtubePage.loadMoreRecommendations()`~~
 - [x] ~~**Playlists and mixes in Up Next**~~ DONE (v0.27.0: merged into Recommended where

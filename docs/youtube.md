@@ -224,7 +224,8 @@ The formats are in `src/streamxr/shared/formats.js`; YouTube's detection is the 
 - Formats: `flat` (cinema screen), `flatsbs` (the cinema screen in 3D side by side: 0.93.0;
   e.g. "Demo 3D[SBS]", a RECTANGULAR 16:9 frame, each eye squeezed into half),
   `360mono`, `360eac`, `180mono`, `180sbs` (3D side by side,
-  picked by hand: 0.89.0).
+  picked by hand: 0.89.0), `flattb` (the cinema screen in 3D top & bottom, eyes stacked, left eye
+  on top: 0.101.68, picked by hand; `features/video-page.md`).
 - "MESH" 360° videos use an **equi-angular cubemap**, 3×2: top row left | front | right,
   bottom row down | back | up; down and up rotated 270° clockwise, back 90° (the same as
   ffmpeg's `eac`). Verified against a real frame.

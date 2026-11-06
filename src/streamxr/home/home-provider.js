@@ -71,7 +71,7 @@
     // (the Sites panel: hidden for now with the rest of cross-page VR, home-ui.js CROSS_PAGE_VR)
     ...(ns.homeUi && ns.homeUi.CROSS_PAGE_VR
       ? [{ id: 'sites', zone: 'right', label: () => t('home.sites'), icon: 'smart_display', style: 'options', size: 'standard', create: sitesPanel, default: true }] : []),
-    { id: 'settings', zone: 'controls', label: () => t('settings.title'), icon: 'settings', style: 'options', size: 'standard', create: settingsPanel },
+    { id: 'settings', zone: 'controls', label: () => t('settings.title'), icon: 'settings', style: 'options', size: 'settings', create: settingsPanel },
   ];
 
   // One VR session's side: nothing to play, so the actions do nothing and the state is a

@@ -122,7 +122,7 @@
 
     // What's behind the panels, for the glass look (vr-panel/panel-pass.js): the video's
     // texture and how it's mapped ('sphere': equirectangular over `span` radians of
-    // longitude, `uvX` each eye's part of the frame across: { left, right }; 'eac': the
+    // longitude, `uvX` each eye's part of the frame: { left, right }, formats.eyeSpans; 'eac': the
     // cubemap), turned by `yaw`. Builds the mipmaps at once if the glass was just turned on.
     // null while the glass is off.
     function backdrop() {
@@ -155,8 +155,7 @@
         gl.uniformMatrix4fv(U.view, false, m);
         // This eye's part of the frame (side by side: its half; a headset that names no eye
         // gets the left one).
-        const [sx, ox] = view.eye === 'right' ? spans.right : spans.left;
-        gl.uniform4fv(U.xf, [sx, 1, ox, 0]);
+        gl.uniform4fv(U.xf, view.eye === 'right' ? spans.right : spans.left);   // [scaleX, scaleY, offsetX, offsetY]
         gl.drawElements(gl.TRIANGLES, mesh.idx.length, gl.UNSIGNED_SHORT, 0);
       }
       if (vaos) vaos.bind(null);

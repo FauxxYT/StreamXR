@@ -64,6 +64,36 @@ Steam Frame with SteamVR, desktop Chrome). For supporting other hardware, see th
 - **The Frame's own browser:** its built-in Chromium browser has no WebXR yet, so StreamXR runs
   from desktop Chrome on the PC. Once it gets WebXR, StreamXR will be updated to run there
   natively (README roadmap, "as soon as it's possible").
+  - **Signs it's coming (2026-11-02):** Valve appears to be working on WebXR for that browser
+    ("Enable support for WebXR via flatpak overrides and launch options", spotted by a VR
+    journalist on X), and SteamVR 2.19.1 lets OpenXR runtimes run inside Flatpak and other
+    sandboxes: the browser is a Chromium Flatpak, so that's the plumbing it needs. Opt-in and
+    experimental so far (overrides, launch options).
+  - **What decides whether StreamXR can run there**, in order: (1) **extensions**: StreamXR is
+    one, so the browser has to install extensions (the Web Store or unpacked); without that,
+    nothing else matters; (2) **video decoding** on the headset's mobile chip in a Linux
+    browser (if VP9 / AV1 decode in software, 4K and 8K 360° may stutter); (3) **GPU
+    headroom** (the glass blur and the cinema glow cost the most: standalone may need lighter
+    defaults or a performance setting); (4) **the controllers**, which there may report as Steam
+    Frame controllers instead of `oculus-touch` (B, X, Y as separate buttons: re-check the
+    mapping); (5) the PC-only parts: Copy details' and Quick troubleshooting's Windows /
+    SteamVR wording. The rest is plain WebXR and should carry over; no streaming compression
+    should make it sharper than through Steam Link.
+  - **Checks when the flag shows up:** the WebXR samples page in that browser, then whether it
+    installs an extension, then StreamXR (`whats-left.md`).
+  - **Later, if that browser exposes WebXR Layers:** SteamVR 2.19.1 adds
+    `XR_KHR_composition_layer_cylinder` on the Frame, so the cinema screen could be handed to
+    the headset as a cylinder layer (sampled by the compositor: the sharpest a flat video can
+    look). Desktop Chrome has no WebXR Layers, so it's out of reach on the PC.
+- **SteamVR 2.19.1 (beta, 2026-11) on the PC path:** it raises Steam Link's default render
+  resolution (render scale 1.5, about 1.4× the panels; no more GPU test) and the Frame's encoded
+  video size (1152 to 1216), with sharper colors and text. StreamXR draws at the size SteamVR
+  recommends (below), so it should get sharper with no change on its side, at more GPU cost;
+  the drawing-size note below (2644×2644 per eye) is from 2.18 and needs a re-check (Copy
+  details' framebuffer after entering VR). Also: better head-motion prediction, eye poses for
+  projection layers including the eye-to-head offset (stereo depth should look the same or
+  better), a fix for one cause of Error 17, and per-application refresh rate overrides (StreamXR
+  doesn't depend on the refresh rate).
 - The controllers reach Chrome as **`oculus-touch`** (7 buttons, 4 axes), not as a Steam
   Frame profile:
   - Right controller: A reports as **button 4** (play / pause); B, X and Y all report as

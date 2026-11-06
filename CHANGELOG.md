@@ -6,6 +6,46 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.101.71
+
+### Fixed
+- **The controls panel's menus cut into the Settings panel** (Format, Quality, Speed, Volume opened
+  while Settings is up): both stood 32 dp in front of the controls panel. The menus now stand at
+  48 dp, in front of Settings.
+
+## 0.101.70
+
+### Changed
+- **3D depth and Swap eyes have their own Settings tab, "3D Cinema"** (after 2D Cinema, with the 3D
+  icon), instead of the end of 2D Cinema. Its note says when the video isn't 3D on the cinema
+  screen.
+- **The Settings panel is wider** (1280 px, was 1024) so its ten tabs fit with their names at
+  full size.
+
+## 0.101.69
+
+### Added
+- **3D depth and Swap eyes** (Settings → 2D Cinema, for 3D side by side and 3D top & bottom on the
+  cinema screen): the 3D depth slider moves the two eyes' pictures apart (Farther: everything sits
+  further back, easier on the eyes when a video's 3D feels harsh) or together (Closer), by up to 5%
+  of the picture's width each, with a Default button (as the video was made); Swap eyes is for a
+  video whose depth looks inside out. Both are remembered, and the glow and the glass behind the
+  panels follow them.
+
+## 0.101.68
+
+### Added
+- **3D Top & Bottom on the cinema screen** (requested by
+  [u/Timtronic125](https://www.reddit.com/user/Timtronic125) on Reddit): a new format, listed after 3D
+  side by side with the same icon, for 3D videos that arrive with both eyes stacked in one frame
+  (left eye on top). Each eye sees its half; a tall frame (two full pictures, narrower than 1.2:1) and
+  a 16:9 one (each eye squeezed) both show at the picture's own shape. The glow and the glass behind
+  the panels read each eye's half too. Picked by hand, as side by side is.
+
+### Changed
+- Each eye's part of the frame (`formats.eyeSpans`) is now 2D (`[scaleX, scaleY, offsetX, offsetY]`),
+  read by the cinema screen, its glow, the video sphere and the glass (`panel-pass.js`).
+
 ## 0.101.67
 
 ### Fixed

@@ -24,7 +24,7 @@ the Material 3 palettes): the repo folder is the extension.
      site registry.
    - **StreamXR** (`src/streamxr/`): the video player built on the core: the WebXR session
      and its frame loop, the media source, rendering (video sphere, cinema screen, pause
-     overlay), the video formats, the 2D Cinema settings, the "Watch in VR" popup, and the
+     overlay), the video formats, the 2D and 3D Cinema settings, the "Watch in VR" popup, and the
      page-world entry point.
 2. **Provider** (`src/sites/<site>/page/provider/`, one per site): the middle layer. It
    answers the shell's questions ("what's playing?", "fill this panel", "this was clicked")
@@ -132,7 +132,7 @@ src/streamxr/                  STREAMXR (shell, part 2): the video player on the
     media-source.js            where the frames come from: the site's <video>, followed when swapped
     video-sphere.js            the video sphere renderer (360°, 180°, cubemap)
     cinema-screen.js           flat/curved screen for regular videos (rounded corners, the edge-colour glow); picks sphere vs screen per format
-    cinema-options.js          the 2D Cinema settings tab
+    cinema-options.js          the 2D Cinema and 3D Cinema settings tabs
     pause-overlay.js           dims the video, pause symbol, buffering loading indicator
     captions-overlay.js        the site's caption lines drawn in VR (over the 2D screen's bottom, or below your view)
     xr-session.js              one VR session: setup + per-frame loop (takes a provider)
@@ -290,7 +290,7 @@ A site lists its panels (YouTube: `provider/panels.js`, which documents the inte
 { id, zone: 'left' | 'right' | 'controls' | 'top',
   label, icon,                            // icon: a Material Symbols name (symbols.js)
   style: 'info' | 'catalog' | 'queue' | 'profile' | 'options',
-  size: 'wide' | 'tall' | 'standard',     // vr-panel/config.js `sizes`
+  size: 'wide' | 'tall' | 'standard' | 'settings',   // vr-panel/config.js `sizes`
   overrides: { slots: { ... } },          // optional: the style's slots
   default: true,                          // optional: open the first time (on its side)
   available: st => bool,                  // optional (side panels): offered only while true
@@ -331,8 +331,8 @@ are hidden.
   the hover or the loaded images change), `event(ev)`, and optionally `tick(frame)` (every
   frame), `afterDraw()`, `opened()`, plus anything the site's `onControl` calls.
 - Sizes (canvas px, `config.js` `sizes`): `wide` panels all take the height a Catalog trims
-  itself to (900 px wide), `tall` is 900 x 1100, `standard` is the controls panel's width
-  (1024). Every canvas is shown at the same density (`config.js` `layout.pxPerDegree`, at
+  itself to (900 px wide), `tall` is 900 x 1100, `standard` is 1024 x 600 and `settings` (the Settings
+  panel) 1280 x 600, wider than the controls panel so its ten tabs fit. Every canvas is shown at the same density (`config.js` `layout.pxPerDegree`, at
   `layout.distance`).
 
 `vr-panel.js` builds everything from the registry: the layout, the toolbars and the pill, hit testing, events,

@@ -1,5 +1,5 @@
 // The Settings panel (the controls panel's pill; Options style), shared: the shell's own tabs,
-// with a site's tabs before them. The shell's: 2D Cinema (streamxr/page/cinema-options.js),
+// with a site's tabs before them. The shell's: 2D Cinema and 3D Cinema (streamxr/page/cinema-options.js),
 // Appearance, Safe zone, Auto-hide, Laser, Keyboard and Language (core/page/vr-panel/*-options.js),
 // each tab's rows from its options file. A site adds its own (YouTube: Playback, Audio);
 // StreamXR's Dashboard has none. The chosen tab is remembered (storage.js 'settingsTab').
@@ -19,6 +19,7 @@
   // The shell's tabs: id, icon (symbols.js), its options file (label: 'settings.<id>').
   const SHELL = [
     { id: 'cinema', icon: 'theaters' },
+    { id: 'cinema3d', icon: '3d_2' },
     { id: 'appearance', icon: 'palette', options: () => ns.vrAppearanceOptions },
     { id: 'safezone', icon: 'center_focus_strong', options: () => ns.vrSafeZoneOptions },
     { id: 'fade', icon: 'timer', options: () => ns.vrFadeOptions },
@@ -43,7 +44,8 @@
       ];
       const shownTab = tabs.some(x => x.id === tab) ? tab : tabs[0].id;
       const s = siteTab(shownTab), shell = SHELL.find(x => x.id === shownTab);
-      const content = s ? s.content(st) : shell.id === 'cinema' ? ns.vrCinemaOptions.content(vs) : shell.options().content();
+      const content = s ? s.content(st) : shell.id === 'cinema' ? ns.vrCinemaOptions.content(vs)
+        : shell.id === 'cinema3d' ? ns.vrCinemaOptions.content3d(vs) : shell.options().content();
       const m = { tabs, tab: shownTab, content, scroll: scrolls[shownTab] || 0 };
       return { model: m, key: JSON.stringify(m) };
     }

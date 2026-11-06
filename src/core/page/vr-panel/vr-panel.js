@@ -271,7 +271,8 @@
     }
     // Where the menu goes: its bottom middle just above the button that opened it (centred
     // on it, kept from reaching far past the panel's sides), in the controls panel's tilt,
-    // 32 dp in front.
+    // 48 dp in front: nearer than the popup that rises from the pill (32 dp: Settings), which
+    // it would otherwise cut into where they overlap.
     // A side panel's menu ('p:<panel>|<control>') goes the same way above its control, in
     // that panel's pose.
     function menuModel(id) {
@@ -308,7 +309,7 @@
       const half = size[0] / 2 - 0.12;
       const x = Math.max(-half, Math.min(half, cx));
       const bottom = (0.5 - rect.y / ui.height) * size[1] + 12 * MPX;
-      return M.multiply(model, M.translation(x, bottom + menuSize[1] / 2, dp(32)));
+      return M.multiply(model, M.translation(x, bottom + menuSize[1] / 2, dp(48)));
     }
     // The dialog, in the Safe Zone's middle, 56 dp nearer than the panels; the scrim just behind it.
     function dialogModel(d) {

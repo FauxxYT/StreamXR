@@ -13,15 +13,17 @@
     //   wide:     width, and the most height; a Catalog panel trims its height to its cards
     //             and every 'wide' panel takes that same height, so they all match.
     //   tall:     width x height, untrimmed.
-    //   standard: width x height (Settings: 1024 wide, a little narrower than the controls
-    //             panel; taller than the style's
-    //             own 390, so its rows have more room: six fit, as the 2D Cinema tab has).
+    //   standard: width x height (1024 wide, a little narrower than the controls panel;
+    //             taller than the Options style's own 390, so its rows have more room: six fit).
+    //   settings: as standard, but 1280 wide (a little wider than the controls panel), so the
+    //             Settings panel's ten tabs fit with their names at full size.
     // The side panels are narrower and taller than the panels of 0.63 and before (there's
     // more room up and down beside the Safe Zone than across).
     sizes: {
       wide: { width: 900, height: 1100 },
       tall: { width: 900, height: 1100 },
       standard: { width: 1024, height: 600 },
+      settings: { width: 1280, height: 600 },
     },
 
     laser: {

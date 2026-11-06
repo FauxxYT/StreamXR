@@ -240,11 +240,18 @@
         distance: view.distance ? view.distance() : null,
         cinema: { active: ns.formats.isFlat(fmt), follow: followView(), ...ns.cinemaScreen.curvePrefs(), defaultAmount: ns.cinemaScreen.SETTINGS.curveAmount,
           ...glowSettings(),
+          // 3D (side by side, top and bottom on the cinema screen): depth (-1..1) and Swap eyes
+          stereo: ns.formats.isFlat(fmt) && (ns.formats.isSbs(fmt) || ns.formats.isTb(fmt)),
+          ...(s => ({ depth: s.depth, swapEyes: s.swap }))(ns.cinemaScreen.stereoPrefs()),
           format: ns.formats.label(fmt) },
       });
       const setGlow = patch => {
         const g = ns.cinemaScreen.saveGlow(patch);
         if (view.setGlow) view.setGlow(g);
+      };
+      const setStereo = patch => {
+        const s = ns.cinemaScreen.saveStereo(patch);
+        if (view.setStereo) view.setStereo(s);
       };
       const setCurve = patch => {
         const c = ns.cinemaScreen.saveCurve(patch);
@@ -262,7 +269,7 @@
           exit: () => session.end(),
           setFormat: next => setFormat(next, true),
           setDistance: metres => { if (view.setDistance) view.setDistance(metres, headNow); },
-          setCurve, setGlow,
+          setCurve, setGlow, setStereo,
           setFollow: patch => { ns.cinemaScreen.saveFollow(patch); followPrefAt = 0; },   // (Follow your head { on?, after?, rate? }: read again at once)
           state: () => ({ ...siteSide.state(), viewSettings: viewSettings(),
             format: { current: fmt, options: formatOptions() } }),            // what's on screen (cinema during ads)
