@@ -6,6 +6,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## 0.103.0
+
+The release of everything since 0.102.0 (0.102.1 to 0.102.11, below): StreamXR runs right on
+the Steam Frame's own browser (with plain install steps), smoother panel text with Text
+sharpness, Passthrough switched on and off in VR with its Strength, one-click Enter VR on the
+Frame, and Copy details showing pixel density, WebXR layers and how the last session ended.
+No code changes since 0.102.11.
+
+### Docs
+- README: What's new rewritten for v0.103.0 (with a "Smaller changes" line); the early access
+  note says version 0.103.
+
 ## 0.102.11
 
 ### Fixed (works in the headset, 2026-11-06)

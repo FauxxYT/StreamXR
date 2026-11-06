@@ -8,12 +8,12 @@ taking your headset off. 🎬✨
 
 **Works with:** 🥽 the Valve Steam Frame on its own (its Chromium browser), or 🖥️ Windows + 🌐 Chrome + 🎮 SteamVR with the Steam Frame, Meta Quest 2,
 Pimax Crystal Light and likely other SteamVR headsets ([full requirements](#-what-you-need))<br>
-**Jump to:** [Install](#-get-started-in-a-minute) · [What's new](#-whats-new-in-v010211) ·
+**Jump to:** [Install](#-get-started-in-a-minute) · [What's new](#-whats-new-in-v01030) ·
 [What you get](#-what-you-get) · [Controls](#-controls) ·
 [Quick troubleshooting](#-quick-troubleshooting) · [Your privacy](#-your-privacy) ·
 [Roadmap](#-roadmap) · [How you can help](#-how-you-can-help)
 
-> **Early access** (version 0.102). Free and open source, forever. It already works every day; it's
+> **Early access** (version 0.103). Free and open source, forever. It already works every day; it's
 > still growing fast, and your feedback shapes what comes next.
 >
 > StreamXR is vibe coded by one guy (me!), and the only headset I've got is the Steam Frame.
@@ -124,10 +124,10 @@ Stuck? See [Quick troubleshooting](#-quick-troubleshooting).
 | 📺 **Site** | **YouTube** | Signed in or out. With YouTube Premium, even better (no ads). |
 | 🧩 **Optional** | **Skip Helper** | A tiny second extension that lets you skip ads from inside VR ([why it's separate](#-skipping-ads)). |
 
-## ✨ What's new in v0.102.11
+## ✨ What's new in v0.103.0
 
 - 🥽 **Runs right on the Steam Frame, no PC needed!** The Frame's own Chromium browser
-  supports WebXR from Chromium 157 (SteamOS 0.5.7), and StreamXR works there as it is.
+  supports WebXR from Chromium 157 (SteamOS 0.5.7 Beta or higher), and StreamXR works there as it is.
   [How to install it on the Frame](#right-on-the-steam-frame-no-pc).
 - 🔤 **Cleaner text on the panels:** no more jagged, shimmering letters where the headset
   draws fewer pixels than the panels have (like the Frame's own browser), and a new **Text
@@ -136,6 +136,9 @@ Stuck? See [Quick troubleshooting](#-quick-troubleshooting).
   any time in VR (Settings → Appearance), or **See your room** in the VR button's popup before
   entering, and the cinema screen hangs in your actual room. **Strength** sets how much of
   the room shows, from fully visible to hidden.
+- 🩹 **Smaller changes:** an easier Steam Frame install (one line to paste); Enter VR works on
+  the first click there; **Copy details** now shows what limits sharpness on your headset and
+  how your last VR session ended.
 
 Missed **v0.102.0**? It brought commenting in VR, the StreamXR Dashboard, Shorts in Explore,
 3D Top & Bottom with the 3D Cinema settings, and better troubleshooting: see the
