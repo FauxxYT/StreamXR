@@ -2,7 +2,7 @@
 
 One list of what's still open, gathered from the feature backlogs (`docs/features/`) and
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
-Last updated for 0.102.0.
+Last updated for 0.102.11.
 
 ## Top priority: before the first release
 
@@ -83,8 +83,8 @@ until another headset or two has been tried and the unverified items are cleared
 YouTube Movies (copy-protected, the free ones too: once YouTube allows protected video in desktop XR;
 their Up Next cards (price / rating, the Movie tag) come with them: `features/video-page.md`, "Deferred"),
 Firefox (desktop WebXR), full Steam Frame controller support (Chrome recognizing the
-controllers instead of "Oculus Touch"), native Steam Frame support (StreamXR in the Frame's own
-Chromium browser, no PC, once that browser supports WebXR), streaming services (HBO Max and
+controllers instead of "Oculus Touch"), ~~native Steam Frame support~~ (done 2026-11-06: StreamXR in the Frame's own
+Chromium browser, no PC, Chromium 157), streaming services (HBO Max and
 Netflix first) once they allow protected video in desktop XR.
 
 ## Road to 1.0 (easiest first)
@@ -228,10 +228,12 @@ uses the site's in-page navigation), Enter VR only from a real click, everything
 on canvases, no copy-protected (DRM) video, no passthrough, eye tracking or WebXR Layers on
 desktop Chrome. To do:
 
-- [x] ~~**A sharpness setting**~~ (render scale): built in 0.101.42, removed in 0.101.44: Chrome
-  caps `framebufferScaleFactor` at the headset's recommended size (`nativeScale` 1 on the Frame:
-  5288×2644 at both 1 and 1.5), so it changed nothing. SteamVR's Render Resolution is the real
-  setting (the README's "Want it sharper?"; `docs/hardware.md`).
+- [x] **A sharpness setting** (render scale): built in 0.101.42, removed in 0.101.44 (on a PC
+  Chrome caps `framebufferScaleFactor` at the headset's recommended size: `nativeScale` 1,
+  5288×2644 at both 1 and 1.5). Back in 0.102.1 as a slider capped at `nativeScale`,
+  removed again in 0.102.3: the Frame's own browser has `nativeScale` 1 too (2026-11-06), so it
+  was greyed out everywhere. The Frame's soft look was the panels' text, fixed with mipmaps
+  in 0.102.2.
 - [x] **Upload video frames only when a new one arrives** (`requestVideoFrameCallback`): already
   done: `media-source.js` uploads only on a new frame where the browser has it (audit, 2026-10-28).
 - [ ] **A second site: Twitch** (needs the maintainer's OK for its host permission): an
@@ -298,9 +300,15 @@ follow the browser's zoom and font size, hover and focus states, keyboard first.
 - [ ] **SteamVR 2.19.1's new default resolution** (beta, 2026-11): a Copy details paste after
   entering VR shows the new drawing size; then update `hardware.md` (2644×2644 per eye was 2.18)
   and the README's "Want it sharper?" tip if it needs it.
-- [ ] **WebXR in the Frame's own browser** (when Valve's flag shows up; `hardware.md`, "The
-  Frame's own browser"): the WebXR samples page there, then whether it installs an extension,
-  then StreamXR. Only then plan the native port (decoding, GPU headroom, controller mapping).
+- [x] **WebXR in the Frame's own browser**: works (2026-11-06, Chromium 157 Flatpak, SteamOS
+  0.5.7): StreamXR installs and runs there unchanged (`hardware.md`, "The Frame's own browser").
+  Text clarity: the per-eye resolution in the Frame's VR video settings for Chromium (1728 by
+  default) decides it; at the maximum, 3408, it's closest to streamed (README's Frame steps;
+  `hardware.md`). WebXR Layers are unavailable there for now. The Enter VR double click on
+  YouTube (the browser or headset closes every new session after the page's first, 0 frames
+  in, 0.4 s) is worked around: 0.102.11 asks again after short waits, and VR starts on the first
+  click, a second or two later (works, 2026-11-06; `hardware.md`). Videos there (2026-11-06): 4K 60 fps plays
+  well; 8K stutters a little (the Frame's chip; README known issues says to pick 4K).
 - ~~Signed-in Home feeds other than the main one~~ (History, Playlists, Watch later, Liked): work
   (2026-10-28); the main feed's chips too (they re-shuffled once a chip's videos loaded,
   fixed in 0.101.39).

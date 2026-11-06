@@ -6,9 +6,9 @@ taking your headset off. 🎬✨
 
 ### 👉 [Install it in a minute](#-get-started-in-a-minute) 👈
 
-**Works with:** 🖥️ Windows · 🌐 Chrome · 🎮 SteamVR · 🥽 Valve Steam Frame, Meta Quest 2,
+**Works with:** 🥽 the Valve Steam Frame on its own (its Chromium browser), or 🖥️ Windows + 🌐 Chrome + 🎮 SteamVR with the Steam Frame, Meta Quest 2,
 Pimax Crystal Light and likely other SteamVR headsets ([full requirements](#-what-you-need))<br>
-**Jump to:** [Install](#-get-started-in-a-minute) · [What's new](#-whats-new-in-v01020) ·
+**Jump to:** [Install](#-get-started-in-a-minute) · [What's new](#-whats-new-in-v010211) ·
 [What you get](#-what-you-get) · [Controls](#-controls) ·
 [Quick troubleshooting](#-quick-troubleshooting) · [Your privacy](#-your-privacy) ·
 [Roadmap](#-roadmap) · [How you can help](#-how-you-can-help)
@@ -22,12 +22,20 @@ Pimax Crystal Light and likely other SteamVR headsets ([full requirements](#-wha
 
 ## 🚀 Get started in a minute
 
-**You'll need:** a Windows PC with **Google Chrome** and **SteamVR**, and a headset that works
-with SteamVR ([details](#-what-you-need)).
+Two ways to run it:
+- 🖥️ **[On a PC](#on-a-pc):** a Windows PC with **Google Chrome** and **SteamVR**, and any
+  headset that works with SteamVR.
+- 🥽 **[Right on the Steam Frame](#right-on-the-steam-frame-no-pc):** in the Frame's own
+  Chromium browser, no PC needed.
+
+([Full requirements](#-what-you-need).)
+
+### On a PC
 
 1. **Download:** go to the [latest release](../../releases/latest), scroll to **Assets** and
-   click **Source code (zip)**. Unzip it somewhere it can stay, like your Documents folder
-   (Chrome runs it from there, so don't delete it).
+   click **Source code (zip)**. Unzip it somewhere it can stay, like your Documents folder: in
+   File Explorer, right-click the zip → **Extract All…** → pick the folder → **Extract**.
+   (Chrome runs StreamXR from there, so don't delete it.)
 2. **Install in Chrome:** type `chrome://extensions` in the address bar, turn on
    **Developer mode** (top right), click **Load unpacked** and pick the unzipped folder (the
    one with `manifest.json` inside). The **StreamXR Dashboard** opens with a short welcome.
@@ -61,44 +69,77 @@ with the new ones, then press the ↻ reload button on StreamXR's card in `chrom
 **and** reload your YouTube tab. Your settings stay. (Once StreamXR is on the Chrome Web Store,
 updates will be automatic.)
 
+### Right on the Steam Frame (no PC)
+
+StreamXR runs right in the Frame's own web browser, Chromium. No PC needed, and no typing of
+your own: you'll copy one line into the Frame's terminal app.
+
+**You'll need:** SteamOS **0.5.7 or newer** on the Frame. For now that's a **Beta**: in the
+Frame's **System** settings, under **Beta Participation**, set **System Update Channel** to
+**Beta**, then install the update.
+
+1. **Install or update Chromium** (VR needs version 157 or newer): open **Discover**, the
+   Frame's app store, search for **Chromium** and press **Install**. Already have it? Open
+   Discover's **Updates** page and update it there.
+2. **Open Konsole,** the terminal app (it's in the app menu).
+3. **Download StreamXR.** Copy the line below (the copy button at its right end does it in
+   one click), paste it into Konsole with **Ctrl + Shift + V** (or right-click by Clicking the Right Analog Stick on the Steam Frame Controller → **Paste**),
+   and press **Enter**:
+   ```bash
+   mkdir -p ~/Downloads/StreamXR && curl -L https://github.com/FauxxYT/StreamXR/archive/refs/heads/main.tar.gz | tar -xz --strip-components=1 -C ~/Downloads/StreamXR
+   ```
+   It downloads the newest StreamXR into a **StreamXR** folder in your **Downloads**. Leave
+   that folder there: Chromium runs StreamXR from it.
+4. **Add it to Chromium.** Open Chromium and go to `chrome://extensions`. Turn on
+   **Developer mode** (top right) and click **Load unpacked**. In the window that opens, go to
+   **Downloads**, select the **StreamXR** folder, and confirm (**Open** / **Select**).
+5. **Watch!** On YouTube, click the 🥽 **VR button** (in the top bar next to **+ Create**, or in
+   a video's player), then **Enter VR**. It can take a second or two. The first time, choose
+   **Allow while visiting the site**. 🍿
+6. **Make the text sharp** (recommended): while you're in VR, press the **Steam button** to open
+   Chromium's **VR video settings**, and set the **per-eye resolution** to the highest value
+   (**3408**). The default makes text look blurry.
+
+**Updating to a new version:** run the line from step 3 again. Then, in `chrome://extensions`,
+press the ↻ button on StreamXR, and reload your YouTube tab. Your settings stay.
+
+**Tips for the Frame:**
+- **Right-click = click the right stick** (press it in) on the Frame's desktop.
+- **Load unpacked only shows folders,** not `.zip` or `.tar.gz` files. The line in step 3
+  unpacks StreamXR for you; if you downloaded it some other way, unpack it first, then pick
+  the folder that has `manifest.json` in it.
+- **Prefer the terminal for Chromium too?** This line installs or updates it:
+  `flatpak install -y --or-update flathub org.chromium.Chromium`
+
 Stuck? See [Quick troubleshooting](#-quick-troubleshooting).
 
 ## ✅ What you need
 
 | | Works | Notes |
 |---|---|---|
-| 🖥️ **Computer** | **Windows 10 / 11** | Tested on Windows 11. macOS and Linux aren't supported (Chrome's WebXR needs Windows + SteamVR). |
-| 🌐 **Browser** | **Google Chrome** | Tested. Other Chromium browsers (Edge, Brave) should work but haven't been tried. Firefox can't yet: desktop Firefox has no WebXR (a 🦊 Firefox version will come once it does). |
-| 🥽 **Headset** | **Valve Steam Frame**<br>**Meta Quest 2** (reported by [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack))<br>**Pimax Crystal Light** (reported by [u/Livid-Escape-4820](https://www.reddit.com/user/Livid-Escape-4820)) | **Steam Frame:** tested and tuned for it, controller models and all, streamed from your PC. (Running in the Frame's own browser, no PC needed, comes once it supports WebXR: see the [roadmap](#-roadmap).)<br>**Quest 2:** reported working through SteamVR, 8K videos included. Its controllers show as Steam Frame models.<br>**Pimax Crystal Light:** reported working through SteamVR.<br>Other SteamVR headsets may well work too; their buttons may be mapped differently ([help add yours](#-adding-a-headset)). |
-| 🎮 **VR software** | **SteamVR** | Running **before** you open Chrome, and set as your OpenXR runtime. On the Steam Frame, stream it with **Stream VR without game** ([how](#-get-started-in-a-minute)). |
+| 🖥️ **Computer** | **Windows 10 / 11**, or **none** on the Steam Frame | Tested on Windows 11. macOS and Linux PCs aren't supported (Chrome's WebXR there needs Windows + SteamVR). On the Steam Frame, StreamXR runs in its own browser, no PC needed ([how](#right-on-the-steam-frame-no-pc)). |
+| 🌐 **Browser** | **Google Chrome** on a PC<br>**Chromium 157+** on the Steam Frame | Tested. On the Frame: SteamOS 0.5.7 or later. Other Chromium browsers (Edge, Brave) should work but haven't been tried. Firefox can't yet: desktop Firefox has no WebXR (a 🦊 Firefox version will come once it does). |
+| 🥽 **Headset** | **Valve Steam Frame**<br>**Meta Quest 2** (reported by [u/TehSuperFruitSnack](https://www.reddit.com/user/TehSuperFruitSnack))<br>**Pimax Crystal Light** (reported by [u/Livid-Escape-4820](https://www.reddit.com/user/Livid-Escape-4820)) | **Steam Frame:** tested and tuned for it, controller models and all, either streamed from your PC or right in the Frame's own Chromium browser (no PC).<br>**Quest 2:** reported working through SteamVR, 8K videos included. Its controllers show as Steam Frame models.<br>**Pimax Crystal Light:** reported working through SteamVR.<br>Other SteamVR headsets may well work too; their buttons may be mapped differently ([help add yours](#-adding-a-headset)). |
+| 🎮 **VR software** | **SteamVR** (on a PC) | Running **before** you open Chrome, and set as your OpenXR runtime. To use the Steam Frame from a PC, stream it with **Stream VR without game** ([how](#on-a-pc)). Nothing extra on the Frame's own browser. |
 | 📺 **Site** | **YouTube** | Signed in or out. With YouTube Premium, even better (no ads). |
 | 🧩 **Optional** | **Skip Helper** | A tiny second extension that lets you skip ads from inside VR ([why it's separate](#-skipping-ads)). |
 
-## ✨ What's new in v0.102.0
+## ✨ What's new in v0.102.11
 
-Everything since v0.101.16, in short (every version's details are in the
-[changelog](CHANGELOG.md)):
+- 🥽 **Runs right on the Steam Frame, no PC needed!** The Frame's own Chromium browser
+  supports WebXR from Chromium 157 (SteamOS 0.5.7), and StreamXR works there as it is.
+  [How to install it on the Frame](#right-on-the-steam-frame-no-pc).
+- 🔤 **Cleaner text on the panels:** no more jagged, shimmering letters where the headset
+  draws fewer pixels than the panels have (like the Frame's own browser), and a new **Text
+  sharpness** slider (Settings → Appearance) to make it crisper. Captions are smoother too.
+- 🏠 **See your room on the Steam Frame:** in the Frame's own browser, turn on **Passthrough**
+  any time in VR (Settings → Appearance), or **See your room** in the VR button's popup before
+  entering, and the cinema screen hangs in your actual room. **Strength** sets how much of
+  the room shows, from fully visible to hidden.
 
-- 💬 **Comment in VR:** write comments and replies on the VR keyboard, and edit or delete your
-  own. Replies to replies now show at any depth, with thread lines you can click to fold them.
-- 🏠 **The StreamXR Dashboard:** a page of StreamXR's own, with a popup on its toolbar button.
-  It checks your headset, explains what's wrong when VR won't start, and **Test VR** tries your
-  setup without any site. It opens with a short welcome when you install StreamXR.
-- 📱 **Shorts in Explore:** YouTube's endless Shorts feed. Shorts play one after another, and
-  Up Next shows the ones coming. Shorts now fit the cinema screen instead of towering over you.
-- 🕶️ **3D Top & Bottom** videos play in 3D on the cinema screen (requested by
-  [u/Timtronic125](https://www.reddit.com/user/Timtronic125)). A new **3D Cinema** settings
-  tab has **3D depth** (push the 3D back if it feels harsh) and **Swap eyes**.
-- 🔍 **Sharpness** (Settings → Appearance): draw the headset's picture sharper, if your graphics
-  card can keep up.
-- 🩺 **Better troubleshooting:** a quick test to tell whether it's StreamXR or your PC's VR
-  setup, the "reinstall SteamVR" fix (found with
-  [u/Timtronic125](https://www.reddit.com/user/Timtronic125)), and when another tab is already
-  in VR, StreamXR says which one and offers **Exit VR there**.
-- 🩹 **Smaller changes:** recentering fades instead of jumping; both lasers light up keys on the
-  VR keyboard; a click on empty space hides the panels with the keyboard out too; the
-  controllers no longer freeze while the SteamVR dashboard is open; the Settings panel is wider
-  and menus no longer cut into it; Movies & TV explains why it can't play in VR.
+Missed **v0.102.0**? It brought commenting in VR, the StreamXR Dashboard, Shorts in Explore,
+3D Top & Bottom with the 3D Cinema settings, and better troubleshooting: see the
+[changelog](CHANGELOG.md#01020).
 
 ## 🌟 What you get
 ### 🎥 Every kind of video, the way it was meant to be seen
@@ -151,7 +192,7 @@ glassy toolbars on each side:
 
 ### 🎨 Make it yours (Settings)
 - Looks: **YouTube** or **Material 3** colors, **glass** panels with an adjustable tint, the
-  **panel size** and the **sharpness**.
+  **panel size**, the **text sharpness**, and **Passthrough** (your room around the video, with its strength).
 - The cinema screen's **curve**, **distance** and **glow**, and **Follow your head** (the screen
   and panels catch up when you turn).
 - **3D Cinema:** **3D depth** (push everything back if the 3D feels harsh) and **Swap eyes**,
@@ -220,7 +261,7 @@ setup without any site.
 | 🔄 **Just updated StreamXR and nothing changed** | Reload your YouTube tab too: an open tab keeps the old version until it's reloaded. |
 | 🌀 **A video looks stretched, doubled or split into squares** | Pick another format in the popup before entering VR, or with the **Format** button on the controls panel. |
 | 🎯 **The laser feels jittery** | Settings → **Laser** → turn up the steadiness. |
-| 🔍 **Want it sharper?** | Try Settings → Appearance → **Sharpness**. StreamXR also follows SteamVR's own size: raise it in **SteamVR → Settings → Video → Render Resolution** (or a custom resolution for Chrome alone): sharper text and video, more work for your graphics card. The Steam Frame's stream can still limit how much you see. |
+| 🔍 **Want it sharper?** | For the panels' text: Settings → Appearance → **Text sharpness** (too high can make it shimmer). On a PC, StreamXR draws at the size SteamVR asks for: raise it in **SteamVR → Settings → Video → Render Resolution** (or a custom resolution for Chrome alone): sharper text and video, more work for your graphics card. The Steam Frame's stream can still limit how much you see. |
 | 🫥 **The panels are in the way, or out of reach** | Press **Grip** (pointing at nothing) to recenter, or tune the **Safe Zone** in Settings. |
 | ⏩ **The panel says "Skip on desktop"** | That's normal without the optional [Skip Helper](#-skipping-ads): click Skip ad in the browser window, or install the helper. |
 | ♻️ **Settings got into a weird state** | Hold the **right stick click** for 3 seconds to reset everything to the defaults. |
@@ -310,6 +351,9 @@ what bugs you most):
   StreamXR shows what YouTube's own player plays and won't bypass it: [why](docs/decisions/0002-site-player-only.md).
   The 3D videos that do arrive with both eyes side by side or stacked (top & bottom) play in
   3D (Format menu).
+- **8K videos stutter a little on the Steam Frame's own browser** (no PC): the headset's chip
+  is doing everything itself. 4K at 60 fps plays smoothly: pick it with the **Quality**
+  button. (Streamed from a PC, 8K is fine.)
 - **Captions on 180° / 360° videos** sit low in front of you and glide after your view;
   they work, but their placement still needs polish.
 - **YouTube's movies can't play in VR** (they're copy-protected, the free ones too). They're
@@ -411,9 +455,9 @@ They're waiting on browsers, Valve, YouTube or the streaming services, not on me
 - 🎮 **Full Steam Frame controller support:** every button on its own (no more B, X and Y
   acting as one), as soon as Chrome recognizes the Steam Frame controllers instead of
   reporting them as Oculus Touch.
-- 🥽 **Native Steam Frame support:** StreamXR running right in the Steam Frame's own
-  Chromium browser, with no PC and no SteamVR streaming needed, as soon as that browser
-  supports WebXR. I'll update StreamXR to work there the moment it does.
+- ✅ **Native Steam Frame support:** done! StreamXR runs right in the Steam Frame's own
+  Chromium browser (Chromium 157, SteamOS 0.5.7), with no PC and no SteamVR streaming needed
+  ([how](#right-on-the-steam-frame-no-pc)).
 - 🔐 **Streaming services**, starting with 🎬 **HBO Max** and 🍿 **Netflix** (the ones I'd use
   most!), then Disney+, Prime Video and the rest: as soon as they allow their protected
   videos in VR in desktop browsers ([why they can't yet](#-what-about-netflix-max-and-the-others),
@@ -453,9 +497,9 @@ Valve's SteamVR 😅). The name it has now says what it's meant to become:
 - 🥽 **XR, not just VR.** **XR** ("extended reality") is the umbrella for both **VR** (virtual
   reality, a whole world around you) and **AR** (augmented reality: your real room, with
   things floating in it). I want StreamXR to work on **AR glasses and passthrough devices**
-  too, a cinema screen hanging in your actual living room. It's already prepared for it: the
-  popup has a "See your room" option that switches on as soon as the browser offers
-  passthrough.
+  too, a cinema screen hanging in your actual living room. It already works on the Steam
+  Frame's own browser: turn on Passthrough in Settings → Appearance (or "See your room" in
+  the popup), and set how much of your room shows with its Strength.
 
 I believe XR is the future of how we'll watch, and StreamXR is built to be there for it. 🚀
 

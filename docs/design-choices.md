@@ -272,10 +272,22 @@ even where they look like something to "fix".
   show in English. Separate from the keyboard's language (Settings → Keyboard).
 - The Settings panel's tab row has no format text in its corner: the current format shows as
   the 2D Cinema tab's note ("Now: 360°"), and on the controls panel's Format button.
-- **Passthrough** (seeing your room around the video) is a choice in the popup, off by
-  default and remembered, because the session type is picked when you press Enter VR. It's
-  greyed out with the reason while the browser doesn't offer it (today, on desktop Chrome
-  with SteamVR).
+- **Passthrough** (seeing your room around the video; the maintainer, 2026-11-06): off by
+  default and remembered, switched in the popup ("See your room", before VR) or in VR with
+  Settings → Appearance → **Passthrough** (after Panel size; any format), one setting for both.
+  Wherever the browser offers a see-through session (the Steam Frame's own browser), StreamXR
+  always starts one, so the switch works at any time; switched off, the frame is drawn opaque,
+  just like VR. Where it isn't offered (desktop Chrome with SteamVR), the popup's checkbox is
+  greyed out with the reason and the rows don't show in VR.
+- **Text sharpness** (the maintainer, 2026-11-06): Settings → Appearance, after Panel size, a
+  slider from 0% (smooth: plain mipmaps) to 100% (one mipmap level sharper plus an equal
+  edge sharpening), default 50% (also the best at the Frame's 3408, 2026-11-06), in 10% steps. It's for the panels' text where the headset
+  shows them with fewer pixels than they have (the Steam Frame's own browser); too high can
+  shimmer. (The earlier Sharpness, the drawing size, was dropped: browsers cap it.)
+- **Passthrough strength** (the maintainer, 2026-11-06; "Your room" in 2D Cinema in 0.102.4):
+  under the switch, a slider sets how much of the room shows, from 0% (hidden) to 100%
+  (fully, the default), in 5% steps, dimmed while the switch is off. Remembered; the global
+  reset turns passthrough off and the strength back to 100%.
 - **The popup** closes itself once VR has started (opened again during VR, its button is
   Exit VR); if VR can't start it stays open and says why. Enter VR and Exit VR are both
   YouTube red (the popup's most important button). The controller help is folded into a

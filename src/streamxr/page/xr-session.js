@@ -56,13 +56,45 @@
     return null;
   }
 
-  // Start VR showing the provider's video in `fmt`. listener(state) gets
+  // Start VR showing the provider's video in `fmt`. Resolves once the headset has asked for
+  // its first frame (VR is really up), rejects if it can't start. listener(state) gets
   // { state: 'format', fmt } when the format is changed from inside VR,
   // { state: 'ended' } or { state: 'error', message } later on. Must be called from a user gesture.
-  // opts.passthrough: you'd like to see your room around the video (the popup's checkbox).
-  // Used only when the browser offers a see-through session ('immersive-ar'); today desktop
-  // Chrome with SteamVR doesn't (docs/hardware.md), so this asks for a normal VR session.
+  // opts.passthrough: the popup's "See your room" checkbox, which it has also remembered
+  // ('passthrough'): the Passthrough switch's starting state (appearance-options.js reads it).
+  // Passthrough needs a browser that offers a see-through session ('immersive-ar'): the Steam
+  // Frame's own browser does; desktop Chrome with SteamVR doesn't (docs/hardware.md).
+  //
+  // A session the browser or headset closes before its first frame (the Steam Frame's own
+  // browser does this to every Enter VR after the page's first VR session, 0.4 s in) is
+  // asked for again after short waits (RETRY_WAITS), while the click still counts
+  // (navigator.userActivation: about 5 s). Asking at once doesn't work there: the closed
+  // session is still shutting down, so the browser answers NotSupportedError, as when
+  // another tab is in VR. If every try fails, it rejects with the first "VR closed right
+  // away, click Enter VR again" error.
+  const RETRY_WAITS = [300, 500, 700, 900, 1100];          // ms before each new try (3.5 s in all)
+  const wait = ms => new Promise(r => setTimeout(r, ms));
   async function start(provider, fmt, listener, opts = {}) {
+    let closed;
+    try { return await startOnce(provider, fmt, listener, opts); }
+    catch (err) {
+      if (!(err && err.streamxrEndedAtOnce)) throw err;
+      closed = err;
+    }
+    for (const ms of RETRY_WAITS) {
+      await wait(ms);
+      if (navigator.userActivation && !navigator.userActivation.isActive) break;   // the click no longer counts
+      console.warn(`[streamxr] VR closed before its first frame, asking again after ${ms} ms`);
+      try { return await startOnce(provider, fmt, listener, opts); }
+      catch (err) {
+        // Still shutting down (NotSupportedError) or closed at once again: wait and try again.
+        if (!(err && (err.streamxrEndedAtOnce || err.name === 'NotSupportedError'))) throw err;
+      }
+    }
+    throw closed;
+  }
+
+  async function startOnce(provider, fmt, listener, opts) {
     if (active) return;
     // The video to show (media-source.js). With none on the page yet (VR started from the
     // site's home page...), the cinema screen shows a placeholder until you pick one in VR.
@@ -70,8 +102,23 @@
     if (!source.element()) fmt = ns.formats.DEFAULT;
     let session;
     try {
-      const ar = !!opts.passthrough && await navigator.xr.isSessionSupported('immersive-ar').catch(() => false);
-      session = await navigator.xr.requestSession(ar ? 'immersive-ar' : 'immersive-vr', { optionalFeatures: ['local-floor'] });
+      // Wherever the browser offers a see-through session, StreamXR always asks for one: the
+      // Passthrough switch (Settings → Appearance) then shows or hides the room at any time
+      // (hidden, the frame is drawn opaque, so it looks just like VR). If it's refused, a
+      // normal VR session instead. Whether it's offered comes from the popup's last check
+      // (diagnostics.js arOffered), not asked here: an await before requestSession can use up
+      // the click, and VR then needs a second one. (Before any check: the popup's wish.)
+      // Optional features: 'local-floor', and 'layers' (WebXR layers, not used yet: asked for so
+      // Copy details can say whether this browser grants them, for sharper panel text later;
+      // the session still draws through its baseLayer either way).
+      const FEATURES = ['local-floor', 'layers'];
+      const known = ns.diagnostics && ns.diagnostics.arOffered ? ns.diagnostics.arOffered() : null;
+      const ar = known != null ? known : !!opts.passthrough;
+      if (ar) {
+        try { session = await navigator.xr.requestSession('immersive-ar', { optionalFeatures: FEATURES }); }
+        catch (err) { console.warn('[streamxr] see-through session refused, starting VR:', err); }
+      }
+      if (!session) session = await navigator.xr.requestSession('immersive-vr', { optionalFeatures: FEATURES });
     } catch (err) {
       source.stop();
       try { err.streamxrStep = 'requestSession'; } catch (_) { /* a frozen error */ }   // (for Details: where it failed)
@@ -80,9 +127,19 @@
     // See-through (passthrough): where nothing is drawn, the room shows instead of black.
     const seeThrough = !!session.environmentBlendMode && session.environmentBlendMode !== 'opaque';
     active = { session };
+    // Settled by the first frame (VR is up: start() resolves) or by the session ending before
+    // one (rejects, marked streamxrEndedAtOnce, so start() can ask once more).
+    let firstFrameDone, firstFrameFailed;
+    const firstFrame = new Promise((res, rej) => { firstFrameDone = res; firstFrameFailed = rej; });
+    firstFrame.catch(() => {});                          // (handled by whoever awaits it)
     // The glass setting as remembered now (the popup may have switched it since the page
     // loaded; appearance-options.js).
-    if (ns.vrAppearanceOptions) ns.vrAppearanceOptions.load();
+    const AO = ns.vrAppearanceOptions;
+    if (AO) AO.load();
+    // The Passthrough rows (Settings → Appearance): shown when this session is see-through.
+    if (AO) AO.setPassthroughSession({ offered: seeThrough });
+    // Is the room showing now (the session is see-through and the Passthrough switch is on)?
+    const roomShows = () => seeThrough && !!AO && AO.passthroughOn();
     try {
       // A private WebGL canvas the headset displays (not shown on the page). Prefers
       // WebGL 2; antialiasing is off (the headset's own resampling is enough and it costs
@@ -257,7 +314,6 @@
         const c = ns.cinemaScreen.saveCurve(patch);
         if (view.setCurve) view.setCurve(c);
       };
-
       // Floating control panel + laser pointers. Optional too. Its actions are the site's
       // plus the shell's own (recenter, exit, formats, the cinema screen), and its state the
       // site's plus the format and the shell's settings.
@@ -266,7 +322,7 @@
         panel = ns.vrPanel ? ns.vrPanel.create(gl, {
           ...siteSide.actions,
           recenter: () => askRecenter(),
-          exit: () => session.end(),
+          exit: () => { endWhy('Exit VR in VR'); session.end(); },
           setFormat: next => setFormat(next, true),
           setDistance: metres => { if (view.setDistance) view.setDistance(metres, headNow); },
           setCurve, setGlow, setStereo,
@@ -372,11 +428,17 @@
       // first, the check runs again when it ends.)
       const stopNavigate = provider.onNavigate(() => recheckFormat());
 
+      // For Copy details (diagnostics.js noteEnd): frames drawn, and failed video uploads in a row.
+      let frames = 0, uploadFails = 0;
+      const UPLOAD_TRIES = 90;                             // about a second of frames
+      const startedAt = performance.now();
+
       // The render loop, once per headset frame. In order: follow the video element, read
       // the controllers, handle ads, recenter if asked, update the panel, upload a new video
       // frame if there is one, then draw: video, pause overlay, captions, panel, controllers, lasers.
       const onFrame = (_, frame) => {
         session.requestAnimationFrame(onFrame);
+        if (++frames === 1) firstFrameDone();
         ns.frameClock.tick();                                // waits end on time even if the page's timers are held back
         const pose = frame.getViewerPose(refSpace);
         if (!pose) return;                                   // headset tracking lost this frame
@@ -420,15 +482,24 @@
         if (poster.key) {
           if (poster.canvas && poster.for !== view) { view.upload(poster.canvas); poster.for = view; }
         } else if (source.hasNewFrame()) {
+          // A refused frame (SecurityError: cross-origin) ends VR at once; any other failure
+          // (e.g. a hardware-decoded video's first frame not ready yet) is tried again on the
+          // next frames, and ends VR only after UPLOAD_TRIES in a row.
           try {
             view.upload(source.element());
             source.uploaded();
+            uploadFails = 0;
           } catch (err) {
-            listener({ state: 'error', message: err && err.name === 'SecurityError'
-              ? ns.i18n.t('vr.blockedFrames', { site: provider.name })
-              : ns.i18n.t('vr.cantRead', { error: err && err.message }) });
-            session.end();
-            return;
+            const refused = err && err.name === 'SecurityError';
+            if (++uploadFails === 1) console.warn('[streamxr] video frame upload failed, trying again:', err);
+            if (refused || uploadFails >= UPLOAD_TRIES) {
+              listener({ state: 'error', message: refused
+                ? ns.i18n.t('vr.blockedFrames', { site: provider.name })
+                : ns.i18n.t('vr.cantRead', { error: err && err.message }) });
+              endWhy(`video frame: ${err && err.name}: ${err && err.message}`);
+              session.end();
+              return;
+            }
           }
         } else if (!source.element() && placeholder && placeholderFor !== view) {
           view.upload(placeholder);                           // no video: the placeholder, once per view
@@ -438,7 +509,10 @@
         const layer = session.renderState.baseLayer;
         if (layer !== notedLayer) { ns.diagnostics.noteHeadset(session, layer, pose); notedLayer = layer; }
         gl.bindFramebuffer(gl.FRAMEBUFFER, layer.framebuffer);
-        gl.clearColor(0, 0, 0, seeThrough ? 0 : 1);           // transparent: the room shows (passthrough)
+        // With the room showing: cleared to black at 1 - Passthrough strength (Settings →
+        // Appearance), so the headset blends the room in at that strength. Otherwise opaque
+        // black, as in VR (in a see-through session too, with the switch off).
+        gl.clearColor(0, 0, 0, roomShows() ? 1 - AO.passthrough() : 1);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         view.draw(pose, layer, yaw);
         if (pauseOverlay) {
@@ -465,9 +539,9 @@
           try { captionsOverlay.draw(pose, layer, siteSide.captions(), view.captionAnchor ? view.captionAnchor() : null); }
           catch (err) { console.warn('[streamxr] captions failed, turning them off:', err); captionsOverlay = null; }
         }
-        // The panels, with the video behind them for the glass look (none over the room: the
-        // camera image never reaches the page, so passthrough gets the tint alone).
-        panelSafely('drawing', () => panel.drawPanel(pose, layer, !seeThrough && view.backdrop ? view.backdrop() : null));
+        // The panels, with the video behind them for the glass look (none while the room shows:
+        // the camera image never reaches the page, so passthrough gets the tint alone).
+        panelSafely('drawing', () => panel.drawPanel(pose, layer, !roomShows() && view.backdrop ? view.backdrop() : null));
 
         // The controllers and lasers only while the session is fully visible: with the SteamVR
         // dashboard (or another overlay) open it's 'visible-blurred' and the browser gets no
@@ -488,13 +562,25 @@
       // Session over (you took the headset off, pressed Exit VR, or an error ended it):
       // stop listening, free everything on the GPU, and tell the panel.
       session.addEventListener('end', () => {
+        const why = active && active.why;                  // (set when StreamXR itself ended it)
+        if (ns.diagnostics.noteEnd) {
+          ns.diagnostics.noteEnd({ why: why || 'ended by the browser or headset',
+            frames, seconds: Math.round((performance.now() - startedAt) / 100) / 10 });
+        }
         active = null;
+        if (AO) AO.setPassthroughSession(null);
         source.stop();
         stopNavigate();
         try { if (pauseOverlay) pauseOverlay.dispose(); if (captionsOverlay) captionsOverlay.dispose(); if (controllers) controllers.dispose(); if (fadePass) fadePass.dispose(); if (panel) panel.dispose(); view.dispose(); } catch (_) { /* context going away anyway */ }
         const lose = gl.getExtension('WEBGL_lose_context');
         if (lose) lose.loseContext();
-        listener({ state: 'ended' });
+        // Ended before its first frame: start() hears it, not the listener; closed by the
+        // browser or headset (not by StreamXR), start() may ask again.
+        if (frames === 0) {
+          const err = new Error(why ? `${why} before VR started` : ns.i18n.t('vr.endedAtOnce'));
+          err.streamxrEndedAtOnce = !why; err.streamxrStep = 'first frame';
+          firstFrameFailed(err);
+        } else listener({ state: 'ended' });
       });
       session.requestAnimationFrame(onFrame);
       if (source.element() && provider.isPaused()) provider.toggle();   // start playing if it was paused on the desktop
@@ -504,10 +590,14 @@
       session.end().catch(() => {});
       throw err;
     }
+    return firstFrame;                                   // VR is up once the headset asks for a frame
   }
 
-  // Leave VR (no-op if no session is running).
-  function end() { if (active) active.session.end(); }
+  // Why the running session is ending, for Copy details (the first reason given wins).
+  function endWhy(why) { if (active && !active.why) active.why = why; }
+
+  // Leave VR (no-op if no session is running): the popup's Exit VR, another tab's Exit VR there.
+  function end() { if (active) { endWhy('Exit VR from the page'); active.session.end(); } }
 
   ns.xrSession = { start, end, isActive: () => !!active };
 })(globalThis.__streamxr = globalThis.__streamxr || {});
