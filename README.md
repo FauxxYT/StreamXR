@@ -8,12 +8,12 @@ taking your headset off. 🎬✨
 
 **Works with:** 🖥️ Windows · 🌐 Chrome · 🎮 SteamVR · 🥽 Valve Steam Frame, Meta Quest 2,
 Pimax Crystal Light and likely other SteamVR headsets ([full requirements](#-what-you-need))<br>
-**Jump to:** [Install](#-get-started-in-a-minute) · [What's new](#-whats-new-in-v010175) ·
+**Jump to:** [Install](#-get-started-in-a-minute) · [What's new](#-whats-new-in-v01020) ·
 [What you get](#-what-you-get) · [Controls](#-controls) ·
 [Quick troubleshooting](#-quick-troubleshooting) · [Your privacy](#-your-privacy) ·
 [Roadmap](#-roadmap) · [How you can help](#-how-you-can-help)
 
-> **Early access** (version 0.101). Free and open source, forever. It already works every day; it's
+> **Early access** (version 0.102). Free and open source, forever. It already works every day; it's
 > still growing fast, and your feedback shapes what comes next.
 >
 > StreamXR is vibe coded by one guy (me!), and the only headset I've got is the Steam Frame.
@@ -74,7 +74,7 @@ Stuck? See [Quick troubleshooting](#-quick-troubleshooting).
 | 📺 **Site** | **YouTube** | Signed in or out. With YouTube Premium, even better (no ads). |
 | 🧩 **Optional** | **Skip Helper** | A tiny second extension that lets you skip ads from inside VR ([why it's separate](#-skipping-ads)). |
 
-## ✨ What's new in v0.101.75
+## ✨ What's new in v0.102.0
 
 Everything since v0.101.16, in short (every version's details are in the
 [changelog](CHANGELOG.md)):
@@ -375,10 +375,10 @@ No dates, just what I'll work on next, in this order:
 2. ✅ **Add to queue:** done (v0.101.7): line up videos to watch next from any panel,
    then clear it or save it as a playlist.
 3. ✅ **Explore page tabs:** done: Live, Gaming, Music, Hype, Courses, Podcasts and Memberships
-   (v0.101.7), and Shorts (v0.101.75). Movies & TV can't play in VR (they're copy-protected).
+   (v0.101.7), and Shorts (v0.102.0). Movies & TV can't play in VR (they're copy-protected).
 4. ✅ **Live Chat:** done (v0.88.1): read, react and type in a live stream's chat.
 5. ✅ **YouTube Premium:** done (v0.93.3): 1080p Premium and Jump ahead, marked with the Diamond.
-6. ✅ **Commenting in-headset:** done (v0.101.75): write, reply to, edit and delete comments
+6. ✅ **Commenting in-headset:** done (v0.102.0): write, reply to, edit and delete comments
    with the VR keyboard.
 7. 🏪 **Chrome Web Store release, StreamXR 1.0:** install StreamXR in one click and get updates
    automatically, no more downloading new versions by hand. Still free, of course.

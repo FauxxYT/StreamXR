@@ -6,14 +6,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. All of these were developed in October 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
-## 0.101.75
+## 0.102.0
 
-### Fixed
-- **A click on nothing didn't hide the panels while the keyboard was out** (it does with the controls
-  panel): the keyboard counted as something to let go of. Now, unless you're typing into a field (the
-  first click still stops that), a click on nothing hides everything, the keyboard included, and a
-  trigger pull brings it all back with the keyboard still up. The keyboard button while it's hidden
-  this way brings everything back too, instead of putting the keyboard away.
+The release of everything since 0.101.16 (0.101.17 to 0.101.75, below): Commenting in VR, the
+StreamXR Dashboard, Shorts in Explore, 3D Top & Bottom with the 3D Cinema settings, Sharpness,
+and better troubleshooting. No code changes since 0.101.75.
 
 ### Docs
 - **The README puts installing first**: Get started (with a "You'll need" line, steps for the
@@ -23,6 +20,15 @@ developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
   "another tab is already in VR"). The background sections follow, and the developer sections
   sit under "For developers" at the end. The roadmap marks the Explore tabs and Commenting as
   done; the known issue about very tall Shorts is gone (fixed in 0.101.46).
+
+## 0.101.75
+
+### Fixed
+- **A click on nothing didn't hide the panels while the keyboard was out** (it does with the controls
+  panel): the keyboard counted as something to let go of. Now, unless you're typing into a field (the
+  first click still stops that), a click on nothing hides everything, the keyboard included, and a
+  trigger pull brings it all back with the keyboard still up. The keyboard button while it's hidden
+  this way brings everything back too, instead of putting the keyboard away.
 
 ## 0.101.74
 
