@@ -12,11 +12,37 @@ The release of everything since 0.102.0 (0.102.1 to 0.102.11, below): StreamXR r
 the Steam Frame's own browser (with plain install steps), smoother panel text with Text
 sharpness, Passthrough switched on and off in VR with its Strength, one-click Enter VR on the
 Frame, and Copy details showing pixel density, WebXR layers and how the last session ended.
-No code changes since 0.102.11.
+Plus, new in this version:
+
+### Added (works in the headset, 2026-11-06)
+- **Through the video** (Settings → Appearance, under Passthrough's Strength): how much of the
+  room shows through the cinema screen itself, from **Solid** (0%, the default: a clear
+  picture) to **See-through** (100%, as much as around it). Until now the video left the
+  frame's alpha alone, so in passthrough the room showed through it at the Strength. The
+  cinema screen now sets the frame's alpha where it's drawn (`blendColor` with
+  `CONSTANT_ALPHA`, `cinema-screen.js` `setFrameAlpha`, from `xr-session.js` each frame);
+  360° and VR180 videos were already solid. Remembered (`passthroughVideo`); the global reset
+  puts it back to solid. Checked in WebGL: a frame cleared to 40% alpha reads 100% / 70% / 40%
+  under the video at 0% / 50% / 100%.
+
+### Fixed (work in the headset, 2026-11-06)
+- **Panels and buttons over the video let the room through in passthrough** (at the
+  Strength, as if through the video): drawn with straight alpha blending, a glass panel
+  lowered the frame's alpha wherever it was, even over the solid video. Everything blended
+  (panels, keyboard, toolbars, lasers, controller icons and models, captions, the pause
+  symbol) now uses `blendFuncSeparate(SRC_ALPHA, ONE_MINUS_SRC_ALPHA, ONE,
+  ONE_MINUS_SRC_ALPHA)`: the frame's alpha only ever rises. No change without passthrough.
+- **The search results panel cut into the Settings panel** with both open: Settings rises in
+  the controls panel's plane, tilted back to face you from below, so its top edge ends up
+  farther than D, where the results were. The results panel now sits just behind that edge
+  (its farthest point plus 24 dp, at least D), scaled up by the same ratio so it looks the
+  same size (`vr-panel.js` relayout). The search bar needs no change: its suggestions don't
+  clash with Settings.
 
 ### Docs
-- README: What's new rewritten for v0.103.0 (with a "Smaller changes" line); the early access
-  note says version 0.103.
+- README: What's new rewritten for v0.103.0 (with a "Smaller changes" line), with Through the
+  video in its passthrough line and in Make it yours; the early access note says version 0.103.
+  `design-choices.md` (the results panel's depth), `hardware.md` and `Spatial-Layout.md`.
 
 ## 0.102.11
 

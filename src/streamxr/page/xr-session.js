@@ -514,6 +514,9 @@
         // black, as in VR (in a see-through session too, with the switch off).
         gl.clearColor(0, 0, 0, roomShows() ? 1 - AO.passthrough() : 1);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        // The cinema screen over the room: solid unless Through the video lets some of it in
+        // (up to as much as around it). The sphere (360° / VR180) is always drawn solid.
+        if (view.setFrameAlpha) view.setFrameAlpha(roomShows() ? 1 - AO.passthroughVideo() * AO.passthrough() : 1);
         view.draw(pose, layer, yaw);
         if (pauseOverlay) {
           // Pin the pause symbol (and buffering spinner) to the video: the cinema screen's centre, or the front of the

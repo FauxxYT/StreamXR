@@ -39,7 +39,9 @@ even where they look like something to "fix".
   the VR keyboard in the controls panel's place
   (searching puts it away again, unless you brought it up yourself with B); suggestions
   drop down from the bar while typing; the results open in a **middle panel** under the
-  bar, inside the zone (shrunk if the zone is too short for it), and go away when the bar
+  bar, inside the zone (shrunk if the zone is too short for it; set back just behind the
+  Settings popup's top edge so the two never cut into each other: the maintainer, 2026-11-06),
+  and go away when the bar
   is cleared (×, which also stops typing). A trigger click on nothing (no panel, button or
   handle) lets go of what was last clicked: typing stops (the keyboard goes if it came up
   by itself) and an open controls-panel menu closes (0.66.1).
@@ -288,6 +290,10 @@ even where they look like something to "fix".
   under the switch, a slider sets how much of the room shows, from 0% (hidden) to 100%
   (fully, the default), in 5% steps, dimmed while the switch is off. Remembered; the global
   reset turns passthrough off and the strength back to 100%.
+- **Through the video** (the maintainer, 2026-11-06): under Strength, how much of the room shows
+  through the video itself, from 0% (**solid**, the default: a clear picture) to 100% (as much
+  as around it), in 5% steps, dimmed while passthrough is off. The cinema screen only: 360° and
+  VR180 videos are always solid. Remembered; the global reset puts it back to solid.
 - **The popup** closes itself once VR has started (opened again during VR, its button is
   Exit VR); if VR can't start it stays open and says why. Enter VR and Exit VR are both
   YouTube red (the popup's most important button). The controller help is folded into a

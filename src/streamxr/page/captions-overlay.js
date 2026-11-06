@@ -128,7 +128,7 @@
         gl.uniformMatrix4fv(U.view, false, view.transform.inverse.matrix);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
       }
-      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
       gl.disable(gl.BLEND);
       vaos.bind(null);
     }

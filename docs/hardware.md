@@ -155,6 +155,10 @@ Steam Frame with SteamVR, desktop Chrome). For supporting other hardware, see th
   see-through session where one is offered: Settings → Appearance → Passthrough switches the
   room on and off in VR (off: the frame is cleared opaque, as in VR), and its Strength clears
   the frame to black at 1 − its value, so the headset blends the room in at that strength.
+  The cinema screen sets the frame's alpha where it's drawn (blendColor + CONSTANT_ALPHA):
+  1 (solid) by default, or down to the room's own amount with Through the video (0.103.0); the
+  sphere (360° / VR180) always writes alpha 1. Before, the video left the alpha alone, so the
+  room showed through it at the Strength.
   Not checked yet: whether a see-through session costs anything with passthrough off
   (frame rate, the cameras' power), and: the session's `environmentBlendMode`
   (Copy details: `blendMode`), and whether the glass panels' tint looks right over the room.

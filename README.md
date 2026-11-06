@@ -135,7 +135,8 @@ Stuck? See [Quick troubleshooting](#-quick-troubleshooting).
 - 🏠 **See your room on the Steam Frame:** in the Frame's own browser, turn on **Passthrough**
   any time in VR (Settings → Appearance), or **See your room** in the VR button's popup before
   entering, and the cinema screen hangs in your actual room. **Strength** sets how much of
-  the room shows, from fully visible to hidden.
+  the room shows, from fully visible to hidden, and **Through the video** whether it also shows
+  through the video (solid by default, for a clear picture).
 - 🩹 **Smaller changes:** an easier Steam Frame install (one line to paste); Enter VR works on
   the first click there; **Copy details** now shows what limits sharpness on your headset and
   how your last VR session ended.
@@ -195,7 +196,8 @@ glassy toolbars on each side:
 
 ### 🎨 Make it yours (Settings)
 - Looks: **YouTube** or **Material 3** colors, **glass** panels with an adjustable tint, the
-  **panel size**, the **text sharpness**, and **Passthrough** (your room around the video, with its strength).
+  **panel size**, the **text sharpness**, and **Passthrough** (your room around the video, how
+  strongly, and whether it shows through the video too).
 - The cinema screen's **curve**, **distance** and **glow**, and **Follow your head** (the screen
   and panels catch up when you turn).
 - **3D Cinema:** **3D depth** (push everything back if the 3D feels harsh) and **Swap eyes**,

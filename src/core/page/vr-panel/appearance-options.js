@@ -11,8 +11,9 @@
 //   ns.vrAppearanceOptions.content() -> the Options style's 'rows' content
 //   ns.vrAppearanceOptions.event(ev) -> true if it was one of this tab's controls
 //     ('prev:theme' / 'next:theme', 'switch:glass', 'slider:tint', 'default:tint',
-//     'slider:size', 'default:size', 'slider:sharpness', 'default:sharpness', 'switch:passthroughOn', 'slider:passthrough', 'default:passthrough', 'switch:haptics')
-//   ns.vrAppearanceOptions.passthroughOn() / passthrough() -> the switch, and how much of the room shows (0..1)
+//     'slider:size', 'default:size', 'slider:sharpness', 'default:sharpness', 'switch:passthroughOn', 'slider:passthrough', 'default:passthrough', 'slider:passthroughVideo', 'switch:haptics')
+//   ns.vrAppearanceOptions.passthroughOn() / passthrough() / passthroughVideo() -> the switch, how much
+//     of the room shows (0..1), and how much of it shows through the video (0: solid)
 //   ns.vrAppearanceOptions.setPassthroughSession({ offered } | null) -> from the VR session
 //   ns.vrAppearanceOptions.scale() -> the panel size (1 = the layout's own); sizeVersion()
 //     bumps when it changes
@@ -128,12 +129,20 @@
   // browser offers it and says so with setPassthroughSession({ offered }); it reads
   // passthroughOn() and passthrough() each frame. The switch is the same remembered setting
   // as the site popup's "See your room" checkbox ('passthrough': '1' / '0').
-  const PASS_KEY = 'passthroughAmount', ON_KEY = 'passthrough';   // remembered (storage.js names)
-  let pass = 1, passOn = false, passSession = null;   // passSession: { offered } during VR, else null
+  // Through the video: how much of that room shows through the video itself, 0 (solid, the
+  // default: a clear picture) .. 1 (as much as around it), in 5% steps; passthroughVideo().
+  const PASS_KEY = 'passthroughAmount', ON_KEY = 'passthrough', VIDEO_KEY = 'passthroughVideo';   // remembered (storage.js names)
+  let pass = 1, passOn = false, passVideo = 0, passSession = null;   // passSession: { offered } during VR, else null
   function loadPass() {
     const v = parseFloat(ns.storage.get(PASS_KEY));
     pass = v >= 0 && v <= 1 ? v : 1;
     passOn = ns.storage.get(ON_KEY) === '1';
+    const w = parseFloat(ns.storage.get(VIDEO_KEY));
+    passVideo = w >= 0 && w <= 1 ? w : 0;
+  }
+  function setPassVideo(v) {
+    passVideo = Math.min(1, Math.max(0, Math.round(v * 20) / 20));
+    if (passVideo === 0) ns.storage.remove(VIDEO_KEY); else ns.storage.set(VIDEO_KEY, String(passVideo));
   }
   function setPassOn(on) {
     passOn = !!on;
@@ -158,6 +167,9 @@
       { label: tr('appearance.passthroughAmount'), hint: tr('appearance.passthroughHint'), dim: !passOn,
         control: { type: 'slider', id: 'passthrough', fraction: pass, text: `${Math.round(pass * 100)}%`, enabled: passOn,
           defaultButton: true, ends: [tr('appearance.passthroughHidden'), tr('appearance.passthroughShown')] } },
+      { label: tr('appearance.passthroughVideo'), hint: tr('appearance.passthroughVideoHint'), dim: !passOn,
+        control: { type: 'slider', id: 'passthroughVideo', fraction: passVideo, text: `${Math.round(passVideo * 100)}%`, enabled: passOn,
+          defaultButton: true, ends: [tr('appearance.passthroughSolid'), tr('appearance.passthroughSeeThrough')] } },
     ];
   }
 
@@ -201,6 +213,8 @@
     else if (ev.type === 'switch' && ev.value === 'passthroughOn') { if (passSession && passSession.offered) setPassOn(!passOn); }
     else if (ev.type === 'slider' && ev.value === 'passthrough') { if (passOn) setPass(ev.fraction); }
     else if (ev.type === 'default' && ev.value === 'passthrough') setPass(1);
+    else if (ev.type === 'slider' && ev.value === 'passthroughVideo') { if (passOn) setPassVideo(ev.fraction); }
+    else if (ev.type === 'default' && ev.value === 'passthroughVideo') setPassVideo(0);
     else if (ev.type === 'switch' && ev.value === 'haptics' && canVibrate()) setHaptics(!haptics);
     else return false;
     return true;
@@ -211,7 +225,7 @@
   function reset() {
     G.on = true; G.tint = G.DEFAULT_TINT; ns.storage.remove(KEY);
     ns.storage.remove(THEME_KEY); if (themes.length) applyTheme(themes[0]);
-    setScale(SIZE.def); setHaptics(true); setSharp(SHARP_DEF); setPass(1); passOn = false; ns.storage.remove(ON_KEY);
+    setScale(SIZE.def); setHaptics(true); setSharp(SHARP_DEF); setPass(1); setPassVideo(0); passOn = false; ns.storage.remove(ON_KEY);
     G.version++;
   }
 
@@ -219,6 +233,6 @@
     content, event, reset, useSite, setPassthroughSession,
     load: () => { load(); loadFeel(); loadPass(); loadSharp(); },
     scale: () => scale, sizeVersion: () => sizeVer, haptics: () => haptics,
-    passthrough: () => pass, passthroughOn: () => passOn, sharpness: () => sharp,
+    passthrough: () => pass, passthroughOn: () => passOn, passthroughVideo: () => passVideo, sharpness: () => sharp,
   };
 })(globalThis.__streamxr = globalThis.__streamxr || {});
