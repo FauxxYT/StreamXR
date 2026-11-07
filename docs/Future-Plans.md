@@ -22,6 +22,21 @@ changes: tick off what's done, and add anything new that BrowseXR would need or 
   work with it unchanged. Since 0.78.0 a source can have no video yet (VR starts without one;
   the screen shows the site's logo, `provider.logo()`), which a BrowseXR session would need too.
 
+- **1.0.0: layer audit** (before the Chrome Web Store, with Twitch and barebones mode next):
+  `src/core/` and `src/streamxr/` name no site in code (only in comments' examples), and the
+  core uses no StreamXR namespace. Fixed: Through the video (a video setting) moved out of the
+  core's Appearance tab into StreamXR (`cinema-options.js`), through a generic slot
+  (`addPassthroughRows`); a format label named YouTube (`format.360eac`); and generic helpers
+  left YouTube's folder: `compactNumber` / `timeAgo` to `i18n.js` (timeAgo now in the
+  interface language), title-based kind detection to `formats.js` `kindFromText` (barebones
+  mode needs it on any page), and YouTube's copy of `parseClock` gave way to the kit's.
+  Cards' views and dates are the shell's words (`kit.js` `viewsText` / `agoText`) from a
+  site's plain values (YouTube parses its own text into them), so a new site's cards speak
+  the interface language without words of its own.
+  Known exceptions, left as they are: the controls panel lives in the core (item 3 below),
+  and the Dashboard's pages (`home.html`, `action-popup.html`) list each site's `home/site.js`
+  by path, as `manifest.json` does (a new site adds a line there).
+
 ## Planned: StreamXR Home (a 1.0 item, 2026-10-28)
 
 [Home-Page.md](Home-Page.md): a page StreamXR owns (`chrome-extension://…/home.html`) with a

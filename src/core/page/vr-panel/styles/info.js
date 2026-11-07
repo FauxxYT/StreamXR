@@ -520,7 +520,7 @@
     const scrollAt = (u, v) => scrollable && u * W >= curView.x - 8 && u * W <= W - 16 && v * H >= curView.y && v * H <= curView.y + curView.h;
 
     return {
-      canvas, aspect: H / W, draw, hitTest, has, rectOf, scrollAt, perPage: PER_PAGE, animating: motion.moving,
+      canvas, aspect: H / W, draw, hitTest, has, rectOf, scrollAt, perPage: PER_PAGE, animating: () => motion.moving() || kit.scrolling(),
       imagesReady: () => kit.imagesReady() + chatKit.imagesReady(),
       maxScroll: () => maxScrollPx,          // how far the last drawn tab can scroll (px)
       shownScroll: () => scrollPx,           // where it actually is (after clamping / following)

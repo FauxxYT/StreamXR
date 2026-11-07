@@ -18,7 +18,9 @@
       ${ui.sitesHtml()}
       <div class="streamxr-switch-note streamxr-enter-note"></div>
       ${ui.troubleHtml()}
+      ${ns.languagePicker.html()}
     </div>`;
+  ns.languagePicker.bind(pop, () => location.reload());    // (the popup again, in the new language)
 
   // Open StreamXR Home (the Dashboard) in a new tab, then close the popup; "Enter Dashboard in
   // VR" opens it with ?vr=1: Home then asks for any key press or click to enter VR (a click

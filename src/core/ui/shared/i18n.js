@@ -16,6 +16,9 @@
 //   ns.i18n.browserLanguage()    what 'auto' gives
 //   ns.i18n.refresh()            re-read the choice (the other world may have changed it)
 //   ns.i18n.version()            changes whenever the language or the tables do (for redraw keys)
+//   ns.i18n.compactNumber(n)     a count, short ("1.2K", "5.6M")
+//   ns.i18n.timeAgo(dateText)    how long ago a date was ("3 days ago", "hace 3 días")
+//   ns.i18n.ago(n, unit)         n units ago, the same way (for a site's own "3 days ago" text)
 //
 // Lookup order: the language (e.g. 'pt-BR'), its base ('pt'), then English, so a partial
 // translation still shows everything. A key missing from English too shows as the key
@@ -113,7 +116,40 @@
   }
   const languages = () => Object.keys(tables).sort().map(id => ({ id, name: nameOf(id) }));
 
+  // Numbers and dates for any site's panels.
+  // A count, short, the way video sites write it: 1234 -> "1.2K", 5600000 -> "5.6M" (kept in
+  // this form in every language: sites put their own words after it, e.g. "1.2K views");
+  // '' if not a number.
+  function compactNumber(n) {
+    if (!isFinite(n)) return '';
+    if (n >= 1e9) return `${+(n / 1e9).toFixed(n < 1e10 ? 1 : 0)}B`;
+    if (n >= 1e6) return `${+(n / 1e6).toFixed(n < 1e7 ? 1 : 0)}M`;
+    if (n >= 1e3) return `${+(n / 1e3).toFixed(n < 1e4 ? 1 : 0)}K`;
+    return String(n);
+  }
+  // How long ago a date was ("2018-07-11T11:00:42-07:00" -> "8 years ago", Spanish "hace 8
+  // años"), in its largest whole unit as of now; "now" under a minute; '' if it can't be parsed.
+  const AGO_UNITS = [['year', 31536000], ['month', 2592000], ['week', 604800], ['day', 86400], ['hour', 3600], ['minute', 60]];
+  function timeAgo(dateText) {
+    const at = Date.parse(dateText);
+    if (!isFinite(at)) return '';
+    const s = Math.max(0, (Date.now() - at) / 1000);
+    for (const [unit, size] of AGO_UNITS) {
+      const n = Math.floor(s / size);
+      if (n >= 1) return ago(n, unit);
+    }
+    return ago(0, 'second');
+  }
+  // n units ago, in the interface language: ago(3, 'day') -> "3 days ago" ("hace 3 días");
+  // unit: 'second' ... 'year'. For a site that has its own "3 days ago" text to put into the
+  // interface language.
+  function ago(n, unit) {
+    try { return new Intl.RelativeTimeFormat(current(), { numeric: 'auto' }).format(-n, unit); }
+    catch (_) { return n ? `${n} ${unit}${n > 1 ? 's' : ''} ago` : 'just now'; }
+  }
+
   refresh();
 
-  ns.i18n = { add, t, languages, nameOf, choice: () => chosen, setChoice, current, browserLanguage, refresh, version: () => ver };
+  ns.i18n = { add, t, languages, nameOf, choice: () => chosen, setChoice, current, browserLanguage, refresh, version: () => ver,
+    compactNumber, timeAgo, ago };
 })(globalThis.__streamxr = globalThis.__streamxr || {});

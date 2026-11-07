@@ -2,7 +2,7 @@
 
 One list of what's still open, gathered from the feature backlogs (`docs/features/`) and
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
-Last updated for 0.103.0.
+Last updated for 1.0.0.
 
 ## Top priority: before the first release
 
@@ -132,7 +132,11 @@ list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps 
     ([Home-Page.md](Home-Page.md)). Cross-page VR (entering VR on a page opened from it) is
     built but hidden until it works without the Skip Helper.
 12. [ ] **Chrome Web Store release, StreamXR 1.0** (last: it waits on the rest): the store
-    listing, the privacy questions (the README's "Your privacy" covers them), review.
+    listing, the privacy questions (the README's "Your privacy" covers them), review. In
+    progress (2026-11-06): step 1 done (version 1.0.0, the store description, `PRIVACY.md`, the
+    package built from the tag: CONTRIBUTING.md "Releasing"); next, the developer account, the
+    listing (screenshots, promo tile), the privacy answers, review, then the README's store
+    install. Undecided: whether the Skip Helper gets a listing too.
 
 Set aside: the Back button (0.73.0; deferred again 2026-10-30: no controller button is free). Deferred: Movies in Up Next (YouTube's
 movies are copy-protected, so they can't play in VR yet: `features/video-page.md`, "Deferred").
@@ -297,6 +301,10 @@ follow the browser's zoom and font size, hover and focus states, keyboard first.
 
 ## Still to check in the headset
 
+- [ ] **A card's long line scrolling while pointed at** (1.0.0, `kit.js`): works in a Chrome
+  render; not seen in the headset yet, as "vistas" made card lines short enough to fit (the
+  maintainer couldn't find one long enough, 2026-11-07, and took the risk). When one turns up
+  (a long channel name, "Transmitido hace …"), check it waits 1 s, slides, rests and repeats.
 - [ ] **SteamVR 2.19.1's new default resolution** (beta, 2026-11): a Copy details paste after
   entering VR shows the new drawing size; then update `hardware.md` (2644×2644 per eye was 2.18)
   and the README's "Want it sharper?" tip if it needs it.

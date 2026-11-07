@@ -3,8 +3,70 @@
 What changed in each version of StreamXR (called "StreamVR" until 0.48, "YouTube VR for
 SteamVR" until 0.34.0; older entries use the name and paths of their time). Newest first.
 The format follows [Keep a Changelog](https://keepachangelog.com/); versions are the
-`manifest.json` version. All of these were developed in October 2026. Technical notes for
+`manifest.json` version. Developed in October and November 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
+
+## 1.0.0 (in preparation: the Chrome Web Store release)
+
+The first release for the Chrome Web Store: StreamXR 0.103.0, packaged for the store, with a
+layer audit ahead of Twitch and barebones mode.
+
+### Added (language)
+- **A card's long line scrolls while you point at it:** "1.2M visualizaciones · Transmitido
+  hace 2 horas" didn't fit a card, so the date was cut off. Pointed at, a grey line too long
+  for its card now waits 1 s, slides to its end (60 px/s), rests 1.5 s and starts over, like
+  the controls panel's title; other cards keep it cut at a word (`kit.js` drawCard; the
+  styles that draw cards keep redrawing while it moves: `kit.scrolling()`).
+- **Choose the language outside VR:** a 🌐 picker in the site's "Watch in VR" popup, the
+  toolbar popup and the StreamXR Dashboard (`src/streamxr/ui/language-picker.js`, new). Until
+  now the language could only be changed in VR (Settings → Language), so a language you
+  can't read left the desktop popups stuck in it (seen in Spanish, 2026-11-07). The browser's
+  language first, then each language named in itself ("English", "Español"); the same
+  remembered choice as VR's, and VR now re-reads it each time it starts (`xr-session.js`).
+
+### Changed
+- **The extension's description** (what the store shows under the name): "Watch YouTube in
+  VR: 360° and VR180 videos around you, the rest on a cinema screen. Runs on the Steam Frame
+  and SteamVR headsets." (130 characters; the store allows 132.)
+- **Layer audit** (core / StreamXR / sites; `docs/Future-Plans.md`, "Done"):
+  - **Through the video** moved out of the core's Appearance tab into StreamXR
+    (`cinema-options.js` `throughVideo()`); the core's Passthrough section has a generic slot
+    for it, `addPassthroughRows`. Same place on screen, same remembered value
+    (`passthroughVideo`); its strings moved from the core's table to StreamXR's
+    (`cinema.throughVideo`, `cinema.solid`, `cinema.seeThrough`).
+  - **Shared helpers left YouTube's folder:** `compactNumber` and `timeAgo` are now
+    `ns.i18n`'s (timeAgo in the interface language: "hace 3 días" in Spanish, through the
+    browser's `Intl`); `kindFromText` (VR180 / 360° from a title) is `ns.formats`'; YouTube's
+    copy of `parseClock` is the kit's. `youtube-data.js` keeps its names, pointing at them.
+  - **The cubemap format's name** no longer names a site: `360° cubemap ("mesh")`.
+  - **A video's views and dates are the shell's words, from a site's plain values,** so every
+    site's cards speak the interface language (Twitch will give numbers, the shell the words):
+    the card kit's `viewsText(count, live)` and `agoText({ n, unit, how })` (`kit.js`; the
+    words in the core's table: `card.views`, `card.watching`, `card.streamed`,
+    `card.premiered`; Spanish "1.2M vistas · hace 3 días", "Transmitido hace 2
+    horas"). YouTube turns its own English texts into those values (`youtube-data.js`
+    `viewsValue` / `agoValue`, `localViews` / `localAgo`; `cards.js` `statsOf` for every
+    card, a playlist's videos and a channel's featured one), and shows anything else ("No
+    views", "Scheduled for …", another YouTube language) as written. The controls panel's
+    line under the title and the Description panel's header use the same words (their number
+    and date in the interface language too). The items keep YouTube's own texts for what reads
+    them (`youtube-channel.js` tells live videos by "watching").
+  - **The controls panel's date fell back to YouTube's English** ("3 days ago") on regular
+    videos when YouTube's data had no publish date (seen in Spanish, 2026-11-06; live streams
+    were fine): that text is now put into the interface language too (`youtube-data.js`
+    `localAgo`, through the new `ns.i18n.ago(n, unit)`; "Streamed …" / "Premiered …" stay
+    as YouTube wrote them).
+  - **Spanish: "En vivo"** instead of Spain's "En directo" (the LIVE label, Explore's and the
+    Channel panel's tabs, Live chat), as Latin America and YouTube's Latin American Spanish
+    say it; and "vistas" instead of Spain's "visualizaciones" (a video's views, a channel's
+    total), shorter too, so a card's line fits more often.
+
+### Added
+- **`PRIVACY.md`:** StreamXR's privacy policy, for the store listing's privacy policy link
+  (the README's "Your privacy" section, as a page of its own).
+- **The store package** is built from the release tag with only what the extension needs
+  (`manifest.json`, `src/`, `icons/`, `third_party/`, `LICENSE`): see CONTRIBUTING.md,
+  "Releasing".
 
 ## 0.103.0
 

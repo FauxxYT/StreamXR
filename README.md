@@ -216,7 +216,9 @@ A page of StreamXR's own, before any site is open: click StreamXR's button in Ch
 ### 🌍 Speaks your language
 StreamXR's own words (buttons, menus, settings, the popup) come in **English** 🇺🇸 and
 **Español** 🇪🇸, and it picks your browser's language by default (you can switch in
-Settings → Language). Everything YouTube itself writes (titles, comments, "1.2M views")
+Settings → Language in VR, or with 🌐 in the VR button's popup, the toolbar popup and the
+Dashboard). Video cards' views and dates ("1.2M views · 3 days ago") follow it too. Everything
+else YouTube itself writes (titles, descriptions, comments)
 already arrives in your YouTube language.
 
 **Adding your language is easy, no coding needed:** open a **Translation** issue on GitHub,
@@ -328,7 +330,8 @@ their own websites do. That's it.
   tabs, only presses Skip (and StreamXR's own Enter VR button, only when StreamXR asks; that
   feature is switched off for now), and lets go right away. It's optional and
   [short enough to read](skip-helper/service-worker.js) (about 110 lines).
-- It's all open source, so you don't have to take my word for it. 🙂
+- It's all open source, so you don't have to take my word for it. 🙂 The full policy is in
+  [PRIVACY.md](PRIVACY.md).
 
 ## 🩹 Known issues
 

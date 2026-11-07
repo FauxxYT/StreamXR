@@ -96,6 +96,8 @@
 
   async function startOnce(provider, fmt, listener, opts) {
     if (active) return;
+    ns.i18n.refresh();                                   // the language may have been changed in the popup
+
     // The video to show (media-source.js). With none on the page yet (VR started from the
     // site's home page...), the cinema screen shows a placeholder until you pick one in VR.
     const source = ns.mediaSource.fromProvider(provider);
@@ -516,7 +518,7 @@
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         // The cinema screen over the room: solid unless Through the video lets some of it in
         // (up to as much as around it). The sphere (360° / VR180) is always drawn solid.
-        if (view.setFrameAlpha) view.setFrameAlpha(roomShows() ? 1 - AO.passthroughVideo() * AO.passthrough() : 1);
+        if (view.setFrameAlpha) view.setFrameAlpha(roomShows() ? 1 - (ns.vrCinemaOptions ? ns.vrCinemaOptions.throughVideo() : 0) * AO.passthrough() : 1);
         view.draw(pose, layer, yaw);
         if (pauseOverlay) {
           // Pin the pause symbol (and buffering spinner) to the video: the cinema screen's centre, or the front of the

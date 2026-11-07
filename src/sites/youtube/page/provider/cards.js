@@ -33,6 +33,11 @@
     if (ids.length) queue.added.clear();          // (the queue's own list covers them now)
   }
 
+  // A video's "1.2M views · 3 days ago" in the interface language: YouTube's English texts
+  // (item.views, item.age, kept as YouTube wrote them for what reads them, e.g. a channel's
+  // live check) put into the shell's words (youtube-data.js localViews / localAgo).
+  const statsOf = item => [ns.youtubeData.localViews(item.views), ns.youtubeData.localAgo(item.age)].filter(Boolean).join(' · ');
+
   // A card for `item`. opts.showChannel: false leaves the channel line out (on a channel's
   // own page); opts.current: the item playing now (outlined, "Now playing" as its flag).
   function card(item, opts = {}) {
@@ -44,7 +49,7 @@
       : podcast ? { text: tr('yt.card.podcast'), bg: 'playlist', fg: 'surface' }
       : playlist ? { text: tr('yt.card.playlist'), bg: 'playlist', fg: 'surface' }
       : item.short ? { text: tr('yt.card.short'), bg: 'primary', fg: 'onSurface' } : KINDS[item.kind] || KINDS['2D'];
-    const stats = [item.views, item.age].filter(Boolean).join(' · ');
+    const stats = statsOf(item);
     return {
       title: item.title, thumb: item.thumb || (item.thumbFrom ? ns.youtubeData.playlistThumb(item.thumbFrom) : ''), square: !!item.square, current: !!opts.current,
       corner: item.duration || (playlist && item.videoCount ? tr(podcast ? 'yt.card.episodes' : 'yt.card.videos', { n: item.videoCount }) : ''),
@@ -59,6 +64,7 @@
 
   ns.ytVr = ns.ytVr || {};
   ns.ytVr.card = card;
+  ns.ytVr.statsOf = statsOf;          // the same stats line, for lists made elsewhere (a playlist's videos, a channel's featured one)
   ns.ytVr.queue = { noteQueued, setQueued, queued, version: () => queue.ver };   // (what's in YouTube's queue: cards' Add to queue)
   ns.ytVr.liveFlag = liveFlag;          // the LIVE flag, for cards made elsewhere (a channel's featured video)
 })(globalThis.__streamxr = globalThis.__streamxr || {});

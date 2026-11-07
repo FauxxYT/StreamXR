@@ -8,7 +8,8 @@
 //     flags: [{ text, bg, fg (colour role specs, tokens.js resolve: e.g. 'primary',
 //              'surface/0.75'), dot (a "●" before the text), matchWidth: [texts] (as wide as
 //              the widest of these, so a set of flags lines up) }]  (top-left, left to right),
-//     lines: [{ text, badge (a registered badge name) }]  (grey lines under the title),
+//     lines: [{ text, badge (a registered badge name) }]  (grey lines under the title; a video's
+//            stats in the interface language from viewsText() / agoText() below),
 //     current (outlined in blue: the item playing now),
 //     progress (0-1: how much of it you've watched, a bar along the thumbnail's bottom in
 //               the brand colour (the site's theme); 0 or missing: no bar),
@@ -82,6 +83,18 @@
     return m ? (+(m[1] || 0)) * 3600 + (+m[2]) * 60 + (+m[3]) : NaN;
   }
 
+  // A card's stats in the interface language, from a site's plain values (any site: it gives
+  // numbers, the shell the words):
+  //   viewsText('1.2M') -> "1.2M views" ("1.2M vistas"); viewsText('5K', true) ->
+  //     "5K watching" (a live stream's viewers). count: the site's number, as shown.
+  //   agoText({ n: 3, unit: 'day', how }) -> "3 days ago" ("hace 3 días"); how: 'streamed'
+  //     ("Streamed 3 days ago") | 'premiered' | null. unit: 'second' ... 'year'.
+  const viewsText = (count, live) => ns.i18n.t(live ? 'card.watching' : 'card.views', { count });
+  function agoText(v) {
+    const ago = ns.i18n.ago(v.n, v.unit);
+    return v.how ? ns.i18n.t(`card.${v.how}`, { ago }) : ago;
+  }
+
   // Badges beside names (e.g. a verified channel): name -> { draw(g, x, y, size), extra }.
   // `extra` pixels are added to the size the caller asks for (a badge that needs to look
   // bigger than the others). Drawn centred on (x, y) in the current fill colour.
@@ -101,7 +114,8 @@
   // finishes loading, so the caller redraws; limit: how many images to keep (default 160).
   // Returns { image(url), imagesReady(),
   // drawImageCover(img, x, y, w, h), drawImageContain(img, x, y, w, h), avatar(url, name, x, y, s),
-  // drawCard(card, x, y, box, ui, regions, id) }.
+  // drawCard(card, x, y, box, ui, regions, id), scrolling() (a pointed-at card's long line is
+  // scrolling: keep redrawing) }.
   function createCardKit(g, onImageLoaded, limit = 160) {
     // Images (thumbnails, avatars, banners): loaded with CORS so the canvas stays usable as
     // a WebGL texture. Returns the image once loaded, else null (and starts loading it). If
@@ -153,6 +167,27 @@
       }
       g.restore();
     }
+
+    // A grey line too long for its card scrolls while the card is pointed at (only that card:
+    // calmer than every card moving, and it's the one being read), the way the controls
+    // panel's title does: still for SCROLL.holdMs, sliding to its end at SCROLL.speed px/s,
+    // resting SCROLL.endMs, then back and again. Not pointed at, it's cut with "…" as before.
+    // scrolling(): a line scrolled in the last draws (the style keeps redrawing meanwhile).
+    const SCROLL = { holdMs: 1000, endMs: 1500, speed: 60 };
+    const pointedSince = new Map();          // card id -> { since, seen } (ms)
+    let lastScroll = -Infinity;
+    function pointedFor(id, now) {
+      let p = pointedSince.get(id);
+      if (!p || now - p.seen > 250) { p = { since: now, seen: now }; pointedSince.set(id, p); }   // (a new pointing: from the start)
+      p.seen = now;
+      if (pointedSince.size > 64) pointedSince.delete(pointedSince.keys().next().value);
+      return now - p.since;
+    }
+    function scrollOffset(overflow, t) {
+      const slide = overflow / SCROLL.speed * 1000, cycle = SCROLL.holdMs + slide + SCROLL.endMs, u = t % cycle;
+      return u < SCROLL.holdMs ? 0 : Math.min(overflow, (u - SCROLL.holdMs) / 1000 * SCROLL.speed);
+    }
+    const scrolling = () => performance.now() - lastScroll < 250;
 
     // One card (see the top of the file) at (x, y) in a box { w, h, thumbH }: thumbnail
     // with its corner text and flags, then the title (up to 2 lines) and the grey lines.
@@ -251,19 +286,32 @@
       lines.forEach((l, i) => g.fillText(l, x, y + TH + 8 + i * 26));
       let ty = y + TH + 8 + lines.length * 26 + 2;
       g.fillStyle = P.onSurfaceVariant; g.font = '19px Roboto, Arial, sans-serif';
+      // (pointed at: a line that doesn't fit scrolls instead of being cut; see SCROLL above)
+      const now = performance.now(), pointed = !card.inert && hv > 0.5, since = pointed ? pointedFor(id, now) : 0;
       for (const line of card.lines || []) {
-        const text = wrap(g, line.text, W_ - (line.badge ? 26 : 0), 1)[0] || '';
-        g.fillText(text, x, ty);
-        if (line.badge && text) {
-          drawBadge(g, line.badge, x + g.measureText(text).width + 14, ns.vrGlyphs.textMiddle(g, ty), 17);
-          g.fillStyle = P.onSurfaceVariant; g.textBaseline = 'top';
+        const room = W_ - (line.badge ? 26 : 0), full = String(line.text || ''), overflow = g.measureText(full).width - room;
+        if (pointed && overflow > 0) {
+          const off = scrollOffset(overflow, since);
+          g.save(); g.beginPath(); g.rect(x, ty - 4, W_, 30); g.clip();
+          g.fillText(full, x - off, ty);
+          if (line.badge) drawBadge(g, line.badge, x - off + g.measureText(full).width + 14, ns.vrGlyphs.textMiddle(g, ty), 17);
+          g.restore();
+          g.fillStyle = P.onSurfaceVariant; g.textBaseline = 'top'; g.font = '19px Roboto, Arial, sans-serif';
+          lastScroll = now;
+        } else {
+          const text = wrap(g, full, room, 1)[0] || '';
+          g.fillText(text, x, ty);
+          if (line.badge && text) {
+            drawBadge(g, line.badge, x + g.measureText(text).width + 14, ns.vrGlyphs.textMiddle(g, ty), 17);
+            g.fillStyle = P.onSurfaceVariant; g.textBaseline = 'top';
+          }
         }
         ty += 25;
       }
       hoverRing(g, tile.x, tile.y, tile.w, tile.h, tile.r, hv);
     }
 
-    return { image, imagesReady, drawImageCover, drawImageContain, avatar, drawCard };
+    return { image, imagesReady, drawImageCover, drawImageContain, avatar, drawCard, scrolling };
   }
 
   // A clickable control's background (M3 state layers): pressed (onSurface 16%), hovered
@@ -508,5 +556,5 @@
     return best;
   }
 
-  ns.vrKit = { FONT, fitFont, roundRect, wrap, parseClock, registerBadge, drawBadge, cardHeight, createCardKit, buttonFill, hoverArea, hoverRing, button, chip, chipWidth, drawTabs, headerTabs, createStrip, regionAt, TARGET };
+  ns.vrKit = { FONT, fitFont, roundRect, wrap, parseClock, viewsText, agoText, registerBadge, drawBadge, cardHeight, createCardKit, buttonFill, hoverArea, hoverRing, button, chip, chipWidth, drawTabs, headerTabs, createStrip, regionAt, TARGET };
 })(globalThis.__streamxr = globalThis.__streamxr || {});

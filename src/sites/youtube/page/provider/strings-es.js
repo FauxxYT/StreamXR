@@ -13,7 +13,7 @@
     'yt.panel.browse': 'Explorar',
     'yt.panel.you': 'Tú',
     'yt.panel.recs': 'A continuación',
-    'yt.panel.chat': 'Chat en directo',
+    'yt.panel.chat': 'Chat en vivo',
     'yt.panel.settings': 'Ajustes',
 
     // Shared by several panels.
@@ -57,7 +57,7 @@
     'yt.channel.memberVideos': 'Videos',
     'yt.channel.memberPosts': 'Publicaciones',
     'yt.card.short': 'Short',
-    'yt.card.live': 'EN DIRECTO',
+    'yt.card.live': 'EN VIVO',
     'yt.card.videos': { one: '{n} vídeo', other: '{n} vídeos' },
     'yt.card.episodes': { one: '{n} episodio', other: '{n} episodios' },
 
@@ -108,7 +108,7 @@
     'yt.browse.movies': 'Películas y TV',
     'yt.browse.moviesBlocked': 'Las películas y series de YouTube tienen protección anticopia, así que aún no se pueden ver en VR. Míralas en el escritorio.',
     'yt.browse.hype': 'Hype',
-    'yt.browse.live': 'En directo',
+    'yt.browse.live': 'En vivo',
     'yt.browse.gaming': 'Videojuegos',
     'yt.browse.news': 'Noticias',
     'yt.browse.learning': 'Aprendizaje',
@@ -175,7 +175,7 @@
     'yt.comments.deleteText': '¿Eliminar tu comentario de forma permanente?',
 
     // Live chat panel.
-    'yt.chat.none': 'Este vídeo no tiene chat en directo.',
+    'yt.chat.none': 'Este vídeo no tiene chat en vivo.',
     'yt.chat.empty': 'Todavía no hay mensajes.',
     'yt.chat.ended': 'El chat ha terminado.',
     'yt.chat.error': 'No se pudo cargar el chat.',
@@ -198,7 +198,7 @@
     // Channel panel.
     'yt.channel.videos': 'Vídeos',
     'yt.channel.shorts': 'Shorts',
-    'yt.channel.live': 'En directo',
+    'yt.channel.live': 'En vivo',
     'yt.channel.playlists': 'Listas',
     'yt.channel.podcasts': 'Pódcasts',
     'yt.channel.shows': 'Programas',
@@ -216,7 +216,7 @@
     'yt.channel.noAbout': 'Este canal no tiene página de información.',
     'yt.channel.joined': 'Se unió',
     'yt.channel.country': 'País',
-    'yt.channel.views': 'Visualizaciones',
+    'yt.channel.views': 'Vistas',
     'yt.channel.videoCount': 'Vídeos',
     'yt.channel.subscribers': 'Suscriptores',
     'yt.channel.link': 'Canal',

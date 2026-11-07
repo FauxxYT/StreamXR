@@ -152,7 +152,7 @@
     // Is (u, v) on the scrolling collection page of the last draw?
     const scrollAt = (u, v) => scrollable && !!view && u * W >= view.x - 8 && u * W <= W - 16 && v * H >= view.y && v * H <= view.y + view.h;
 
-    return { canvas, aspect: H / W, draw, hitTest, has, rectOf, scrollAt, imagesReady: kit.imagesReady, perPage: PER_PAGE, animating: motion.moving,
+    return { canvas, aspect: H / W, draw, hitTest, has, rectOf, scrollAt, imagesReady: kit.imagesReady, perPage: PER_PAGE, animating: () => motion.moving() || kit.scrolling(),
       perPageFor: shape => (shape === 'tall' ? PER_PAGE_TALL : PER_PAGE),   // cards per page in a layout
       maxScroll: () => maxScrollPx, shownScroll: () => scrollPx, pxPerV: H };   // (a collection page's scrolling)
   }

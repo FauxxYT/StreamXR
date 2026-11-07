@@ -159,6 +159,7 @@
       <label class="streamxr-switch"><span>${esc(t('popup.glass'))}</span>
         <input type="checkbox" role="switch" class="streamxr-glass-box" ${readGlass().on ? 'checked' : ''}><i></i></label>
       <div class="streamxr-switch-note">${esc(t('popup.glassNote'))}</div>
+      ${ns.languagePicker.html()}
       <button class="streamxr-go">${ns.gogglesIcon.standalone()}<span>${esc(t('popup.enter'))}</span></button>
       ${ns.vrElsewhere.noteHtml()}
       <div class="streamxr-msg" hidden></div>
@@ -279,6 +280,9 @@
     passBox.onchange = () => writePassthrough(passBox.checked);
     const glassBox = pop.querySelector('.streamxr-glass-box');
     glassBox.onchange = () => writeGlass(glassBox.checked);       // used from the next Enter VR
+    // The language (language-picker.js): remembered for both worlds, then the popup again in
+    // it (VR reads it at its next start).
+    ns.languagePicker.bind(pop, () => { close(); open(anchor, opts); });
 
     go.onclick = () => {
       if (vrState === 'active') { bridge.send(E.EXIT); return; }

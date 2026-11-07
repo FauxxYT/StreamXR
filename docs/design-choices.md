@@ -217,6 +217,10 @@ even where they look like something to "fix".
   the Channel panel (and folds it again).
 - A title too long for the controls panel scrolls like a marquee: still for 2 s, slides at
   60 px/s, rests 1.5 s at the end, then starts over.
+- A card's grey line too long for it (e.g. "1.2M vistas · Transmitido hace 2 horas")
+  scrolls the same way **only while the card is pointed at** (the maintainer, 2026-11-07:
+  calmer than every card moving, and it's the card being read), still for 1 s first; not
+  pointed at, it's cut at a word as before.
 - Settings opens on Playback first.
 - The pause overlay dims the video by 50% and shows a pause symbol pinned to the video (on
   the cinema screen, or upright at the recentered front, 2 m away, for spheres). While the
@@ -271,7 +275,10 @@ even where they look like something to "fix".
 - **Interface language:** StreamXR's own words follow the browser's language by default
   (English when there's no table for it); Settings → Language (the last tab) chooses
   another one, remembered, with a Default button back to the browser's. Untranslated words
-  show in English. Separate from the keyboard's language (Settings → Keyboard).
+  show in English. Separate from the keyboard's language (Settings → Keyboard). Also
+  settable outside VR (the maintainer, 2026-11-07: after being stuck in Spanish on the desktop):
+  a 🌐 picker in the site's "Watch in VR" popup, the toolbar popup and the Dashboard, each
+  language named in itself (language-picker.js).
 - The Settings panel's tab row has no format text in its corner: the current format shows as
   the 2D Cinema tab's note ("Now: 360°"), and on the controls panel's Format button.
 - **Passthrough** (seeing your room around the video; the maintainer, 2026-11-06): off by

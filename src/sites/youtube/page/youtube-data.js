@@ -60,33 +60,11 @@
   const sleep = ms => ns.frameClock.sleep(ms);
 
   // ---------------------------------------------------------------- formatting
-  function compactNumber(n) {
-    if (!isFinite(n)) return '';
-    if (n >= 1e9) return `${+(n / 1e9).toFixed(n < 1e10 ? 1 : 0)}B`;
-    if (n >= 1e6) return `${+(n / 1e6).toFixed(n < 1e7 ? 1 : 0)}M`;
-    if (n >= 1e3) return `${+(n / 1e3).toFixed(n < 1e4 ? 1 : 0)}K`;
-    return String(n);
-  }
-
-  // A date like "2018-07-11T11:00:42-07:00" -> "8 years ago", "3 days ago" ... (the largest
-  // whole unit, as of now; '' if it can't be parsed).
-  function timeAgo(dateText) {
-    const t = Date.parse(dateText);
-    if (!isFinite(t)) return '';
-    const s = Math.max(0, (Date.now() - t) / 1000);
-    const units = [['year', 31536000], ['month', 2592000], ['week', 604800], ['day', 86400], ['hour', 3600], ['minute', 60]];
-    for (const [name, size] of units) {
-      const n = Math.floor(s / size);
-      if (n >= 1) return `${n} ${name}${n > 1 ? 's' : ''} ago`;
-    }
-    return 'just now';
-  }
-
-  // "1:02:03" / "4:05" -> seconds (NaN if not a timestamp).
-  function parseClock(text) {
-    const m = /^(?:(\d+):)?(\d{1,2}):(\d{2})$/.exec((text || '').trim());
-    return m ? (+(m[1] || 0)) * 3600 + (+m[2]) * 60 + (+m[3]) : NaN;
-  }
+  // The shell's (any site uses them; kept under these names for this file's callers):
+  // "1.2K", "3 days ago" (in the interface language), "1:02:03" -> seconds.
+  const compactNumber = n => ns.i18n.compactNumber(n);
+  const timeAgo = dateText => ns.i18n.timeAgo(dateText);
+  const parseClock = text => ns.vrKit.parseClock(text);
 
   // "1.2M views", "3 days ago" etc. from a block of card text.
   const VIEWS_RE = /([\d.,]+\s*[KMB]?)\s+(?:views|watching)/i;
@@ -101,13 +79,28 @@
     if (!m) return t;
     return `${m[1]}${m[2]} ${AGO_UNITS[m[3].toLowerCase()]}${m[2] === '1' ? '' : 's'} ago`;
   }
-
-  // Best guess at what kind of video a title/description is: '360', '180' or '2D'.
-  function kindOf(text) {
-    if (/\bVR ?180\b|\b180°|\b180 ?VR\b|\b180 3D\b/i.test(text)) return '180';
-    if (/\b360°|\b360 ?VR\b|\bVR ?360\b|\b360 video\b|\b360 degree/i.test(text)) return '360';
-    return '2D';
+  // YouTube's own English card texts as plain values, for the shell to put into words in the
+  // interface language (kit.js viewsText / agoText); null for anything else (another
+  // language, "No views", "Scheduled for ..."), which is then shown as YouTube wrote it.
+  //   viewsValue("1.2M views") -> { count: '1.2M', live: false }; "5.1K watching" -> live: true
+  //   agoValue("3 days ago" / "3d ago" / "Streamed 2 hours ago") -> { n, unit, how }
+  const VIEWS_VALUE_RE = /^([\d.,]+\s*[KMB]?)\s+(views?|watching)$/i;
+  const AGO_VALUE_RE = /^(?:(Streamed|Premiered)\s+)?(\d+)\s+(second|minute|hour|day|week|month|year)s?\s+ago$/i;
+  function viewsValue(text) {
+    const m = VIEWS_VALUE_RE.exec((text || '').trim());
+    return m ? { count: m[1].replace(/\s+/g, ''), live: /watching/i.test(m[2]) } : null;
   }
+  function agoValue(text) {
+    const m = AGO_VALUE_RE.exec(longAgo(text));
+    return m ? { n: +m[2], unit: m[3].toLowerCase(), how: m[1] ? m[1].toLowerCase() : null } : null;
+  }
+  // Those texts in the interface language, or as YouTube wrote them when they aren't plain.
+  const localViews = text => { const v = viewsValue(text); return v ? ns.vrKit.viewsText(v.count, v.live) : (text || ''); };
+  const localAgo = text => { const v = agoValue(text); return v ? ns.vrKit.agoText(v) : (text || '').trim(); };
+
+  // Best guess at what kind of video a title/description is: '360', '180' or '2D' (StreamXR's,
+  // formats.js, shared with any site).
+  const kindOf = text => ns.formats.kindFromText(text);
 
   // A card's kind from YouTube's own badges: "VR180" -> '180', "360°" -> '360', else null.
   // (metadataBadgeRenderer.label on older cards, badgeViewModel.badgeText on newer ones;
@@ -483,7 +476,7 @@
 
   ns.youtubeData = {
     textOf, strOf, dig, findKey, bestImage, videoIdOf, currentVideoId, cached, sleep,
-    compactNumber, timeAgo, longAgo, parseClock, VIEWS_RE, AGO_RE, kindOf, badgeKind, channelBadge, badgeFromData,
+    compactNumber, timeAgo, longAgo, localAgo, localViews, viewsValue, agoValue, parseClock, VIEWS_RE, AGO_RE, kindOf, badgeKind, channelBadge, badgeFromData,
     onNavigate, watchData, playerResponse, signedIn,
     innertube, sidAuth, runEndpoint, continuationOf, nextPageToken, pager,
     fromCompact, fromLockup, collectItems, thumbOf, playlistThumb, thumbsVersion, AD_KEY_RE,

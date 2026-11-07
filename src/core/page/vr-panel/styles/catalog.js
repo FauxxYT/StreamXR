@@ -136,7 +136,7 @@
     return { canvas, aspect: H / W, draw, hitTest, has, scrollAt, imagesReady: kit.imagesReady, perPage: grid.PER_PAGE,
       maxScroll: () => maxScrollPx, shownScroll: () => scrollPx, pxPerV: H,   // (a collection page's scrolling)
       perPageFor: shape => (shape === 'square' ? grid.PER_PAGE_SQUARE : shape === 'tall' ? grid.PER_PAGE_TALL : grid.PER_PAGE),   // cards per page in a layout
-      animating: () => motion.moving() || grid.moving() };
+      animating: () => motion.moving() || grid.moving() || kit.scrolling() };
   }
 
   ns.vrStyles = ns.vrStyles || {};
