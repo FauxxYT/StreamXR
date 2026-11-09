@@ -64,7 +64,7 @@ layer audit ahead of Twitch and barebones mode.
 ### Added
 - **`PRIVACY.md`:** StreamXR's privacy policy, for the store listing's privacy policy link
   (the README's "Your privacy" section, as a page of its own).
-- **The store package** is built from the release tag with only what the extension needs
+- **The store package** is built from `develop` (committed files only) with only what the extension needs
   (`manifest.json`, `src/`, `icons/`, `third_party/`, `LICENSE`): see CONTRIBUTING.md,
   "Releasing".
 

@@ -134,7 +134,7 @@ list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps 
 12. [ ] **Chrome Web Store release, StreamXR 1.0** (last: it waits on the rest): the store
     listing, the privacy questions (the README's "Your privacy" covers them), review. In
     progress (2026-11-06): step 1 done (version 1.0.0, the store description, `PRIVACY.md`, the
-    package built from the tag: CONTRIBUTING.md "Releasing"); next, the developer account, the
+    package built from `develop`, the store first and GitHub's release once it's live: CONTRIBUTING.md "Releasing"); next, the developer account, the
     listing (screenshots, promo tile), the privacy answers, review, then the README's store
     install. Undecided: whether the Skip Helper gets a listing too.
 
