@@ -25,7 +25,7 @@ body:
     id: setup
     attributes:
       label: Headset, browser and StreamXR version
-      placeholder: "e.g. Steam Frame, Chrome 141, StreamXR 0.78.4"
+      placeholder: "e.g. Steam Frame, Chrome 142, StreamXR 1.0.0 (Web Store)"
   - type: textarea
     id: details
     attributes:

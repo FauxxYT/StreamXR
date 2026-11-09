@@ -4,11 +4,13 @@ Guidance for AI coding agents working on StreamXR (and on forks of it). It's the
 goals, rules and map; what has been learned lives in `docs/` (see the end).
 
 **StreamXR** is a browser extension (Manifest V3) that plays streaming video in a VR headset
-through **SteamVR + WebXR** from desktop Chrome, built and tested on the **Valve Steam
-Frame**. Supported site: **YouTube**. It draws the site's own `<video>` element: 360° / VR180
-around you, regular videos on a cinema screen. No libraries (one vendored exception:
-Google's Material Color Utilities in `third_party/`), no build step: load the folder
-unpacked. The version is in `manifest.json`.
+through **WebXR**: from desktop Chrome with SteamVR, or in the Steam Frame's own Chromium,
+built and tested on the **Valve Steam Frame**. Supported site: **YouTube**. It draws the
+site's own `<video>` element: 360° / VR180 around you, regular videos on a cinema screen. No
+libraries (one vendored exception: Google's Material Color Utilities in `third_party/`), no
+build step: load the folder unpacked to develop. Users install it from the
+[Chrome Web Store](https://chromewebstore.google.com/detail/streamxr/oddgidbdfeehaldomogopedpogcdomnd)
+(since 1.0.0; releases: CONTRIBUTING.md, "Releasing"). The version is in `manifest.json`.
 
 **Read first:** [ARCHITECTURE.md](ARCHITECTURE.md) for how the code is built (layers, folder
 map, panel styles, provider interface, where changes go). [CHANGELOG.md](CHANGELOG.md) for

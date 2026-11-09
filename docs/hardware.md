@@ -67,8 +67,9 @@ Steam Frame with SteamVR, desktop Chrome). For supporting other hardware, see th
 - **The Frame's own browser: StreamXR works there** (checked by the maintainer, 2026-11-06).
   SteamOS 0.5.7 (beta) enabled WebXR in the Frame's Chromium Flatpak from Chromium 157
   (`flatpak update org.chromium.Chromium`; the Flatpak lagged a few days behind Chromium's
-  stable release). StreamXR installs there as on a PC (Load unpacked; the release's tar.gz
-  unpacked with `tar` in Konsole, kept in `~/Downloads/StreamXR`, which the Flatpak can read)
+  stable release). StreamXR installs there unpacked (`main`'s tar.gz, downloaded and
+  unpacked with `curl` and `tar` in Konsole, kept in `~/Downloads/StreamXR`, which the Flatpak
+  can read; installing from the Chrome Web Store there is untested)
   and runs unchanged, no PC or SteamVR streaming. Its drawing size is capped too:
   `nativeScale` is 1 there as on a PC (Copy details), so a page can't draw more pixels.
   The video looked fine but the panels' text was very aliased: the browser draws fewer pixels

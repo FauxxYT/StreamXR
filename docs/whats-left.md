@@ -4,7 +4,7 @@ One list of what's still open, gathered from the feature backlogs (`docs/feature
 `docs/known-issues.md`, which hold the details. Tick or remove items as they're done.
 Last updated for 1.0.0.
 
-## Top priority: before the first release
+## Before the first release (done: early access v0.101.7, then 1.0.0 on the Chrome Web Store)
 
 The assessment after 0.77.1 (the maintainer agreed): StreamXR is ready for an early-access GitHub
 release (a versioned preview / beta) once these are done; the Chrome Web Store waits
@@ -87,7 +87,7 @@ controllers instead of "Oculus Touch"), ~~native Steam Frame support~~ (done 202
 Chromium browser, no PC, Chromium 157), streaming services (HBO Max and
 Netflix first) once they allow protected video in desktop XR.
 
-## Road to 1.0 (easiest first)
+## Road to 1.0 (done: 1.0.0 published on the Chrome Web Store, 2026-11-09)
 
 The roadmap's items before the Chrome Web Store release and the smaller open items, in one
 list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps its own order
@@ -131,12 +131,13 @@ list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps 
     first-run welcome), so StreamXR shows from day one that more sites are coming
     ([Home-Page.md](Home-Page.md)). Cross-page VR (entering VR on a page opened from it) is
     built but hidden until it works without the Skip Helper.
-12. [ ] **Chrome Web Store release, StreamXR 1.0** (last: it waits on the rest): the store
-    listing, the privacy questions (the README's "Your privacy" covers them), review. In
-    progress (2026-11-06): step 1 done (version 1.0.0, the store description, `PRIVACY.md`, the
-    package built from `develop`, the store first and GitHub's release once it's live: CONTRIBUTING.md "Releasing"); next, the developer account, the
-    listing (screenshots, promo tile, text and privacy answers drafted), review, then the README's store
-    install. Undecided: whether the Skip Helper gets a listing too.
+12. [x] **Chrome Web Store release, StreamXR 1.0:** published (2026-11-09):
+    https://chromewebstore.google.com/detail/streamxr/oddgidbdfeehaldomogopedpogcdomnd. The
+    README installs from it on a PC. Still to do: merge to `main`, tag v1.0.0 and the GitHub
+    release; then put the listing's homepage, support and `main` privacy links in (left out
+    at submission while github.com timed out for Google's checker). Undecided: whether the
+    Skip Helper gets a listing too, and whether the Steam Frame's Chromium installs from the
+    store (untested; its README install stays the one-line download).
 
 Set aside: the Back button (0.73.0; deferred again 2026-10-30: no controller button is free). Deferred: Movies in Up Next (YouTube's
 movies are copy-protected, so they can't play in VR yet: `features/video-page.md`, "Deferred").

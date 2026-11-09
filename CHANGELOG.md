@@ -6,10 +6,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. Developed in October and November 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
-## 1.0.0 (in preparation: the Chrome Web Store release)
+## 1.0.0
 
-The first release for the Chrome Web Store: StreamXR 0.103.0, packaged for the store, with a
-layer audit ahead of Twitch and barebones mode.
+The first release on the [Chrome Web Store](https://chromewebstore.google.com/detail/streamxr/oddgidbdfeehaldomogopedpogcdomnd):
+StreamXR 0.103.0, packaged for the store, with a layer audit ahead of Twitch and barebones
+mode.
 
 ### Added (language)
 - **A card's long line scrolls while you point at it:** "1.2M visualizaciones · Transmitido
@@ -62,6 +63,10 @@ layer audit ahead of Twitch and barebones mode.
     total), shorter too, so a card's line fits more often.
 
 ### Added
+- **The README installs from the Chrome Web Store** on a PC (updates are automatic), with a
+  note for moving from a downloaded copy (settings stay: they're in youtube.com's
+  localStorage). The Skip Helper isn't on the store: it's still loaded unpacked, from the
+  release's source zip. The Steam Frame keeps its one-line install for now.
 - **`PRIVACY.md`:** StreamXR's privacy policy, for the store listing's privacy policy link
   (the README's "Your privacy" section, as a page of its own).
 - **The store package** is built from `develop` (committed files only) with only what the extension needs

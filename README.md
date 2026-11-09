@@ -4,17 +4,18 @@ experience: 360° and VR180 videos wrap around you, regular videos play on a gia
 screen, and you can browse, search, subscribe, like, save and comment without ever
 taking your headset off. 🎬✨
 
-### 👉 [Install it in a minute](#-get-started-in-a-minute) 👈
+### 👉 [Add it to Chrome](https://chromewebstore.google.com/detail/streamxr/oddgidbdfeehaldomogopedpogcdomnd) · [Get started in a minute](#-get-started-in-a-minute) 👈
 
 **Works with:** 🥽 the Valve Steam Frame on its own (its Chromium browser), or 🖥️ Windows + 🌐 Chrome + 🎮 SteamVR with the Steam Frame, Meta Quest 2,
 Pimax Crystal Light and likely other SteamVR headsets ([full requirements](#-what-you-need))<br>
-**Jump to:** [Install](#-get-started-in-a-minute) · [What's new](#-whats-new-in-v01030) ·
+**Jump to:** [Install](#-get-started-in-a-minute) · [What's new](#-whats-new-in-v100) ·
 [What you get](#-what-you-get) · [Controls](#-controls) ·
 [Quick troubleshooting](#-quick-troubleshooting) · [Your privacy](#-your-privacy) ·
 [Roadmap](#-roadmap) · [How you can help](#-how-you-can-help)
 
-> **Early access** (version 0.103). Free and open source, forever. It already works every day; it's
-> still growing fast, and your feedback shapes what comes next.
+> **Version 1.0, now on the [Chrome Web Store](https://chromewebstore.google.com/detail/streamxr/oddgidbdfeehaldomogopedpogcdomnd)!**
+> Free and open source, forever. It works every day; it's still growing fast, and your
+> feedback shapes what comes next.
 >
 > StreamXR is vibe coded by one guy (me!), and the only headset I've got is the Steam Frame.
 > Bug fixes, updates and support for more headsets and sites are coming, so please be
@@ -32,42 +33,38 @@ Two ways to run it:
 
 ### On a PC
 
-1. **Download:** go to the [latest release](../../releases/latest), scroll to **Assets** and
-   click **Source code (zip)**. Unzip it somewhere it can stay, like your Documents folder: in
-   File Explorer, right-click the zip → **Extract All…** → pick the folder → **Extract**.
-   (Chrome runs StreamXR from there, so don't delete it.)
-2. **Install in Chrome:** type `chrome://extensions` in the address bar, turn on
-   **Developer mode** (top right), click **Load unpacked** and pick the unzipped folder (the
-   one with `manifest.json` inside). The **StreamXR Dashboard** opens with a short welcome.
-   *(Developer mode is just how extensions from outside the Chrome Web Store are installed.
-   StreamXR is coming to the Web Store soon.)*
-3. **Start SteamVR** on your PC, and connect your headset to it.
+1. **Install:** open [StreamXR on the Chrome Web Store](https://chromewebstore.google.com/detail/streamxr/oddgidbdfeehaldomogopedpogcdomnd)
+   in Chrome, click **Add to Chrome**, then **Add extension**. The **StreamXR Dashboard** opens
+   with a short welcome.
+2. **Start SteamVR** on your PC, and connect your headset to it.
    - **Steam Frame:** in the headset, go to **Streaming Status**, find the PC that's running
      SteamVR, open the **Advanced** drop-down and pick **Stream VR without game**.
    - **Other headsets:** connect them to SteamVR the way you usually do, with SteamVR set as
      your OpenXR runtime ([how](#-quick-troubleshooting)).
-4. **Then open Chrome.** ⚠️ Chrome only looks for a headset when it starts: if SteamVR
-   wasn't running yet, close every Chrome window and open it again.
-5. **Pin StreamXR** to the toolbar: click the 🧩 puzzle icon at the top right of Chrome, then
+3. **Restart Chrome if SteamVR started after it.** ⚠️ Chrome only looks for a headset when it
+   starts: if SteamVR wasn't running when you opened Chrome, close every Chrome window and
+   open it again.
+4. **Pin StreamXR** to the toolbar: click the 🧩 puzzle icon at the top right of Chrome, then
    the 📌 pin next to StreamXR.
-6. **Check your setup (optional):** click StreamXR's button in the toolbar → **Open StreamXR
+5. **Check your setup (optional):** click StreamXR's button in the toolbar → **Open StreamXR
    Dashboard** → **Test VR**. If something's wrong, the Dashboard says what's most likely the
    problem.
-7. **Watch!** On YouTube, click the 🥽 **VR button** (in the top bar next to **+ Create**, or in
+6. **Watch!** On YouTube, click the 🥽 **VR button** (in the top bar next to **+ Create**, or in
    a video's player), then **Enter VR**. The first time, Chrome asks to use virtual reality
    devices: choose **Allow while visiting the site**. That's it! 🍿
 
 No video playing yet? No problem: you'll see YouTube's logo on the big screen; pick
 something from **Explore**, **You** or **Search** right inside VR.
 
-**Want to skip ads from inside VR?** Load the `skip-helper` folder (inside the StreamXR folder)
-with **Load unpacked** too. It's optional ([what it is](#-skipping-ads)); YouTube Premium
-members don't need it.
+**Want to skip ads from inside VR?** Add the optional **Skip Helper** too
+([what it is and how](#-skipping-ads)); YouTube Premium members don't need it.
 
-**Updating to a new version:** download the new release, replace the old folder's contents
-with the new ones, then press the ↻ reload button on StreamXR's card in `chrome://extensions`
-**and** reload your YouTube tab. Your settings stay. (Once StreamXR is on the Chrome Web Store,
-updates will be automatic.)
+**Updates are automatic:** Chrome installs new versions by itself. After an update, reload
+your YouTube tab (an open tab keeps the old version until it's reloaded).
+
+**Installed a downloaded copy before?** Remove it first: in `chrome://extensions`, click
+**Remove** on the old StreamXR, then install it from the Web Store. Your settings stay (they're
+saved with YouTube in your browser, not in the extension).
 
 ### Right on the Steam Frame (no PC)
 
@@ -124,26 +121,23 @@ Stuck? See [Quick troubleshooting](#-quick-troubleshooting).
 | 📺 **Site** | **YouTube** | Signed in or out. With YouTube Premium, even better (no ads). |
 | 🧩 **Optional** | **Skip Helper** | A tiny second extension that lets you skip ads from inside VR ([why it's separate](#-skipping-ads)). |
 
-## ✨ What's new in v0.103.0
+## ✨ What's new in v1.0.0
 
-- 🥽 **Runs right on the Steam Frame, no PC needed!** The Frame's own Chromium browser
-  supports WebXR from Chromium 157 (SteamOS 0.5.7 Beta or higher), and StreamXR works there as it is.
-  [How to install it on the Frame](#right-on-the-steam-frame-no-pc).
-- 🔤 **Cleaner text on the panels:** no more jagged, shimmering letters where the headset
-  draws fewer pixels than the panels have (like the Frame's own browser), and a new **Text
-  sharpness** slider (Settings → Appearance) to make it crisper. Captions are smoother too.
-- 🏠 **See your room on the Steam Frame:** in the Frame's own browser, turn on **Passthrough**
-  any time in VR (Settings → Appearance), or **See your room** in the VR button's popup before
-  entering, and the cinema screen hangs in your actual room. **Strength** sets how much of
-  the room shows, from fully visible to hidden, and **Through the video** whether it also shows
-  through the video (solid by default, for a clear picture).
-- 🩹 **Smaller changes:** an easier Steam Frame install (one line to paste); Enter VR works on
-  the first click there; **Copy details** now shows what limits sharpness on your headset and
-  how your last VR session ended.
+- 🏪 **StreamXR is on the Chrome Web Store!** [Add it to Chrome](https://chromewebstore.google.com/detail/streamxr/oddgidbdfeehaldomogopedpogcdomnd)
+  in one click, and updates arrive by themselves. No more downloading new versions by hand.
+- 🌐 **Choose your language outside VR too:** a language picker in the VR button's popup, the
+  toolbar popup and the StreamXR Dashboard, so the popups never get stuck in a language you
+  can't read.
+- 🗣️ **Views and dates in your language:** "1.2M views · 3 days ago" on every card, the
+  controls panel and the Description panel now follows StreamXR's language, not YouTube's.
+  Spanish now says "En vivo" and "vistas", as YouTube does in Latin America.
+- 📜 **Long card lines scroll:** point at a card whose line is cut off, and it slides to show
+  the rest.
+- 🔒 **A privacy policy of its own:** [PRIVACY.md](PRIVACY.md) (StreamXR still collects
+  nothing).
 
-Missed **v0.102.0**? It brought commenting in VR, the StreamXR Dashboard, Shorts in Explore,
-3D Top & Bottom with the 3D Cinema settings, and better troubleshooting: see the
-[changelog](CHANGELOG.md#01020).
+Missed **v0.103.0**? It brought StreamXR right onto the Steam Frame (no PC needed), passthrough
+to see your room, and sharper panel text: see the [changelog](CHANGELOG.md#01030).
 
 ## 🌟 What you get
 ### 🎥 Every kind of video, the way it was meant to be seen
@@ -294,9 +288,14 @@ button you asked for. The main extension only ever needs access to youtube.com. 
   the browser window).
 
 **The details:**
-- **Install:** in `chrome://extensions`, click **Load unpacked** again and pick the
-  `skip-helper` folder inside your StreamXR folder. It shows up as a second extension,
-  "StreamXR Skip Helper for YouTube". Nothing to set up: StreamXR finds it by itself.
+- **Install:** it isn't on the Web Store, so it's added by hand. Go to the
+  [latest release](../../releases/latest), scroll to **Assets** and click **Source code
+  (zip)**. Unzip it somewhere it can stay, like your Documents folder (Chrome runs the helper
+  from there, so don't delete it). Then, in `chrome://extensions`, turn on **Developer mode**
+  (top right), click **Load unpacked** and pick the `skip-helper` folder inside the unzipped
+  folder. (On the Steam Frame, it's in your **Downloads** → **StreamXR** folder already.) It
+  shows up as a second extension, "StreamXR Skip Helper for YouTube". Nothing to set up:
+  StreamXR finds it by itself.
 - **What it can do:** one thing. When StreamXR asks from a YouTube tab, it presses the Skip
   button in that tab. It can't be told to click anything else, and it ignores every other
   site.
@@ -432,8 +431,9 @@ No dates, just what I'll work on next, in this order:
 5. ✅ **YouTube Premium:** done (v0.93.3): 1080p Premium and Jump ahead, marked with the Diamond.
 6. ✅ **Commenting in-headset:** done (v0.102.0): write, reply to, edit and delete comments
    with the VR keyboard.
-7. 🏪 **Chrome Web Store release, StreamXR 1.0:** install StreamXR in one click and get updates
-   automatically, no more downloading new versions by hand. Still free, of course.
+7. ✅ **Chrome Web Store release, StreamXR 1.0:** done (v1.0.0): install StreamXR in one click
+   from the [Chrome Web Store](https://chromewebstore.google.com/detail/streamxr/oddgidbdfeehaldomogopedpogcdomnd)
+   and get updates automatically. Still free, of course.
 8. 🟣 **Twitch.tv support:** the first site after YouTube.
 9. 🪼 **Jellyfin** and 🟠 **Plex support:** your own media server's movies and shows in VR, on the
    cinema screen. Your own files aren't copy-protected, so they will be able to play.
