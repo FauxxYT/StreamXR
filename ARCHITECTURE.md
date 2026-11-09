@@ -74,7 +74,7 @@ manifest.json                  load order for both worlds, one pair of entries p
 src/core/                      THE CORE (shell, part 1): the VR interface, site-agnostic
   shared/                      used by BOTH worlds (page loads these; ui loads copies)
     bridge.js                  event names + send/on/ask helpers (JSON-string payloads)
-    i18n.js                    translations: t(key) in the interface language (or the browser's)
+    i18n.js                    translations: t(key) in the interface language (or the browser's); compactNumber(), timeAgo() for any site
     strings-en.js              the core's words in English (strings-<lang>.js: other languages)
     controls.js                what each controller input does (single source of truth)
   ui/shared/                   GENERATED copies of core/shared/ (tools/sync-shared.js)
@@ -101,7 +101,7 @@ src/core/                      THE CORE (shell, part 1): the VR interface, site-
       symbols.js               Material Symbols icons (Rounded; outlined + filled) as Path2D outlines
       panel-ui.js              the controls panel: layout, drawing, hit testing
       styles/                  the chevron panels' five styles + shared pieces
-        kit.js                 generic card, images, badge registry, the M3 tabs (drawTabs, headerTabs), the M3 button, the hover ring, regionAt (hit tests; small controls reach out to 56 dp), createStrip (a row that slides sideways when the laser nears its end)
+        kit.js                 generic card (with viewsText / agoText: a video's stats in the interface language from a site's plain values), images, badge registry, the M3 tabs (drawTabs, headerTabs), the M3 button, the hover ring, regionAt (hit tests; small controls reach out to 56 dp), createStrip (a row that slides sideways when the laser nears its end)
         grid.js                tabs, pills, text field, card grid, paging (Catalog + Profile)
         thread.js              a threaded comment list (Info's Comments, Profile's opened post)
         collection.js          a collection page (a playlist opened from its card: picture, details, buttons, rows; Catalog + Profile)
@@ -111,7 +111,7 @@ src/core/                      THE CORE (shell, part 1): the VR interface, site-
       popups-ui.js             the controls panel's floating menus and the dialog (raised in front: Android XR's popup and dialog levels)
       motion.js                hover / press easing (M3E springs): one tracker per panel canvas; the opening springs (panels without bounce)
       laser-options.js         the Laser settings tab: steadiness (the shell's own)
-      appearance-options.js    the Appearance settings tab: the colour theme, the glass look on / off and its tint, the panel size, the text sharpness (panel-pass.js applies it), Passthrough on / off and its strength (xr-session.js applies them), vibration on / off (the shell's own)
+      appearance-options.js    the Appearance settings tab: the colour theme, the glass look on / off and its tint, the panel size, the text sharpness (panel-pass.js applies it), Passthrough on / off and its strength (xr-session.js applies them; addPassthroughRows: a slot for rows from a layer above), vibration on / off (the shell's own)
       fade-options.js          the Auto-hide settings tab: how long the controls panel, toolbars, search bar, controllers and lasers wait before hiding / fading, and the "Auto-hide while paused" switch
       safe-zone.js             the Safe Zone: where the layout goes, as shares of the headset's field of view (measured from the eyes' projections); its outline
       safe-zone-options.js     the Safe zone settings tab: width, height, centre (the shell's own)
@@ -126,13 +126,13 @@ src/core/                      THE CORE (shell, part 1): the VR interface, site-
 src/streamxr/                  STREAMXR (shell, part 2): the video player on the core
   shared/                      used by BOTH worlds
     strings-en.js              StreamXR's words in English: formats, popup, starting VR, 2D Cinema
-    formats.js                 the video formats (names, projection); detection is the provider's
+    formats.js                 the video formats (names, projection), kindFromText() (VR180 / 360° from a title, for any site); detection is the provider's
   ui/shared/                   GENERATED copies of streamxr/shared/ (tools/sync-shared.js)
   page/                        page world
     media-source.js            where the frames come from: the site's <video>, followed when swapped
     video-sphere.js            the video sphere renderer (360°, 180°, cubemap)
     cinema-screen.js           flat/curved screen for regular videos (rounded corners, the edge-colour glow); picks sphere vs screen per format
-    cinema-options.js          the 2D Cinema and 3D Cinema settings tabs
+    cinema-options.js          the 2D Cinema and 3D Cinema settings tabs, and Through the video (added under Appearance → Passthrough through the shell's addPassthroughRows slot)
     pause-overlay.js           dims the video, pause symbol, buffering loading indicator
     captions-overlay.js        the site's caption lines drawn in VR (over the 2D screen's bottom, or below your view)
     xr-session.js              one VR session: setup + per-frame loop (takes a provider)
@@ -146,6 +146,7 @@ src/streamxr/                  STREAMXR (shell, part 2): the video player on the
     auto-enter.js              on a site opened from Home with VR meant: VR by itself (the site's helper) or "press any key or click"
     vr-presence.js             answers (through background.js) whether VR is running in this tab, and ends it when asked
     vr-elsewhere.js            "VR is running in another tab": asks background.js, the note and "Exit VR there" (the popup and the Dashboard)
+    language-picker.js         the interface language outside VR: a 🌐 picker for the site popup, the toolbar popup and the Dashboard
     popup.css                  its styles (Material 3; colours from the site's palette, asked of the page world)
   home/                        StreamXR Home and the toolbar popup (extension pages; docs/Home-Page.md)
     sites.js                   the sites they list (each site adds its entry from src/sites/<site>/home/)

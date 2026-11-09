@@ -45,7 +45,7 @@ body:
     id: version
     attributes:
       label: StreamXR version
-      description: Shown on chrome://extensions (and in Copy details as "version").
+      description: Shown on chrome://extensions (and in Copy details as "version"). Add whether it's from the Web Store or a downloaded copy.
     validations:
       required: true
   - type: textarea

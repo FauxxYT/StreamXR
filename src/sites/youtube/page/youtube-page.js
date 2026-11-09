@@ -225,9 +225,10 @@
     const vd = r.videoDetails || {}, mf = (r.microformat && r.microformat.playerMicroformatRenderer) || {};
     const info = textOf(first(SEL.info));
 
-    let views = vd.viewCount ? `${compactNumber(+vd.viewCount)} ${vd.isLive ? 'watching' : 'views'}` : '';
-    if (!views) { const m = VIEWS_RE.exec(info); if (m) views = `${m[1]} views`; }
-    const published = timeAgo(mf.publishDate || mf.uploadDate) || (AGO_RE.exec(info) || [])[1] || '';
+    // (the words in the interface language, like the date below: the shell's kit.js viewsText)
+    let views = vd.viewCount ? ns.vrKit.viewsText(compactNumber(+vd.viewCount), !!vd.isLive) : '';
+    if (!views) { const m = VIEWS_RE.exec(info); if (m) views = ns.vrKit.viewsText(m[1]); }
+    const published = timeAgo(mf.publishDate || mf.uploadDate) || D.localAgo((AGO_RE.exec(info) || [])[1] || '');
 
     const subBox = first(SEL.subscribe);
     const subBtn = subBox && (subBox.querySelector('button') || subBox);

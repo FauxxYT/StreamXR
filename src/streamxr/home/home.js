@@ -39,8 +39,10 @@
         <div class="streamxr-switch-note streamxr-enter-note"></div>` : ''}
         ${ui.sitesHtml()}
       </section>
+      ${ns.languagePicker.html()}
       <footer class="streamxr-version">${version ? esc(t('home.version', { version })) : ''}</footer>
     </div>`;
+  ns.languagePicker.bind(root, () => location.reload());   // (the Dashboard again, in the new language)
 
   // "Got it": the welcome goes, and the address loses ?welcome so a reload doesn't bring it back.
   const done = root.querySelector('.streamxr-welcome-done');

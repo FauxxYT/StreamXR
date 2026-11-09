@@ -61,7 +61,7 @@ body:
     id: since
     attributes:
       label: Since when (roughly)?
-      placeholder: "e.g. since yesterday; after updating StreamXR to 0.78.4; not sure"
+      placeholder: "e.g. since yesterday; after updating StreamXR to 1.0.0; not sure"
   - type: dropdown
     id: signedin
     attributes:
@@ -77,7 +77,7 @@ body:
     attributes:
       label: StreamXR version
       description: Shown on chrome://extensions.
-      placeholder: "e.g. 0.78.4"
+      placeholder: "e.g. 1.0.0 (Web Store)"
     validations:
       required: true
   - type: dropdown

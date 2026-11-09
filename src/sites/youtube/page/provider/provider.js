@@ -210,8 +210,10 @@
     const description = cached(() => {
       const m = ns.youtubeContent.metadata(), d = ns.youtubeContent.descriptionWithoutChapters();
       const date = Date.parse(m.publishDate || m.uploadDate);
-      const header = [m.views ? `${m.views.toLocaleString('en-US')} views` : '',
-        isFinite(date) ? new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''].filter(Boolean).join(' · ');
+      // (in the interface language: "1,234 views · Oct 8, 2026", Spanish "1.234 vistas · 8 oct 2026")
+      const lang = ns.i18n.current();
+      const header = [m.views ? ns.vrKit.viewsText(m.views.toLocaleString(lang)) : '',
+        isFinite(date) ? new Date(date).toLocaleDateString(lang, { month: 'short', day: 'numeric', year: 'numeric' }) : ''].filter(Boolean).join(' · ');
       const ci = ns.youtubeContent.commentsInfo();
       return { id: m.id, header, text: d.text, links: d.links, hasTranscript: ns.youtubeContent.hasTranscript(),
         commentsOn: ci.on, commentCount: ci.count };

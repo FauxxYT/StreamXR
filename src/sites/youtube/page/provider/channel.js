@@ -496,7 +496,7 @@
           : isLoading ? tr(search ? 'yt.searching' : 'yt.loading')
           : search && pager && pager.done && !items().length ? tr('yt.noResults', { query: search.query }) : message || tr('yt.nothingYet'),
         featured: f ? { thumb: f.thumb, flags: f.live ? [ns.ytVr.liveFlag()] : [], kicker: tr('yt.channel.featuredVideo'), title: f.title,
-          stats: [f.views, f.age].filter(Boolean).join(' · '), description: f.description } : null,
+          stats: ns.ytVr.statsOf(f), description: f.description } : null,
         body, scroll: playlist.isOpen() ? playlist.scroll() : scroll, now: frame.now / 1000,
       };
       // Redraw on any change, while scrolling, and ~30 times a second while the loading

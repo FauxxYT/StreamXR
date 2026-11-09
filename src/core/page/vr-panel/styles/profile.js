@@ -552,7 +552,7 @@
     const scrollAt = (u, v) => scrollable && u * W >= curView.x - 8 && u * W <= W - 16 && v * H >= curView.y && v * H <= curView.y + curView.h;
 
     return {
-      canvas, aspect: H / W, draw, hitTest, has, rectOf, scrollAt, imagesReady: kit.imagesReady, perPage: grid.PER_PAGE, animating: () => motion.moving() || grid.moving(),
+      canvas, aspect: H / W, draw, hitTest, has, rectOf, scrollAt, imagesReady: kit.imagesReady, perPage: grid.PER_PAGE, animating: () => motion.moving() || grid.moving() || kit.scrolling(),
       maxScroll: () => maxScrollPx,          // how far the last drawn body can scroll (px)
       shownScroll: () => scrollPx,           // where it actually is (after clamping)
       pxPerV: H,                             // canvas pixels per unit of v (for drag scrolling)

@@ -1,7 +1,8 @@
 // GENERATED from src/streamxr/shared/formats.js by tools/sync-shared.js - edit that file, not this one.
 // Video formats: what they're called and how the renderer should show each. Loaded into
 // both worlds (the panel lists the formats; the renderer needs the projection). Which
-// format a video is, is decided by the site's provider (detectFormat).
+// format a video is, is decided by the site's provider (detectFormat), which can use
+// kindFromText(text): '180' / '360' / '2D' guessed from a title (any site, or none).
 //
 // 3D: most 3D videos reach the desktop as one eye only (shown as mono); some arrive with both
 // eyes side by side in one frame, which '180sbs' (VR180) and 'flatsbs' (the cinema screen)
@@ -48,5 +49,13 @@
   // else on the video sphere.
   const isFlat = fmt => fmt === 'flat' || fmt === 'flatsbs' || fmt === 'flattb';
 
-  ns.formats = { IDS, DEFAULT, isFormat, label, shortLabel, longitudeSpan, eyeSpans, isSbs, isTb, projectionMode, isFlat };
+  // Best guess at what kind of video a title or description is, for any site (and pages
+  // without a site of their own): '180' (VR180), '360' or '2D'.
+  function kindFromText(text) {
+    if (/\bVR ?180\b|\b180°|\b180 ?VR\b|\b180 3D\b/i.test(text)) return '180';
+    if (/\b360°|\b360 ?VR\b|\bVR ?360\b|\b360 video\b|\b360 degree/i.test(text)) return '360';
+    return '2D';
+  }
+
+  ns.formats = { IDS, DEFAULT, isFormat, label, shortLabel, longitudeSpan, eyeSpans, isSbs, isTb, projectionMode, isFlat, kindFromText };
 })(globalThis.__streamxr = globalThis.__streamxr || {});

@@ -5,7 +5,8 @@
 // length, all dimmed and inactive unless the cinema screen is showing (intensity also needs
 // Curve on, the glow's sliders Glow on). 3D Cinema: 3D depth and Swap eyes, active for a 3D
 // format on the cinema screen. Each slider has a Default button. A site's Options panel
-// includes them as two of its tabs (settings-panel.js).
+// includes them as two of its tabs (settings-panel.js). It also adds Through the video to the
+// shell's Appearance tab, under Passthrough (throughVideo(): 0 solid .. 1 see-through).
 //
 //   ns.vrCinemaOptions.content(viewSettings) -> 2D Cinema's 'rows' content (the Options style's)
 //   ns.vrCinemaOptions.content3d(viewSettings) -> 3D Cinema's
@@ -116,5 +117,33 @@
     return true;
   }
 
-  ns.vrCinemaOptions = { content, content3d, event };
+  // Through the video (Settings → Appearance, under Passthrough's Strength: added there through
+  // the shell's addPassthroughRows): how much of the room shows through the cinema screen
+  // itself, 0 (solid, the default: a clear picture) .. 1 (as much as around it), in 5% steps.
+  // xr-session.js reads throughVideo() each frame. Remembered; the global reset makes it solid.
+  const THROUGH_KEY = 'passthroughVideo';          // remembered (storage.js name)
+  let through = 0;
+  {
+    const v = parseFloat(ns.storage.get(THROUGH_KEY));
+    through = v >= 0 && v <= 1 ? v : 0;
+  }
+  function setThrough(v) {
+    through = Math.min(1, Math.max(0, Math.round(v * 20) / 20));
+    if (through === 0) ns.storage.remove(THROUGH_KEY); else ns.storage.set(THROUGH_KEY, String(through));
+  }
+  if (ns.vrAppearanceOptions && ns.vrAppearanceOptions.addPassthroughRows) {
+    ns.vrAppearanceOptions.addPassthroughRows({
+      rows: on => [{ label: tr('cinema.throughVideo'), hint: tr('cinema.throughVideoHint'), dim: !on,
+        control: { type: 'slider', id: 'throughVideo', fraction: through, text: `${Math.round(through * 100)}%`, enabled: on,
+          defaultButton: true, ends: [tr('cinema.solid'), tr('cinema.seeThrough')] } }],
+      event: (ev, on) => {
+        if (ev.type === 'slider' && ev.value === 'throughVideo') { if (on) setThrough(ev.fraction); return true; }
+        if (ev.type === 'default' && ev.value === 'throughVideo') { setThrough(0); return true; }
+        return false;
+      },
+      reset: () => setThrough(0),
+    });
+  }
+
+  ns.vrCinemaOptions = { content, content3d, event, throughVideo: () => through };
 })(globalThis.__streamxr = globalThis.__streamxr || {});

@@ -173,6 +173,25 @@ Fix what they flag before asking for review. The rest is up to you:
 - [ ] Comments are updated for everything you changed.
 - [ ] `manifest.json` version bumped, and `CHANGELOG.md` updated.
 
+## Releasing (maintainer)
+
+The Chrome Web Store goes first, so `main` and the GitHub release only get a version once
+the store has accepted it:
+
+1. Merge the work into `develop` (pull request), with `manifest.json`'s version and the
+   CHANGELOG entry ready.
+2. **Build the store package from `develop`,** with only what the extension needs (no docs,
+   tools or Skip Helper; committed files only, so nothing local or private gets in):
+   ```bash
+   git archive --format=zip -o StreamXR-X.Y.Z.zip develop manifest.json src icons third_party LICENSE
+   ```
+   Upload that zip in the Chrome Web Store Developer Dashboard and submit it for review.
+   Rejected? Fix it on `develop` and upload again (a new upload may need a higher version).
+3. **Once the store has published it:** merge `develop` into `main` by pull request (`main`
+   only ever holds released code: the README's Steam Frame install line downloads `main`'s
+   archive), tag `main`'s merge commit `vX.Y.Z` (annotated, matching `manifest.json`), push
+   the tag, and create the GitHub release from it.
+
 ## Forks
 
 The code is MIT, so you're free to fork it and change it for your own use. A few things

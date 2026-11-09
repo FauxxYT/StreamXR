@@ -110,7 +110,7 @@
     function rowsOf(videos, playing) {
       if (rowsMemo.videos === videos && rowsMemo.playing === playing && rowsMemo.n === videos.length) return rowsMemo.rows;
       const rows = videos.map(v => ({ thumb: v.thumb, corner: v.duration || '', title: v.title, current: v.id === playing,
-        line: [v.channel, v.views, v.age].filter(Boolean).join(' · ') }));
+        line: [v.channel, ns.ytVr.statsOf(v)].filter(Boolean).join(' · ') }));
       rowsMemo = { videos, playing, n: videos.length, rows };
       return rows;
     }
