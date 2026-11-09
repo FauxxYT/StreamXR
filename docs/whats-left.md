@@ -135,7 +135,7 @@ list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps 
     listing, the privacy questions (the README's "Your privacy" covers them), review. In
     progress (2026-11-06): step 1 done (version 1.0.0, the store description, `PRIVACY.md`, the
     package built from `develop`, the store first and GitHub's release once it's live: CONTRIBUTING.md "Releasing"); next, the developer account, the
-    listing (screenshots, promo tile), the privacy answers, review, then the README's store
+    listing (screenshots, promo tile, text and privacy answers drafted), review, then the README's store
     install. Undecided: whether the Skip Helper gets a listing too.
 
 Set aside: the Back button (0.73.0; deferred again 2026-10-30: no controller button is free). Deferred: Movies in Up Next (YouTube's
