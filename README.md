@@ -6,6 +6,8 @@ taking your headset off. 🎬✨
 
 ### 👉 [Add it to Chrome](https://chromewebstore.google.com/detail/streamxr/oddgidbdfeehaldomogopedpogcdomnd) · [Get started in a minute](#-get-started-in-a-minute) 👈
 
+🌐 **Website:** [fauxxyt.github.io/StreamXR](https://fauxxyt.github.io/StreamXR/)
+
 **Works with:** 🥽 the Valve Steam Frame on its own (its Chromium browser), or 🖥️ Windows + 🌐 Chrome + 🎮 SteamVR with the Steam Frame, Meta Quest 2,
 Pimax Crystal Light and likely other SteamVR headsets ([full requirements](#-what-you-need))<br>
 **Jump to:** [Install](#-get-started-in-a-minute) · [What's new](#-whats-new-in-v100) ·
@@ -68,8 +70,8 @@ saved with YouTube in your browser, not in the extension).
 
 ### Right on the Steam Frame (no PC)
 
-StreamXR runs right in the Frame's own web browser, Chromium. No PC needed, and no typing of
-your own: you'll copy one line into the Frame's terminal app.
+StreamXR runs right in the Frame's own web browser, Chromium, from the Chrome Web Store. No PC
+needed.
 
 **You'll need:** SteamOS **0.5.7 or newer** on the Frame. For now that's a **Beta**: in the
 Frame's **System** settings, under **Beta Participation**, set **System Update Channel** to
@@ -78,35 +80,34 @@ Frame's **System** settings, under **Beta Participation**, set **System Update C
 1. **Install or update Chromium** (VR needs version 157 or newer): open **Discover**, the
    Frame's app store, search for **Chromium** and press **Install**. Already have it? Open
    Discover's **Updates** page and update it there.
-2. **Open Konsole,** the terminal app (it's in the app menu).
-3. **Download StreamXR.** Copy the line below (the copy button at its right end does it in
-   one click), paste it into Konsole with **Ctrl + Shift + V** (or right-click by Clicking the Right Analog Stick on the Steam Frame Controller → **Paste**),
-   and press **Enter**:
-   ```bash
-   mkdir -p ~/Downloads/StreamXR && curl -L https://github.com/FauxxYT/StreamXR/archive/refs/heads/main.tar.gz | tar -xz --strip-components=1 -C ~/Downloads/StreamXR
-   ```
-   It downloads the newest StreamXR into a **StreamXR** folder in your **Downloads**. Leave
-   that folder there: Chromium runs StreamXR from it.
-4. **Add it to Chromium.** Open Chromium and go to `chrome://extensions`. Turn on
-   **Developer mode** (top right) and click **Load unpacked**. In the window that opens, go to
-   **Downloads**, select the **StreamXR** folder, and confirm (**Open** / **Select**).
-5. **Watch!** On YouTube, click the 🥽 **VR button** (in the top bar next to **+ Create**, or in
+2. **Add StreamXR:** in Chromium, open
+   [StreamXR on the Chrome Web Store](https://chromewebstore.google.com/detail/streamxr/oddgidbdfeehaldomogopedpogcdomnd),
+   click **Add to Chrome**, then **Add extension**.
+3. **Watch!** On YouTube, click the 🥽 **VR button** (in the top bar next to **+ Create**, or in
    a video's player), then **Enter VR**. It can take a second or two. The first time, choose
    **Allow while visiting the site**. 🍿
-6. **Make the text sharp** (recommended): while you're in VR, press the **Steam button** to open
+4. **Make the text sharp** (recommended): while you're in VR, press the **Steam button** to open
    Chromium's **VR video settings**, and set the **per-eye resolution** to the highest value
    (**3408**). The default makes text look blurry.
 
-**Updating to a new version:** run the line from step 3 again. Then, in `chrome://extensions`,
-press the ↻ button on StreamXR, and reload your YouTube tab. Your settings stay.
+**Updates are automatic.** After one, reload your YouTube tab. Your settings stay.
+
+**Installed it from the terminal before?** Remove that copy first: in `chrome://extensions`,
+click **Remove** on the old StreamXR, then add it from the Web Store. You can delete the
+**StreamXR** folder in your **Downloads** too, unless you use the Skip Helper from it.
 
 **Tips for the Frame:**
 - **Right-click = click the right stick** (press it in) on the Frame's desktop.
-- **Load unpacked only shows folders,** not `.zip` or `.tar.gz` files. The line in step 3
-  unpacks StreamXR for you; if you downloaded it some other way, unpack it first, then pick
-  the folder that has `manifest.json` in it.
-- **Prefer the terminal for Chromium too?** This line installs or updates it:
+- **Prefer the terminal for Chromium?** This line installs or updates it:
   `flatpak install -y --or-update flathub org.chromium.Chromium`
+- **Want StreamXR's files on the Frame** (for the [Skip Helper](#-skipping-ads), or to try
+  `main` unpacked)? Paste this into **Konsole**, the terminal app, with **Ctrl + Shift + V**,
+  and press **Enter**. It downloads them into a **StreamXR** folder in your **Downloads**:
+  ```bash
+  mkdir -p ~/Downloads/StreamXR && curl -L https://github.com/FauxxYT/StreamXR/archive/refs/heads/main.tar.gz | tar -xz --strip-components=1 -C ~/Downloads/StreamXR
+  ```
+  **Load unpacked** (in `chrome://extensions`, with **Developer mode** on) only shows
+  folders, so pick a folder, not a `.zip` or `.tar.gz` file.
 
 Stuck? See [Quick troubleshooting](#-quick-troubleshooting).
 
@@ -288,13 +289,18 @@ button you asked for. The main extension only ever needs access to youtube.com. 
   the browser window).
 
 **The details:**
-- **Install:** it isn't on the Web Store, so it's added by hand. Go to the
-  [latest release](../../releases/latest), scroll to **Assets** and click **Source code
-  (zip)**. Unzip it somewhere it can stay, like your Documents folder (Chrome runs the helper
-  from there, so don't delete it). Then, in `chrome://extensions`, turn on **Developer mode**
-  (top right), click **Load unpacked** and pick the `skip-helper` folder inside the unzipped
-  folder. (On the Steam Frame, it's in your **Downloads** → **StreamXR** folder already.) It
-  shows up as a second extension, "StreamXR Skip Helper for YouTube". Nothing to set up:
+- **Install:** it isn't on the Web Store, so it's added by hand.
+  - **On a PC:** go to the [latest release](../../releases/latest), scroll to **Assets** and
+    click **Source code (zip)**. Unzip it somewhere it can stay, like your Documents folder
+    (Chrome runs the helper from there, so don't delete it). Then, in `chrome://extensions`,
+    turn on **Developer mode** (top right), click **Load unpacked** and pick the
+    `skip-helper` folder inside the unzipped folder.
+  - **On the Steam Frame:** download StreamXR's files with the line in
+    [Tips for the Frame](#right-on-the-steam-frame-no-pc) (they land in **Downloads** →
+    **StreamXR**). Then, in Chromium's `chrome://extensions`, turn on **Developer mode**,
+    click **Load unpacked** and pick **Downloads** → **StreamXR** → **skip-helper**.
+
+  It shows up as a second extension, "StreamXR Skip Helper for YouTube". Nothing to set up:
   StreamXR finds it by itself.
 - **What it can do:** one thing. When StreamXR asks from a YouTube tab, it presses the Skip
   button in that tab. It can't be told to click anything else, and it ignores every other

@@ -1,0 +1,619 @@
+<!doctype html>
+<!--
+  StreamXR's website (GitHub Pages: https://fauxxyt.github.io/StreamXR/), one page that
+  introduces StreamXR, shows how to install it (the Steam Frame and the PC in "Get started",
+  the Skip Helper in "Questions") and links to the Chrome Web Store and the repository.
+  Published from the site/ folder by .github/workflows/pages.yml whenever main changes.
+  Plain HTML and CSS plus one small inline script (opens a question linked to from the page);
+  no trackers, no outside fonts or scripts: it loads nothing from anywhere else.
+  Images: site/images/ (the store screenshots as JPEGs, preview.jpg for link previews).
+  The install steps follow the README's "Get started" and "Skipping ads": keep them in step.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StreamXR: Watch YouTube in VR on the Steam Frame and SteamVR headsets</title>
+  <meta name="description" content="StreamXR is a free, open-source browser extension that plays YouTube in VR: 360° and VR180 videos around you, everything else on a giant cinema screen. Browse, search, like and comment without taking your headset off. For the Valve Steam Frame and SteamVR headsets.">
+  <link rel="canonical" href="https://fauxxyt.github.io/StreamXR/">
+  <link rel="icon" type="image/png" sizes="32x32" href="images/icon-32.png">
+  <link rel="apple-touch-icon" href="images/icon-128.png">
+  <meta name="theme-color" content="#0e0d10">
+
+  <!-- Link previews (X, Reddit, Discord, ...). -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="StreamXR">
+  <meta property="og:title" content="StreamXR: YouTube, all around you">
+  <meta property="og:description" content="Watch YouTube in VR: 360° and VR180 videos around you, everything else on a giant cinema screen. Free and open source, for the Steam Frame and SteamVR headsets.">
+  <meta property="og:url" content="https://fauxxyt.github.io/StreamXR/">
+  <meta property="og:image" content="https://fauxxyt.github.io/StreamXR/images/preview.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="StreamXR in a VR headset: a YouTube video on a cinema screen, with a channel page on the left and Explore on the right">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- What search engines show about the app (structured data). -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "StreamXR",
+    "description": "A browser extension that plays YouTube in VR: 360° and VR180 videos around you, everything else on a giant cinema screen.",
+    "applicationCategory": "MultimediaApplication",
+    "operatingSystem": "Chrome, Chromium",
+    "url": "https://fauxxyt.github.io/StreamXR/",
+    "downloadUrl": "https://chromewebstore.google.com/detail/streamxr/oddgidbdfeehaldomogopedpogcdomnd",
+    "image": "https://fauxxyt.github.io/StreamXR/images/preview.jpg",
+    "license": "https://github.com/FauxxYT/StreamXR/blob/main/LICENSE",
+    "isAccessibleForFree": true,
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+
+  <style>
+    /* Colors: a dark room, like the VR panels' dark theme, with StreamXR's red. */
+    :root {
+      --bg: #0e0d10;
+      --surface: #1a181d;
+      --surface-2: #232027;
+      --line: #2f2b34;
+      --text: #f4f2f6;
+      --muted: #b9b4c0;
+      --red: #f2163e;
+      --red-hover: #ff3557;
+      --radius: 20px;
+      --max: 1120px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    [id] { scroll-margin-top: 84px; }          /* clear the sticky top bar when jumping to a section */
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; }
+    img { display: block; max-width: 100%; height: auto; }
+    code { font: 14px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; background: var(--surface-2);
+      border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; color: var(--text); }
+    pre { margin: 10px 0; padding: 14px 16px; background: var(--bg); border: 1px solid var(--line);
+      border-radius: 12px; overflow-x: auto; }
+    pre code { background: none; border: 0; padding: 0; white-space: pre; }
+    .cmd { position: relative; }
+    .cmd pre { padding-right: 86px; }
+    .cmd .copy { position: absolute; right: 8px; top: 8px; padding: 5px 12px; border-radius: 999px; cursor: pointer;
+      border: 1px solid var(--line); background: var(--surface-2); color: var(--text); font: 600 13px/1.4 inherit; }
+    .cmd .copy:hover { border-color: #4a4452; }
+    .wrap { max-width: var(--max); margin: 0 auto; padding: 0 20px; }
+
+    /* Top bar */
+    header.top { position: sticky; top: 0; z-index: 10; background: rgba(14, 13, 16, .86);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+    header.top .wrap { display: flex; align-items: center; gap: 24px; height: 64px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 19px; text-decoration: none; }
+    .brand img { width: 32px; height: 32px; border-radius: 8px; }
+    nav.links { margin-left: auto; display: flex; gap: 22px; font-size: 15px; }
+    nav.links a { text-decoration: none; color: var(--muted); }
+    nav.links a:hover { color: var(--text); }
+
+    /* Buttons */
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 22px; border-radius: 999px;
+      font-weight: 600; font-size: 16px; text-decoration: none; transition: background .15s, border-color .15s; }
+    .btn.primary { background: var(--red); color: #fff; }
+    .btn.primary:hover { background: var(--red-hover); }
+    .btn.ghost { border: 1px solid var(--line); background: var(--surface); }
+    .btn.ghost:hover { border-color: #4a4452; }
+
+    /* Hero */
+    .hero { text-align: center; padding: 72px 0 40px;
+      background: radial-gradient(60% 50% at 50% 0%, rgba(242, 22, 62, .22), transparent 70%); }
+    /* The same red glow from the top, for the section after the gray band (a fixed size, so it
+       stays the same when its answers open). */
+    .glow { background: radial-gradient(60vw 560px at 50% 0%, rgba(242, 22, 62, .22), transparent 70%); }
+    .hero h1 { font-size: clamp(38px, 7vw, 68px); line-height: 1.05; margin: 0 0 18px; letter-spacing: -.02em; }
+    .hero p.lead { font-size: clamp(17px, 2.2vw, 20px); color: var(--muted); max-width: 720px; margin: 0 auto 30px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+    .note { margin: 18px 0 0; font-size: 14px; color: var(--muted); }
+    .shot { margin: 44px auto 0; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, .55), 0 0 120px rgba(242, 22, 62, .12); }
+
+    /* Sections */
+    section { padding: 64px 0; }
+    h2 { font-size: clamp(28px, 4vw, 40px); line-height: 1.15; margin: 0 0 12px; letter-spacing: -.01em; }
+    .sub { color: var(--muted); margin: 0 0 36px; max-width: 680px; }
+    .grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px; }
+    .card h3 { margin: 0 0 12px; font-size: 20px; }
+    .card ul { margin: 0; padding-left: 20px; color: var(--muted); }
+    .card li { margin: 6px 0; }
+    .card li strong { color: var(--text); font-weight: 600; }
+    .card p { margin: 0 0 14px; color: var(--muted); }
+    .card p:last-child { margin-bottom: 0; }
+    .card .actions { justify-content: flex-start; }
+    .emoji { font-size: 28px; line-height: 1; margin-bottom: 12px; }
+
+    /* Gallery: two screenshots a row, one on a phone. */
+    .gallery { display: grid; gap: 18px; grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 720px) { .gallery { grid-template-columns: 1fr; } }
+    figure { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+    figcaption { padding: 14px 18px 16px; font-size: 15px; color: var(--muted); }
+    figcaption strong { color: var(--text); }
+
+    /* Get started: a darker band with the two ways in, then the PC steps. */
+    .band { background: var(--surface-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .steps { counter-reset: step; list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+    .steps > li { counter-increment: step; position: relative; padding: 18px 20px 18px 66px;
+      background: var(--surface); border: 1px solid var(--line); border-radius: 16px; color: var(--muted); }
+    .steps > li::before { content: counter(step); position: absolute; left: 18px; top: 16px; width: 32px; height: 32px;
+      border-radius: 50%; background: var(--red); color: #fff; font-weight: 700; display: grid; place-items: center; }
+    .steps > li strong { color: var(--text); }
+    .steps ul { margin: 8px 0 0; padding-left: 20px; }
+    h3.steps-title { font-size: 24px; margin: 48px 0 16px; }
+    h4.steps-part { font-size: 17px; margin: 26px 0 12px; color: var(--text); }
+
+    /* Questions */
+    details { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px 22px; margin: 0 0 12px; }
+    summary { cursor: pointer; font-weight: 600; }
+    details > p, details > ol, details > ul { color: var(--muted); }
+    details > p { margin: 12px 0 0; }
+    details ol, details ul { margin: 12px 0 0; padding-left: 22px; }
+    details li { margin: 8px 0; }
+    details li strong, details p strong { color: var(--text); }
+
+    /* Closing call and footer */
+    .cta { text-align: center; padding-bottom: 96px;
+      background: radial-gradient(60vw 420px at 50% 100%, rgba(242, 22, 62, .22), transparent 70%); }
+    footer { border-top: 1px solid var(--line); padding: 32px 0 48px; color: var(--muted); font-size: 14px; }
+    footer .wrap { display: flex; flex-wrap: wrap; gap: 12px 28px; justify-content: space-between; }
+    footer nav { display: flex; flex-wrap: wrap; gap: 18px; }
+
+    @media (max-width: 640px) {
+      nav.links { display: none; }
+      .hero { padding-top: 48px; }
+      section { padding: 48px 0; }
+      .steps > li { padding-left: 60px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top"><img src="images/icon-32.png" alt="" width="32" height="32">StreamXR</a>
+    <nav class="links" aria-label="Sections">
+      <a href="#features">Features</a>
+      <a href="#install">Install</a>
+      <a href="#troubleshooting">Troubleshooting</a>
+      <a href="#questions">Questions</a>
+      <a href="https://github.com/FauxxYT/StreamXR">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <div class="hero">
+    <div class="wrap">
+      <h1>YouTube, all around you.</h1>
+      <p class="lead">StreamXR is a free browser extension that plays YouTube in VR. 360° and VR180
+        videos wrap around you, everything else plays on a giant cinema screen, and you can browse,
+        search, subscribe, like and comment without taking your headset off.</p>
+      <div class="actions">
+        <a class="btn primary" href="https://chromewebstore.google.com/detail/streamxr/oddgidbdfeehaldomogopedpogcdomnd">Add to Chrome</a>
+        <a class="btn ghost" href="#steam-frame">Install on the Steam Frame</a>
+      </div>
+      <p class="note">For the Valve Steam Frame and SteamVR headsets · Free and open source</p>
+      <img class="shot" src="images/layout.jpg" width="1280" height="800"
+        alt="StreamXR in a VR headset: a YouTube video on the cinema screen with its controls below, a channel page on the left, Explore on the right and the search bar above">
+    </div>
+  </div>
+
+  <section id="features">
+    <div class="wrap">
+      <h2>Everything YouTube, made for VR</h2>
+      <p class="sub">StreamXR draws YouTube's own player in your headset, and builds panels around it for
+        everything else you'd do on the site.</p>
+      <div class="grid">
+        <div class="card">
+          <div class="emoji" aria-hidden="true">🎬</div>
+          <h3>Watch</h3>
+          <ul>
+            <li><strong>360° and VR180</strong> videos around you, detected automatically</li>
+            <li>Regular videos on a <strong>cinema screen</strong> you can curve, resize and move</li>
+            <li><strong>3D</strong> side-by-side and top-and-bottom videos in real 3D</li>
+            <li>Every aspect ratio, ultrawide and IMAX included</li>
+            <li>Quality up to <strong>8K</strong>, captions, chapters and a seek preview</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="emoji" aria-hidden="true">🗂️</div>
+          <h3>Browse without taking it off</h3>
+          <ul>
+            <li>Panels <strong>around the video, never on top of it</strong>: Description, Comments,
+              Channel, Up Next, Explore and your library</li>
+            <li><strong>Search</strong> with suggestions on a VR keyboard</li>
+            <li>Comment, reply, <strong>subscribe, like</strong> and save to your playlists</li>
+            <li>Live streams with <strong>live chat</strong>, Shorts, playlists and your queue</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="emoji" aria-hidden="true">🥽</div>
+          <h3>Comfortable in a headset</h3>
+          <ul>
+            <li>Designed after <strong>Material 3</strong> and Android XR's guidelines</li>
+            <li>A safe zone that keeps the video clear, and smooth motion</li>
+            <li><strong>Passthrough</strong> on the Steam Frame: watch with your room around you</li>
+            <li>Glass panels, themes, adjustable size and text sharpness</li>
+            <li>In <strong>English and Spanish</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="gallery" style="padding-top: 0">
+    <div class="wrap">
+      <div class="gallery">
+        <figure>
+          <img src="images/cinema.jpg" width="1280" height="800" loading="lazy"
+            alt="A YouTube video on StreamXR's cinema screen, with the controls panel below it">
+          <figcaption><strong>The cinema screen.</strong> Curve it, size it, push it away.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/passthrough.jpg" width="1280" height="800" loading="lazy"
+            alt="StreamXR's Explore panel in VR, with YouTube's Home feed and its tabs">
+          <figcaption><strong>Explore.</strong> Home, Live, Gaming, Music, Shorts and more, browsed
+            right from the headset.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/channel.jpg" width="1280" height="800" loading="lazy"
+            alt="A YouTube channel's page in a StreamXR panel, with its videos, tabs and Subscribe button">
+          <figcaption><strong>Channels.</strong> Videos, Shorts, live and playlists, and Subscribe.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/settings.jpg" width="1280" height="800" loading="lazy"
+            alt="StreamXR's Settings panel above the controls">
+          <figcaption><strong>Settings.</strong> Make it look and feel the way you like.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="about" style="padding-top: 0">
+    <div class="wrap">
+      <h2>Free, private and open source</h2>
+      <p class="sub">A hobby project, made for VR fans, with nothing to sell.</p>
+      <div class="grid" id="privacy">
+        <div class="card">
+          <div class="emoji" aria-hidden="true">🔒</div>
+          <h3>Private by design</h3>
+          <p>StreamXR only has access to youtube.com. It has no servers, no analytics and no tracking,
+            and it collects nothing. Your settings stay in your browser.</p>
+          <p><a href="https://github.com/FauxxYT/StreamXR/blob/main/PRIVACY.md">Privacy policy</a></p>
+        </div>
+        <div class="card">
+          <div class="emoji" aria-hidden="true">🫶</div>
+          <h3>Free and open source, forever</h3>
+          <p>Every line is on GitHub under the MIT license. Bugs, ideas and translations are welcome
+            as issues.</p>
+          <p><a href="https://github.com/FauxxYT/StreamXR">Source code</a> ·
+            <a href="https://github.com/FauxxYT/StreamXR/issues">Report a bug or share an idea</a></p>
+        </div>
+        <div class="card">
+          <div class="emoji" aria-hidden="true">🚧</div>
+          <h3>Still growing</h3>
+          <p>More is on the way, including more sites like Twitch and your own Jellyfin and Plex
+            servers. See what's planned on the roadmap.</p>
+          <p><a href="https://github.com/FauxxYT/StreamXR#-roadmap">Roadmap</a></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="install" class="band">
+    <div class="wrap">
+      <h2>Get started in a minute</h2>
+      <p class="sub">Two ways to watch, both from the Chrome Web Store: <a href="#steam-frame">right on
+        the Steam Frame</a> or <a href="#pc-setup">on a Windows PC</a>. Either way it's free, with no
+        account beyond your own YouTube one (or none at all).</p>
+
+      <h3 class="steps-title" id="steam-frame">🥽 Right on the Steam Frame</h3>
+      <p class="sub" style="margin-bottom: 18px">StreamXR runs in the Frame's own Chromium browser, no PC
+        needed. It needs SteamOS <strong>0.5.7 or newer</strong>, which for now is a
+        <strong>Beta</strong>, so set that up first.</p>
+
+      <h4 class="steps-part">First: switch to the SteamOS Beta</h4>
+      <ol class="steps">
+        <li><strong>Open the Frame's settings</strong> and go to <strong>System</strong>.</li>
+        <li><strong>Join the Beta:</strong> under <strong>Beta Participation</strong>, set
+          <strong>System Update Channel</strong> to <strong>Beta</strong>.</li>
+        <li><strong>Install the update</strong> it offers, and let the Frame restart. Check that
+          SteamOS is now <strong>0.5.7 or newer</strong>.</li>
+      </ol>
+
+      <h4 class="steps-part">Then: install StreamXR</h4>
+      <ol class="steps">
+        <li><strong>Install or update Chromium</strong> (VR needs version 157 or newer): open
+          <strong>Discover</strong>, the Frame's app store, search for <strong>Chromium</strong> and
+          press <strong>Install</strong>. Already have it? Open Discover's <strong>Updates</strong>
+          page and update it there.</li>
+        <li><strong>Add StreamXR:</strong> in Chromium, open
+          <a href="https://chromewebstore.google.com/detail/streamxr/oddgidbdfeehaldomogopedpogcdomnd">StreamXR
+          on the Chrome Web Store</a>, click <strong>Add to Chrome</strong>, then <strong>Add
+          extension</strong>.</li>
+        <li><strong>Watch!</strong> On YouTube, click the 🥽 <strong>VR button</strong> (in the top bar
+          next to <strong>+ Create</strong>, or in a video's player), then <strong>Enter VR</strong>. It
+          can take a second or two. The first time, choose <strong>Allow while visiting the
+          site</strong>. 🍿</li>
+        <li><strong>Make the text sharp</strong> (recommended): while you're in VR, press the
+          <strong>Steam button</strong> to open Chromium's <strong>VR video settings</strong>, and set
+          the <strong>per-eye resolution</strong> to the highest value (<strong>3408</strong>). The
+          default makes text look blurry.</li>
+      </ol>
+      <p class="note">Updates are automatic; after one, reload your YouTube tab. On the Frame's
+        desktop, right-click is a click of the right stick (press it in).</p>
+
+      <h3 class="steps-title" id="pc-setup">🖥️ On a Windows PC</h3>
+      <p class="sub" style="margin-bottom: 18px">You'll need Windows 10 or 11, Google Chrome and SteamVR.</p>
+      <ol class="steps">
+        <li><strong>Install:</strong> open <a href="https://chromewebstore.google.com/detail/streamxr/oddgidbdfeehaldomogopedpogcdomnd">StreamXR
+          on the Chrome Web Store</a> in Chrome, click <strong>Add to Chrome</strong>, then
+          <strong>Add extension</strong>. The StreamXR Dashboard opens with a short welcome.</li>
+        <li><strong>Start SteamVR</strong> on your PC, and connect your headset to it.
+          <ul>
+            <li><strong>Steam Frame:</strong> in the headset, go to <strong>Streaming Status</strong>,
+              find the PC that's running SteamVR, open the <strong>Advanced</strong> drop-down and pick
+              <strong>Stream VR without game</strong>.</li>
+            <li><strong>Other headsets:</strong> connect them to SteamVR the way you usually do, with
+              SteamVR set as your OpenXR runtime (SteamVR's settings → OpenXR → <strong>Set SteamVR as
+              OpenXR Runtime</strong>).</li>
+          </ul>
+        </li>
+        <li><strong>Restart Chrome if SteamVR started after it.</strong> Chrome only looks for a
+          headset when it starts: if SteamVR wasn't running when you opened Chrome, close every Chrome
+          window and open it again.</li>
+        <li><strong>Pin StreamXR</strong> to the toolbar: click the 🧩 puzzle icon at the top right of
+          Chrome, then the 📌 pin next to StreamXR.</li>
+        <li><strong>Check your setup (optional):</strong> click StreamXR's button in the toolbar →
+          <strong>Open StreamXR Dashboard</strong> → <strong>Test VR</strong>. If something's wrong, the
+          Dashboard says what's most likely the problem.</li>
+        <li><strong>Watch!</strong> On YouTube, click the 🥽 <strong>VR button</strong> (in the top bar
+          next to <strong>+ Create</strong>, or in a video's player), then <strong>Enter VR</strong>. The
+          first time, Chrome asks to use virtual reality devices: choose <strong>Allow while visiting
+          the site</strong>. 🍿</li>
+      </ol>
+      <p class="note">Updates are automatic; after one, reload your YouTube tab. Want to skip ads from
+        inside VR? Add the <a href="#skip-helper">Skip Helper</a> too. Stuck? See
+        <a href="#troubleshooting">Quick troubleshooting</a>.</p>
+    </div>
+  </section>
+
+  <section id="troubleshooting" class="glow">
+    <div class="wrap">
+      <h2>Quick troubleshooting</h2>
+      <p class="sub">The fixes for what comes up most. StreamXR's Dashboard (its toolbar button →
+        <strong>Open StreamXR Dashboard</strong> → <strong>Test VR</strong>) also checks your setup and
+        says what's most likely wrong.</p>
+
+      <details>
+        <summary>🚫 "No VR headset found", or Enter VR is grayed out (PC)</summary>
+        <p>Chrome only looks for a headset when it starts. Start <strong>SteamVR</strong>, connect your
+          headset (Steam Frame: <strong>Streaming Status</strong> → your PC → <strong>Advanced</strong>
+          → <strong>Stream VR without game</strong>), then close <strong>every</strong> Chrome window and
+          open Chrome again.</p>
+      </details>
+      <details>
+        <summary>🧩 Still "No VR headset found" with SteamVR running (PC)</summary>
+        <p>Chrome reaches your headset through the <strong>OpenXR runtime</strong>, and other VR software
+          (Quest Link, Virtual Desktop and others) can take it over. In SteamVR, open <strong>Settings →
+          OpenXR</strong> and set <strong>SteamVR as the OpenXR runtime</strong>. Then quit Chrome fully:
+          turn off <strong>Settings → System → Continue running background apps when Chrome is
+          closed</strong>, close every window and open it again.</p>
+      </details>
+      <details>
+        <summary>🧪 Not sure it's StreamXR? (PC)</summary>
+        <p>With SteamVR running, open the <a href="https://immersive-web.github.io/webxr-samples/">WebXR
+          samples</a> in Chrome. If their <strong>Enter VR</strong> is grayed out too, Chrome can't see
+          your headset on any site: it's your PC's VR setup (the two answers above, or the next one),
+          not StreamXR.</p>
+      </details>
+      <details>
+        <summary>🛠️ SteamVR says it's the OpenXR runtime, but nothing finds the headset (PC)</summary>
+        <p>SteamVR's registration as the runtime can be broken even while its settings say it's set
+          (often after other VR software was installed and removed). <strong>Reinstall SteamVR</strong>:
+          in Steam's Library, right-click <strong>SteamVR → Manage → Uninstall</strong>, then install it
+          again, and say <strong>yes</strong> when it asks to become the OpenXR runtime. Then quit
+          Chrome fully and open it again.</p>
+      </details>
+      <details>
+        <summary>🥽 No VR on the Steam Frame's own browser</summary>
+        <p>VR there needs SteamOS <strong>0.5.7 or newer</strong> (the <a href="#steam-frame">Beta, for
+          now</a>) and Chromium <strong>157 or newer</strong>: update Chromium on Discover's
+          <strong>Updates</strong> page. Then close Chromium and open it again.</p>
+      </details>
+      <details>
+        <summary>🔍 No VR button on YouTube</summary>
+        <p>Make sure StreamXR is turned on in <code>chrome://extensions</code>, then reload the YouTube
+          tab.</p>
+      </details>
+      <details>
+        <summary>🔄 StreamXR updated, but nothing changed</summary>
+        <p>Reload your YouTube tab: an open tab keeps the old version until it's reloaded.</p>
+      </details>
+      <details>
+        <summary>🪟 "Another tab is already in VR"</summary>
+        <p>Chrome allows one VR session at a time. The popup names the tab that's in VR: click
+          <strong>Exit VR there</strong>, then Enter VR again.</p>
+      </details>
+      <details>
+        <summary>🌀 A video looks stretched, doubled or split into squares</summary>
+        <p>Pick another format in the popup before entering VR, or with the <strong>Format</strong>
+          button on the controls panel.</p>
+      </details>
+      <details>
+        <summary>🔍 The text looks blurry</summary>
+        <p>On the Steam Frame's own browser, press the <strong>Steam button</strong> while in VR and set
+          the <strong>per-eye resolution</strong> to <strong>3408</strong>. On a PC, raise
+          <strong>SteamVR → Settings → Video → Render Resolution</strong>. Everywhere: Settings →
+          Appearance → <strong>Text sharpness</strong> (too high can make it shimmer).</p>
+      </details>
+      <details>
+        <summary>🫥 The panels are in the way, or out of reach</summary>
+        <p>Press <strong>Grip</strong> (pointing at nothing) to recenter, or tune the <strong>Safe
+          Zone</strong> in Settings.</p>
+      </details>
+      <details>
+        <summary>⏩ The panel says "Skip on desktop"</summary>
+        <p>That's normal without the optional <a href="#skip-helper">Skip Helper</a>: click Skip ad in
+          the browser window, or install the helper.</p>
+      </details>
+      <details>
+        <summary>♻️ Settings got into a weird state</summary>
+        <p>Hold the <strong>right stick click</strong> for 3 seconds to reset everything to the
+          defaults.</p>
+      </details>
+      <p class="note">Still stuck? See the <a href="https://github.com/FauxxYT/StreamXR#-quick-troubleshooting">full
+        troubleshooting guide</a>, or <a href="https://github.com/FauxxYT/StreamXR/issues/new/choose">report
+        it on GitHub</a> with your details (VR button → <strong>Details</strong> → <strong>Copy
+        details</strong>).</p>
+    </div>
+  </section>
+
+  <section id="questions" style="padding-top: 0">
+    <div class="wrap">
+      <h2>Questions</h2>
+      <p class="sub">The things people ask most.</p>
+
+      <details id="skip-helper">
+        <summary>How can I install the Skip Helper?</summary>
+        <p>The Skip Helper is a tiny, optional second extension that lets you skip ads from inside VR.
+          YouTube only accepts a real click on its Skip button, and the only way an extension can make
+          one is Chrome's <code>debugger</code> permission, which comes with a scary-sounding warning.
+          So it lives in its own extension that does exactly one thing: press the Skip button you
+          asked for. <strong>YouTube Premium members don't need it</strong>; without it, everything
+          else works, and you click Skip ad in the browser window instead.</p>
+        <p>It isn't on the Chrome Web Store, so it's added by hand:</p>
+        <p><strong>On a PC:</strong></p>
+        <ol>
+          <li>Go to the <a href="https://github.com/FauxxYT/StreamXR/releases/latest">latest
+            release</a>, scroll to <strong>Assets</strong> and click <strong>Source code
+            (zip)</strong>.</li>
+          <li>Unzip it somewhere it can stay, like your Documents folder: right-click the zip →
+            <strong>Extract All…</strong> (Chrome runs the helper from there, so don't delete it).</li>
+          <li>In Chrome, go to <code>chrome://extensions</code>, turn on <strong>Developer mode</strong>
+            (top right), click <strong>Load unpacked</strong> and pick the <strong>skip-helper</strong>
+            folder inside the unzipped folder.</li>
+        </ol>
+        <p><strong>On the Steam Frame:</strong></p>
+        <ol>
+          <li>Open <strong>Konsole</strong>, the terminal app (it's in the app menu).</li>
+          <li>Paste this line with <strong>Ctrl + Shift + V</strong> and press <strong>Enter</strong>.
+            It downloads StreamXR's files into a <strong>StreamXR</strong> folder in your
+            <strong>Downloads</strong>; leave it there.
+            <div class="cmd"><button class="copy" type="button">Copy</button><pre><code>mkdir -p ~/Downloads/StreamXR &amp;&amp; curl -L https://github.com/FauxxYT/StreamXR/archive/refs/heads/main.tar.gz | tar -xz --strip-components=1 -C ~/Downloads/StreamXR</code></pre></div></li>
+          <li>In Chromium, go to <code>chrome://extensions</code>, turn on <strong>Developer
+            mode</strong> (top right), click <strong>Load unpacked</strong>, then pick
+            <strong>Downloads</strong> → <strong>StreamXR</strong> → <strong>skip-helper</strong>.</li>
+        </ol>
+        <p>It shows up as a second extension, "StreamXR Skip Helper for YouTube". Nothing to set up:
+          StreamXR finds it by itself. Each time it skips, Chrome shows a "started debugging this
+          browser" bar for a moment; that's how the real click is made.</p>
+      </details>
+
+      <details>
+        <summary>Is StreamXR really free?</summary>
+        <p>Yes. No price, no ads, no paid features, no account. It's a hobby project, open source under
+          the MIT license.</p>
+      </details>
+      <details>
+        <summary>Which headsets does it work with?</summary>
+        <p>It's built and tested on the Valve Steam Frame, either in its own browser or streamed from a
+          PC. Users have also reported the Meta Quest 2 and the Pimax Crystal Light working through
+          SteamVR, and other SteamVR headsets will likely work too.</p>
+      </details>
+      <details>
+        <summary>Do I need YouTube Premium?</summary>
+        <p>No. It works signed in or out. With Premium you get no ads and 1080p Premium; without it,
+          the optional <a href="#skip-helper">Skip Helper</a> lets you skip ads from inside VR.</p>
+      </details>
+      <details>
+        <summary>What about Netflix, HBO Max and other streaming services?</summary>
+        <p>Their videos are copy-protected, and browsers don't allow protected video in VR yet. StreamXR
+          is built to support them once that changes.
+          <a href="https://github.com/FauxxYT/StreamXR#-what-about-netflix-max-and-the-others">Why they don't work yet</a>.</p>
+      </details>
+      <details>
+        <summary>Does it work in Firefox?</summary>
+        <p>Not yet: desktop Firefox doesn't support WebXR, the web's VR support. A Firefox version will
+          come once it does.</p>
+      </details>
+    </div>
+  </section>
+
+  <section class="cta" style="padding-top: 16px">
+    <div class="wrap">
+      <h2>There's more on GitHub</h2>
+      <p class="sub" style="margin: 0 auto 28px">StreamXR's GitHub page has everything else: the full
+        guide with every control, troubleshooting, what's new in each version and the roadmap, plus
+        the source code. It's also where to report a bug, suggest a feature or help translate.</p>
+      <div class="actions">
+        <a class="btn primary" href="https://github.com/FauxxYT/StreamXR">Visit StreamXR on GitHub</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>StreamXR is not affiliated with, endorsed by, or sponsored by YouTube, Google or Valve.</span>
+    <nav aria-label="Links">
+      <a href="https://github.com/FauxxYT/StreamXR">GitHub</a>
+      <a href="https://github.com/FauxxYT/StreamXR/blob/main/PRIVACY.md">Privacy</a>
+      <a href="https://github.com/FauxxYT/StreamXR/blob/main/LICENSE">License</a>
+      <a href="https://github.com/FauxxYT/StreamXR/releases">Releases</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+  // Opens the question a link points to (#skip-helper), when the page loads with
+  // that address and on every click of such a link (also when the address is already that one),
+  // so the answer shows instead of a closed question.
+  function openQuestion(hash) {
+    var el = hash && document.getElementById(hash.slice(1));
+    if (el && el.tagName === 'DETAILS') el.open = true;
+  }
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href^="#"]');
+    if (a) openQuestion(a.getAttribute('href'));
+    // A command's Copy button: copies the line next to it, and says so for a moment.
+    // (Where the browser blocks the clipboard, the line is selected instead, for Ctrl + C.)
+    var copy = e.target.closest && e.target.closest('.cmd .copy');
+    if (!copy) return;
+    var code = copy.parentNode.querySelector('code');
+    function done(word) {
+      copy.textContent = word;
+      setTimeout(function () { copy.textContent = 'Copy'; }, 1500);
+    }
+    function select() {
+      var range = document.createRange();
+      range.selectNodeContents(code);
+      var sel = getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      done(document.execCommand && document.execCommand('copy') ? 'Copied' : 'Selected');
+    }
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(code.textContent).then(function () { done('Copied'); }, select);
+    } else {
+      select();
+    }
+  });
+  openQuestion(location.hash);
+</script>
+
+</body>
+</html>

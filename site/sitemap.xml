@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The site's one page, for Google Search Console (Sitemaps → submit "sitemap.xml"). -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://fauxxyt.github.io/StreamXR/</loc>
+  </url>
+</urlset>

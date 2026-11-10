@@ -133,14 +133,22 @@ list (the maintainer, 2026-10-17): the working plan. The README's roadmap keeps 
     built but hidden until it works without the Skip Helper.
 12. [x] **Chrome Web Store release, StreamXR 1.0:** published (2026-11-09):
     https://chromewebstore.google.com/detail/streamxr/oddgidbdfeehaldomogopedpogcdomnd. The
-    README installs from it on a PC. Still to do: merge to `main`, tag v1.0.0 and the GitHub
-    release; then put the listing's homepage, support and `main` privacy links in (left out
-    at submission while github.com timed out for Google's checker). Undecided: whether the
-    Skip Helper gets a listing too, and whether the Steam Frame's Chromium installs from the
-    store (untested; its README install stays the one-line download).
+    README installs from it on a PC; `main`, the v1.0.0 tag and the GitHub release followed
+    the same day. Still to do: put the listing's homepage, support and `main` privacy links
+    in (left out at submission while github.com timed out for Google's checker). The Steam Frame's
+    Chromium installs from the store too (the README's Frame install since 2026-11-09).
+    Undecided: whether the Skip Helper gets a listing too.
 
 Set aside: the Back button (0.73.0; deferred again 2026-10-30: no controller button is free). Deferred: Movies in Up Next (YouTube's
 movies are copy-protected, so they can't play in VR yet: `features/video-page.md`, "Deferred").
+
+## After 1.0: being found
+
+- [ ] **Website and search** (`site/`, built 2026-11-09): StreamXR wasn't showing on Google
+  for its own name. Left: turn on Pages (Settings → Pages → Source: GitHub Actions) and
+  publish it with the next merge to `main`; verify it in Google Search Console and submit
+  `sitemap.xml`; set it as the store listing's Official URL; fill in the repository's About
+  box (description, website, topics).
 
 ## Next: from u/TehSuperFruitSnack's Reddit feedback (after 0.88.1)
 

@@ -190,7 +190,9 @@ the store has accepted it:
 3. **Once the store has published it:** merge `develop` into `main` by pull request (`main`
    only ever holds released code: the README's Steam Frame install line downloads `main`'s
    archive), tag `main`'s merge commit `vX.Y.Z` (annotated, matching `manifest.json`), push
-   the tag, and create the GitHub release from it.
+   the tag, and create the GitHub release from it. The website (`site/`) updates by itself
+   when that merge changes it (`.github/workflows/pages.yml`); it can also be published by
+   hand from the Actions tab (**Website** → **Run workflow**).
 
 ## Forks
 

@@ -189,6 +189,9 @@ src/sites/youtube/             YOUTUBE
     site.js                    YouTube's entry on StreamXR Home and the toolbar popup (name, address, color)
 icons/                         the extension's icons, 16-128 px (tools/icons/make-icons.html)
 skip-helper/                   SEPARATE optional extension: presses YouTube's Skip ad button
+site/                          NOT the extension: StreamXR's website (https://fauxxyt.github.io/StreamXR/),
+                               one plain HTML page + images + sitemap.xml; published by
+                               .github/workflows/pages.yml when main changes
 third_party/material-symbols/  the Material Symbols license (Apache 2.0), for symbols.js
 third_party/material-color-utilities/   Google's Material Color Utilities (Apache 2.0), wrapped as a plain
                                script (ns.materialColor): makes the Material 3 palettes (tokens.js)

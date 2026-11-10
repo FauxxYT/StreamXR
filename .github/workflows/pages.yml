@@ -1,0 +1,37 @@
+# Publishes StreamXR's website (the site/ folder) to GitHub Pages:
+# https://fauxxyt.github.io/StreamXR/. Runs when main changes the site (so the site, like
+# main, only shows what's released), or by hand from the Actions tab.
+#
+# One-time setup: the repository's Settings → Pages → Build and deployment → Source:
+# "GitHub Actions".
+name: Website
+
+on:
+  push:
+    branches: [main]
+    paths: ['site/**', '.github/workflows/pages.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4
