@@ -6,6 +6,25 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 `manifest.json` version. Developed in October and November 2026. Technical notes for
 developers are in [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/).
 
+## Unreleased
+
+### Added
+- **StreamXR's website** (https://fauxxyt.github.io/StreamXR/): one page in `site/` that
+  introduces StreamXR, with the store screenshots and links to the Chrome Web Store, the Steam
+  Frame install and the repository; link previews, structured data and a sitemap so search
+  engines can find it. Published by `.github/workflows/pages.yml` when `main` changes. Not
+  part of the extension (no version bump; the store package doesn't include it). The README
+  links to it. Its "Get started" holds the Steam Frame steps (switching to the SteamOS Beta
+  first, as steps of their own) and the PC steps, and "Install on the Steam Frame" scrolls
+  there; then a Quick troubleshooting (the README's, as questions), Questions (with the Skip
+  Helper's install), and a last section pointing to the GitHub page for everything else.
+
+### Changed
+- **The Steam Frame installs from the Chrome Web Store** too, in the Frame's Chromium (README,
+  "Right on the Steam Frame"; updates are automatic). The one-line download moved to the
+  Frame's tips, for the Skip Helper, whose README steps now cover the PC and the Frame
+  separately.
+
 ## 1.0.0
 
 The first release on the [Chrome Web Store](https://chromewebstore.google.com/detail/streamxr/oddgidbdfeehaldomogopedpogcdomnd):
